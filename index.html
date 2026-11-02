@@ -121,13 +121,19 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 #btn-fire:active{transform:scale(.94);background:rgba(200,60,40,.45)}
 #gun-actions{position:absolute;right:14px;bottom:calc(280px + var(--sb));flex-direction:column}
 #crosshair{
-  position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:28px;height:28px;
-  pointer-events:none;opacity:0;z-index:25;transition:opacity .15s;
+  position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:36px;height:36px;
+  pointer-events:none;opacity:0;z-index:25;transition:opacity .15s,width .15s,height .15s;
 }
 #crosshair.on{opacity:1}
-#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(255,240,220,.85)}
-#crosshair::before{left:50%;top:0;width:2px;height:100%;transform:translateX(-50%)}
-#crosshair::after{top:50%;left:0;height:2px;width:100%;transform:translateY(-50%)}
+/* Dấu cộng đỏ — điểm ngắm khi cầm súng (cả khi chưa zoom) */
+#crosshair::before,#crosshair::after{
+  content:'';position:absolute;background:#e53935;border-radius:1px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 6px rgba(229,57,53,.45);
+}
+#crosshair::before{left:50%;top:0;width:3px;height:100%;transform:translateX(-50%)}
+#crosshair::after{top:50%;left:0;height:3px;width:100%;transform:translateY(-50%)}
+#crosshair.zoom{width:22px;height:22px}
+#crosshair.zoom::before,#crosshair.zoom::after{background:#ff1744}
 #scope-vignette{
   position:absolute;inset:0;pointer-events:none;opacity:0;z-index:23;
   background:radial-gradient(circle at 50% 48%,transparent 28%,rgba(0,0,0,.55) 72%);
@@ -2523,6 +2529,14 @@ async function greetPlayer(target) {
 }
 
 /* ========== SÚNG: AK-47 · BAZOOKA · ZOOM · BẮN ========== */
+function updateCrosshair() {
+  const ch = $('crosshair');
+  const armed = !!S.gun;
+  ch.classList.toggle('on', armed);
+  ch.classList.toggle('zoom', armed && S.aiming);
+  $('scope-vignette').classList.toggle('on', armed && S.aiming);
+  $('btn-aim').classList.toggle('holding', S.aiming);
+}
 function setGun(type) {
   S.gun = type || '';
   attachWeapon(player, S.gun);
@@ -2531,16 +2545,15 @@ function setGun(type) {
   });
   const armed = !!S.gun;
   $('gun-actions').classList.toggle('show', armed);
-  if (!armed) setAiming(false);
+  if (!armed) S.aiming = false;
+  updateCrosshair();
   publishPresence(true);
   toast(S.gun === 'ak' ? 'Cầm AK-47 — giữ Ngắm để zoom, Bắn để khai hoả' : S.gun === 'bazooka' ? 'Cầm Bazooka — ngắm kỹ rồi bắn tên lửa' : 'Bỏ vũ khí');
 }
 function setAiming(on) {
   if (!S.gun) on = false;
   S.aiming = !!on;
-  $('btn-aim').classList.toggle('holding', S.aiming);
-  $('crosshair').classList.toggle('on', S.aiming);
-  $('scope-vignette').classList.toggle('on', S.aiming);
+  updateCrosshair();
 }
 function getAimRay() {
   const origin = camera.position.clone();

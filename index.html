@@ -99,6 +99,41 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 .combat-btn:active{transform:scale(.96);background:rgba(243,235,224,.18)}
 #hit-flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 40%,rgba(255,80,80,.25),transparent 55%);transition:opacity .15s;z-index:40}
 #hit-flash.on{opacity:1}
+#weapon-bar{
+  position:absolute;right:12px;bottom:calc(110px + var(--sb));display:none;flex-direction:column;gap:8px;
+  pointer-events:auto;z-index:24;align-items:flex-end;
+}
+#weapon-bar.show{display:flex}
+.weapon-btn{
+  min-width:88px;min-height:42px;padding:8px 12px;border-radius:12px;border:1px solid rgba(243,235,224,.28);
+  background:rgba(12,8,6,.55);color:rgba(243,235,224,.92);font-size:.78rem;font-weight:600;
+  cursor:pointer;font-family:inherit;backdrop-filter:blur(12px);text-align:left;
+}
+.weapon-btn.on{border-color:rgba(243,235,224,.55);background:rgba(243,235,224,.16)}
+#gun-actions{display:none;gap:10px;pointer-events:auto;z-index:24}
+#gun-actions.show{display:flex}
+#btn-aim,#btn-fire{
+  width:64px;height:64px;border-radius:50%;border:1px solid rgba(243,235,224,.35);
+  background:rgba(12,8,6,.55);color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;
+  font-family:inherit;backdrop-filter:blur(12px);
+}
+#btn-aim.holding{background:rgba(100,160,255,.35);border-color:rgba(160,200,255,.6)}
+#btn-fire:active{transform:scale(.94);background:rgba(200,60,40,.45)}
+#gun-actions{position:absolute;right:14px;bottom:calc(280px + var(--sb));flex-direction:column}
+#crosshair{
+  position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:28px;height:28px;
+  pointer-events:none;opacity:0;z-index:25;transition:opacity .15s;
+}
+#crosshair.on{opacity:1}
+#crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(255,240,220,.85)}
+#crosshair::before{left:50%;top:0;width:2px;height:100%;transform:translateX(-50%)}
+#crosshair::after{top:50%;left:0;height:2px;width:100%;transform:translateY(-50%)}
+#scope-vignette{
+  position:absolute;inset:0;pointer-events:none;opacity:0;z-index:23;
+  background:radial-gradient(circle at 50% 48%,transparent 28%,rgba(0,0,0,.55) 72%);
+  transition:opacity .2s;
+}
+#scope-vignette.on{opacity:1}
 #joy-zone{position:absolute;left:0;bottom:0;width:46%;height:40%;pointer-events:auto;touch-action:none;z-index:30;-webkit-user-select:none;user-select:none}
 #joy-base{
   position:absolute;left:22px;bottom:calc(22px + var(--sb));width:112px;height:112px;border-radius:50%;
@@ -179,7 +214,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <ol class="steps">
         <li><span class="n">1</span><span>Điện thoại: kéo cần góc trái. Máy tính: WASD hoặc mũi tên.</span></li>
         <li><span class="n">2</span><span>Kéo xuống để thấy biển mây dưới chân; kéo lên để thấy sao. Tới gần lư hương, chuông, mõ…</span></li>
-        <li><span class="n">3</span><span>Chạm nút hành động ở giữa dưới màn hình.</span></li>
+        <li><span class="n">3</span><span>Góc phải: chọn AK / Bazooka. Ngắm (Shift) để zoom, Bắn (F) bắn bạn bè online.</span></li>
       </ol>
       <button class="btn big" id="btn-guide-ok">Bắt đầu</button>
       <button class="btn secondary" id="btn-guide-skip">Bỏ qua</button>
@@ -205,6 +240,17 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button class="combat-btn" data-act="da" type="button">Đá</button>
       <button class="combat-btn" data-act="tat" type="button">Tát</button>
     </div>
+    <div id="weapon-bar">
+      <button class="weapon-btn on" type="button" data-gun="">Tay không</button>
+      <button class="weapon-btn" type="button" data-gun="ak">AK-47</button>
+      <button class="weapon-btn" type="button" data-gun="bazooka">Bazooka</button>
+    </div>
+    <div id="gun-actions">
+      <button id="btn-aim" type="button">Ngắm<br/>Zoom</button>
+      <button id="btn-fire" type="button">Bắn</button>
+    </div>
+    <div id="crosshair"></div>
+    <div id="scope-vignette"></div>
     <div id="hit-flash"></div>
     <div id="joy-zone">
       <div id="joy-hint">Giữ & kéo để đi</div>
@@ -289,6 +335,7 @@ const S = {
   uid: null, online: false, nearPlayer: null, onlineCount: 0,
   netVisit: null, seenWishes: Object.create(null),
   combatUntil: 0, flinchUntil: 0,
+  gun: '', aiming: false, fireUntil: 0, baseFov: 55, projectiles: [],
 };
 
 const SPOTS = [
@@ -467,6 +514,37 @@ function playWhoosh() {
   g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
   s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + 0.35);
 }
+function playGunshot() {
+  const c = audio(); if (c.state === 'suspended') c.resume();
+  const t = c.currentTime;
+  const s = c.createBufferSource(); s.buffer = noiseBuf(0.2);
+  const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 0.7;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.22, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + 0.18);
+  const o = c.createOscillator(), og = c.createGain();
+  o.type = 'square'; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(60, t + 0.08);
+  og.gain.setValueAtTime(0.08, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+  o.connect(og); og.connect(master); o.start(t); o.stop(t + 0.1);
+}
+function playRocket() {
+  const c = audio(); if (c.state === 'suspended') c.resume();
+  const t = c.currentTime;
+  const s = c.createBufferSource(); s.buffer = noiseBuf(0.6);
+  const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(400, t); f.frequency.linearRampToValueAtTime(1200, t + 0.35);
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.12, t); g.gain.linearRampToValueAtTime(0.18, t + 0.2); g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + 0.55);
+}
+function playBoom() {
+  const c = audio(); if (c.state === 'suspended') c.resume();
+  const t = c.currentTime;
+  const s = c.createBufferSource(); s.buffer = noiseBuf(0.5);
+  const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 280;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + 0.5);
+}
 
 /* ========== VẬT LIỆU & HÌNH ========== */
 const M = {
@@ -599,8 +677,64 @@ function buildHumanoid({ robeColor = 0x355f8f, scale = 1, withFace = true } = {}
   box(0.14, 0.05, 0.22, M.woodD, -0.12, 0.04, 0.04, g, false);
   box(0.14, 0.05, 0.22, M.woodD, 0.12, 0.04, 0.04, g, false);
   g.scale.setScalar(scale);
-  g.userData = { armL, armR, legL, legR, handL, handR, walk: 0, robe };
+  g.userData = { armL, armR, legL, legR, handL, handR, walk: 0, robe, gun: null, gunType: '' };
   return g;
+}
+
+function buildAKGun() {
+  const g = new THREE.Group();
+  const dark = new THREE.MeshStandardMaterial({ color: 0x2c2c2a, roughness: 0.55, metalness: 0.55 });
+  const wood = new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 0.85 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.11, 0.5), dark); body.position.z = 0.08; g.add(body);
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.42, 6), dark);
+  barrel.rotation.x = Math.PI / 2; barrel.position.z = 0.45; g.add(barrel);
+  const stock = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.09, 0.2), wood); stock.position.set(0, 0.01, -0.26); g.add(stock);
+  const mag = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.15, 0.09), dark);
+  mag.position.set(0, -0.11, 0.04); mag.rotation.x = 0.2; g.add(mag);
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.11, 0.07), wood);
+  grip.position.set(0, -0.09, -0.04); grip.rotation.x = 0.45; g.add(grip);
+  const sight = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.05, 0.02), dark); sight.position.set(0, 0.08, 0.28); g.add(sight);
+  return g;
+}
+function buildBazookaGun() {
+  const g = new THREE.Group();
+  const olive = new THREE.MeshStandardMaterial({ color: 0x556b3a, roughness: 0.75, metalness: 0.25 });
+  const metal = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4, metalness: 0.6 });
+  const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.075, 0.95, 8), olive);
+  tube.rotation.x = Math.PI / 2; tube.position.z = 0.18; g.add(tube);
+  const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.065, 0.12, 8), metal);
+  tip.rotation.x = Math.PI / 2; tip.position.z = 0.68; g.add(tip);
+  const back = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.09, 0.1, 8), metal);
+  back.rotation.x = Math.PI / 2; back.position.z = -0.32; g.add(back);
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.14, 0.08), olive);
+  grip.position.set(0, -0.12, 0.02); g.add(grip);
+  const sight = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.04), metal); sight.position.set(0, 0.1, 0.1); g.add(sight);
+  return g;
+}
+function attachWeapon(humanoid, type) {
+  if (!humanoid) return;
+  if (humanoid.userData.gun) {
+    humanoid.remove(humanoid.userData.gun);
+    humanoid.userData.gun = null;
+  }
+  humanoid.userData.gunType = type || '';
+  if (!type) {
+    humanoid.userData.armR.rotation.set(0, 0, 0);
+    return;
+  }
+  const gun = type === 'bazooka' ? buildBazookaGun() : buildAKGun();
+  if (type === 'bazooka') {
+    gun.position.set(0.34, 1.02, 0.32);
+    gun.rotation.set(-0.35, 0.05, -0.2);
+    gun.scale.setScalar(1.05);
+  } else {
+    gun.position.set(0.4, 0.88, 0.28);
+    gun.rotation.set(-0.25, 0.15, -0.25);
+  }
+  humanoid.add(gun);
+  humanoid.userData.gun = gun;
+  humanoid.userData.armR.rotation.set(-1.15, 0.1, -0.35);
+  humanoid.userData.armL.rotation.set(-0.7, 0, 0.45);
 }
 
 /** Tháp nhiều tầng lớn (kiểu bảo tháp / chùa tầng) — nhẹ, không model ngoài */
@@ -1650,12 +1784,13 @@ $('btn-guide-skip').onclick = finishGuide;
 
 function startPlay() {
   S.playing = true; $('hud').style.display = 'block'; updateVisitorUI();
+  $('weapon-bar').classList.add('show');
   // Trả focus khỏi ô tên / nút — không thì WASD trên máy tính bị nuốt
   try { document.activeElement && document.activeElement.blur(); } catch (_) {}
   canvas.setAttribute('tabindex', '0');
   canvas.style.outline = 'none';
   setTimeout(() => { try { canvas.focus({ preventScroll: true }); } catch (_) { canvas.focus(); } }, 50);
-  toast(`Chào ${S.name}! Kéo nhìn xuống — chùa nổi trên biển mây thiên đường.`);
+  toast(`Chào ${S.name}! Chọn AK / Bazooka góc phải — Ngắm + Bắn bạn bè.`);
 }
 
 $('btn-mute').onclick = () => setMute(!S.muted);
@@ -1703,7 +1838,13 @@ addEventListener('keydown', e => {
   if (typingInField()) return;
   bindKey(e, true);
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
-  if (S.nearPlayer && !S.busy) {
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') setAiming(true);
+  if (e.code === 'KeyF' || e.code === 'Space') { if (S.gun) fireWeapon(); }
+  if (e.code === 'KeyR') {
+    const order = ['', 'ak', 'bazooka'];
+    setGun(order[(order.indexOf(S.gun) + 1) % order.length]);
+  }
+  if (S.nearPlayer && !S.busy && !S.gun) {
     if (e.code === 'Digit1' || e.code === 'Numpad1') doFriendAction('dam', S.nearPlayer);
     if (e.code === 'Digit2' || e.code === 'Numpad2') doFriendAction('da', S.nearPlayer);
     if (e.code === 'Digit3' || e.code === 'Numpad3') doFriendAction('tat', S.nearPlayer);
@@ -1712,8 +1853,12 @@ addEventListener('keydown', e => {
 });
 addEventListener('keyup', e => {
   bindKey(e, false);
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') setAiming(false);
 });
-addEventListener('blur', () => { for (const k of Object.keys(S.keys)) S.keys[k] = false; });
+addEventListener('blur', () => {
+  for (const k of Object.keys(S.keys)) S.keys[k] = false;
+  setAiming(false);
+});
 
 // Kéo xoay camera
 let lookPtr = null;
@@ -2160,7 +2305,7 @@ function makeRemoteAvatar(uid, name) {
   label.style.borderColor = 'rgba(109,207,109,.55)';
   label.textContent = name || 'Bạn';
   nameLabels.appendChild(label);
-  return { mesh: g, name: name || 'Bạn', label, tx: 0, tz: 8, tyaw: 0, emoteUntil: 0 };
+  return { mesh: g, name: name || 'Bạn', label, tx: 0, tz: 8, tyaw: 0, emoteUntil: 0, gunType: '' };
 }
 
 async function connectMultiplayer() {
@@ -2217,6 +2362,11 @@ async function connectMultiplayer() {
       rp.name = data.name || rp.name;
       rp.label.textContent = rp.name;
       rp.tx = data.x; rp.tz = data.z; rp.tyaw = data.yaw || 0;
+      const gType = data.gun || '';
+      if (rp.gunType !== gType) {
+        rp.gunType = gType;
+        attachWeapon(rp.mesh, gType);
+      }
       if (data.emote && data.emoteAt && now - data.emoteAt < 900) {
         rp.emoteUntil = Math.max(rp.emoteUntil, data.emoteAt + 700);
         rp.emoteType = data.emote;
@@ -2265,6 +2415,7 @@ function publishPresence(force = false) {
     x: +playerRoot.position.x.toFixed(2),
     z: +playerRoot.position.z.toFixed(2),
     yaw: +player.rotation.y.toFixed(2),
+    gun: S.gun || '',
     t: Date.now(),
   });
 }
@@ -2276,12 +2427,14 @@ function publishWish(w) {
   set(r, { ...w, uid: S.uid, t: serverTimestamp() });
 }
 
-const ACT_LABEL = { chao: 'chào', dam: 'đấm', da: 'đá', tat: 'tát' };
+const ACT_LABEL = { chao: 'chào', dam: 'đấm', da: 'đá', tat: 'tát', ak: 'bắn AK', bazooka: 'bắn bazooka' };
 const ACT_RECV = {
   chao: n => `${n} đang chào bạn`,
   dam: n => `${n} vừa đấm bạn!`,
   da: n => `${n} vừa đá bạn!`,
   tat: n => `${n} vừa tát bạn!`,
+  ak: n => `${n} bắn AK trúng bạn! 💥`,
+  bazooka: n => `${n} bắn bazooka trúng bạn! 🚀💥`,
 };
 
 function playCombatAnim(type) {
@@ -2326,16 +2479,26 @@ function receiveFriendAction(msg) {
   const type = msg.type || 'chao';
   const name = msg.fromName || 'Ai đó';
   toast(ACT_RECV[type] ? ACT_RECV[type](name) : `${name} tương tác với bạn`);
-  if (type !== 'chao') {
+  if (type === 'ak' || type === 'bazooka') {
+    flashHit();
+    shakeScreen(type === 'bazooka' ? 0.28 : 0.14);
+    S.flinchUntil = performance.now() + (type === 'bazooka' ? 700 : 420);
+    if (player) player.rotation.z = (Math.random() > 0.5 ? 1 : -1) * (type === 'bazooka' ? 0.45 : 0.28);
+    setTimeout(() => { if (player) player.rotation.z = 0; }, type === 'bazooka' ? 650 : 380);
+    if (type === 'bazooka') playBoom();
+    else playGunshot();
+    // Nổ nhỏ tại chỗ
+    for (let i = 0; i < (type === 'bazooka' ? 14 : 6); i++) {
+      emitSmoke?.(playerRoot.position.x + (Math.random() - 0.5), 1.2 + Math.random(), playerRoot.position.z + (Math.random() - 0.5), 2);
+    }
+  } else if (type !== 'chao') {
     flashHit();
     S.flinchUntil = performance.now() + 380;
-    // Ngả người nhẹ
     if (player) player.rotation.z = (Math.random() > 0.5 ? 1 : -1) * 0.25;
     setTimeout(() => { if (player) player.rotation.z = 0; }, 350);
   } else {
     playWhoosh();
   }
-  // Hiện emote trên người gửi nếu đang trong scene
   if (msg.from && remotePlayers.has(msg.from)) {
     const rp = remotePlayers.get(msg.from);
     rp.emoteUntil = Date.now() + 700;
@@ -2359,6 +2522,174 @@ async function greetPlayer(target) {
   doFriendAction('chao', target);
 }
 
+/* ========== SÚNG: AK-47 · BAZOOKA · ZOOM · BẮN ========== */
+function setGun(type) {
+  S.gun = type || '';
+  attachWeapon(player, S.gun);
+  document.querySelectorAll('.weapon-btn').forEach(b => {
+    b.classList.toggle('on', (b.dataset.gun || '') === S.gun);
+  });
+  const armed = !!S.gun;
+  $('gun-actions').classList.toggle('show', armed);
+  if (!armed) setAiming(false);
+  publishPresence(true);
+  toast(S.gun === 'ak' ? 'Cầm AK-47 — giữ Ngắm để zoom, Bắn để khai hoả' : S.gun === 'bazooka' ? 'Cầm Bazooka — ngắm kỹ rồi bắn tên lửa' : 'Bỏ vũ khí');
+}
+function setAiming(on) {
+  if (!S.gun) on = false;
+  S.aiming = !!on;
+  $('btn-aim').classList.toggle('holding', S.aiming);
+  $('crosshair').classList.toggle('on', S.aiming);
+  $('scope-vignette').classList.toggle('on', S.aiming);
+}
+function getAimRay() {
+  const origin = camera.position.clone();
+  const dir = new THREE.Vector3();
+  camera.getWorldDirection(dir);
+  return { origin, dir };
+}
+function findGunTarget(maxDist, hitRadius = 0.95) {
+  const { origin, dir } = getAimRay();
+  let best = null, bestD = maxDist;
+  for (const [id, rp] of remotePlayers) {
+    if (!rp.mesh.visible) continue;
+    const target = rp.mesh.position.clone(); target.y += 1.05;
+    const to = target.clone().sub(origin);
+    const dist = to.length();
+    if (dist < 0.8 || dist > maxDist) continue;
+    const lateral = new THREE.Vector3().crossVectors(dir, to).length();
+    const along = to.dot(dir);
+    if (along < 0.5) continue;
+    if (lateral < hitRadius && dist < bestD) {
+      bestD = dist;
+      best = { id, name: rp.name, dist, point: origin.clone().add(dir.clone().multiplyScalar(along)) };
+    }
+  }
+  return best;
+}
+function spawnMuzzleFlash() {
+  if (!player?.userData?.gun) return;
+  const flash = new THREE.Mesh(
+    new THREE.SphereGeometry(0.08, 6, 4),
+    new THREE.MeshBasicMaterial({ color: 0xffcc66, transparent: true, opacity: 0.95 })
+  );
+  flash.position.set(0, 0.02, 0.55);
+  player.userData.gun.add(flash);
+  setTimeout(() => { try { player.userData.gun.remove(flash); } catch (_) {} }, 60);
+}
+function spawnRocketVisual(from, dir, hitPoint, onDone) {
+  const rocket = new THREE.Group();
+  const body = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 0.35, 6),
+    new THREE.MeshStandardMaterial({ color: 0x556b3a, metalness: 0.4, roughness: 0.5, emissive: 0x223311, emissiveIntensity: 0.3 })
+  );
+  body.rotation.x = Math.PI / 2; rocket.add(body);
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.12, 6), new THREE.MeshBasicMaterial({ color: 0xff8844 }));
+  tip.rotation.x = Math.PI / 2; tip.position.z = 0.22; rocket.add(tip);
+  rocket.position.copy(from);
+  scene.add(rocket);
+  const dist = hitPoint ? from.distanceTo(hitPoint) : 28;
+  const speed = 22;
+  S.projectiles.push({
+    mesh: rocket, dir: dir.clone().normalize(), speed, life: dist / speed + 0.05,
+    hitPoint: hitPoint ? hitPoint.clone() : null, onDone,
+  });
+  playRocket();
+}
+function updateProjectiles(dt) {
+  for (let i = S.projectiles.length - 1; i >= 0; i--) {
+    const p = S.projectiles[i];
+    p.life -= dt;
+    p.mesh.position.addScaledVector(p.dir, p.speed * dt);
+    p.mesh.lookAt(p.mesh.position.clone().add(p.dir));
+    emitSmoke(p.mesh.position.x, p.mesh.position.y, p.mesh.position.z, 1);
+    const arrived = p.hitPoint && p.mesh.position.distanceTo(p.hitPoint) < 0.6;
+    if (p.life <= 0 || arrived) {
+      const pos = p.hitPoint || p.mesh.position;
+      for (let k = 0; k < 16; k++) emitSmoke(pos.x + (Math.random() - 0.5) * 1.2, pos.y + Math.random(), pos.z + (Math.random() - 0.5) * 1.2, 1);
+      playBoom();
+      shakeScreen(0.18);
+      scene.remove(p.mesh);
+      S.projectiles.splice(i, 1);
+      p.onDone?.();
+    }
+  }
+}
+async function fireWeapon() {
+  if (!S.playing || !S.gun || S.busy) return;
+  if (performance.now() < S.fireUntil) return;
+  const isBaz = S.gun === 'bazooka';
+  S.fireUntil = performance.now() + (isBaz ? 1400 : 280);
+  S.combatUntil = performance.now() + 200;
+
+  const maxDist = isBaz ? 42 : 32;
+  const hitR = S.aiming ? (isBaz ? 1.35 : 0.85) : (isBaz ? 1.8 : 1.25);
+  const target = findGunTarget(maxDist, hitR);
+  const { origin, dir } = getAimRay();
+  const muzzle = origin.clone().add(dir.clone().multiplyScalar(0.8));
+
+  if (isBaz) {
+    const end = target
+      ? target.point
+      : origin.clone().add(dir.clone().multiplyScalar(Math.min(maxDist, 30)));
+    spawnRocketVisual(muzzle, dir, end, () => {
+      if (target) sendGunHit('bazooka', target);
+    });
+    toast(target ? `Bazooka → ${target.name}!` : 'Bazooka bay vào mây…');
+  } else {
+    playGunshot();
+    spawnMuzzleFlash();
+    // Vệt đạn nhanh
+    const streak = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.015, 0.015, 0.9, 4),
+      new THREE.MeshBasicMaterial({ color: 0xffe0a0 })
+    );
+    streak.position.copy(muzzle);
+    streak.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+    scene.add(streak);
+    setTimeout(() => scene.remove(streak), 50);
+    if (target) {
+      sendGunHit('ak', target);
+      toast(`AK trúng ${target.name}!`);
+    } else {
+      toast('Trượt — ngắm zoom rồi bắn');
+    }
+  }
+  // Pose bắn
+  if (player?.userData) {
+    player.userData.armR.rotation.set(-1.35, 0.05, -0.25);
+  }
+}
+async function sendGunHit(type, target) {
+  if (!fbDb || !S.uid || !target) return;
+  update(ref(fbDb, `players/${S.uid}`), { emote: type, emoteAt: Date.now(), gun: S.gun, t: Date.now() });
+  push(ref(fbDb, `inbox/${target.id}`), {
+    type, fromName: S.name, from: S.uid, t: Date.now(),
+  });
+}
+
+$('weapon-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.weapon-btn');
+  if (!btn || !S.playing) return;
+  setGun(btn.dataset.gun || '');
+});
+$('btn-fire').onclick = () => fireWeapon();
+const aimDown = e => { e.preventDefault(); setAiming(true); };
+const aimUp = () => setAiming(false);
+$('btn-aim').addEventListener('pointerdown', aimDown);
+$('btn-aim').addEventListener('pointerup', aimUp);
+$('btn-aim').addEventListener('pointerleave', aimUp);
+$('btn-aim').addEventListener('pointercancel', aimUp);
+addEventListener('contextmenu', e => { if (S.playing && S.gun) e.preventDefault(); });
+addEventListener('mousedown', e => {
+  if (!S.playing || !S.gun) return;
+  if (e.button === 2) setAiming(true);
+});
+addEventListener('mouseup', e => {
+  if (e.button === 2) setAiming(false);
+  if (e.button === 0 && S.gun && S.aiming && e.target === canvas) fireWeapon();
+});
+
 function updateRemotes(dt) {
   const now = Date.now();
   for (const [, rp] of remotePlayers) {
@@ -2381,11 +2712,18 @@ function updateRemotes(dt) {
         ud.armR.rotation.set(-0.4, 0, -1.4); ud.armL.rotation.set(0.2, 0, 0.3);
       } else if (et === 'da') {
         ud.legR.rotation.set(-1.5, 0, 0); ud.armL.rotation.set(0.5, 0, 0.5); ud.armR.rotation.set(-0.4, 0, -0.3);
+      } else if (et === 'ak' || et === 'bazooka') {
+        ud.armR.rotation.set(-1.35, 0.05, -0.25); ud.armL.rotation.set(-0.7, 0, 0.45);
       }
     } else {
       const ud = rp.mesh.userData;
-      ud.armL.rotation.x *= 0.85; ud.armR.rotation.x *= 0.85;
-      ud.armL.rotation.z *= 0.85; ud.armR.rotation.z *= 0.85;
+      if (rp.gunType) {
+        ud.armR.rotation.set(-1.15, 0.1, -0.35);
+        ud.armL.rotation.set(-0.7, 0, 0.45);
+      } else {
+        ud.armL.rotation.x *= 0.85; ud.armR.rotation.x *= 0.85;
+        ud.armL.rotation.z *= 0.85; ud.armR.rotation.z *= 0.85;
+      }
       if (ud.legR) ud.legR.rotation.x *= 0.85;
     }
 
@@ -2430,30 +2768,49 @@ function updatePlayer(dt) {
     const ud = player.userData; ud.walk += dt * 10;
     if (performance.now() >= S.combatUntil) {
       ud.legL.rotation.x = Math.sin(ud.walk) * 0.6; ud.legR.rotation.x = -Math.sin(ud.walk) * 0.6;
-      ud.armL.rotation.x = -Math.sin(ud.walk) * 0.4; ud.armR.rotation.x = Math.sin(ud.walk) * 0.4;
-      ud.armL.rotation.z = 0; ud.armR.rotation.z = 0;
+      if (!S.gun) {
+        ud.armL.rotation.x = -Math.sin(ud.walk) * 0.4; ud.armR.rotation.x = Math.sin(ud.walk) * 0.4;
+        ud.armL.rotation.z = 0; ud.armR.rotation.z = 0;
+      } else {
+        ud.armR.rotation.set(-1.15, 0.1, -0.35);
+        ud.armL.rotation.set(-0.7, 0, 0.45);
+      }
     }
   } else {
     const ud = player.userData;
     if (performance.now() >= S.combatUntil) {
       ud.legL.rotation.x *= 0.8; ud.legR.rotation.x *= 0.8;
-      if (!S.busy) { ud.armL.rotation.x *= 0.8; ud.armR.rotation.x *= 0.8; ud.armL.rotation.z *= 0.8; ud.armR.rotation.z *= 0.8; }
+      if (!S.busy && !S.gun) { ud.armL.rotation.x *= 0.8; ud.armR.rotation.x *= 0.8; ud.armL.rotation.z *= 0.8; ud.armR.rotation.z *= 0.8; }
+      else if (S.gun) {
+        ud.armR.rotation.set(-1.15, 0.1, -0.35);
+        ud.armL.rotation.set(-0.7, 0, 0.45);
+      }
     }
   }
 
   // Camera quỹ đạo — ngẩng: sao/Trái Đất · cúi: biển mây thiên đường
-  const dist = 6.2;
+  const dist = S.aiming ? 3.4 : 6.2;
   const phi = S.pitch;
   const cosP = Math.cos(phi);
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   const cx = px + Math.sin(S.yaw) * dist * Math.max(0.12, cosP);
-  const cy = playerRoot.position.y + 1.35 + Math.sin(phi) * dist;
+  const cy = playerRoot.position.y + 1.45 + Math.sin(phi) * dist * (S.aiming ? 0.55 : 1);
   const cz = pz + Math.cos(S.yaw) * dist * Math.max(0.12, cosP);
-  // Cho phép camera hơi thấp khi cúi nhìn mây (không xuyên sàn đảo)
   camera.position.lerp(_v.set(cx, Math.max(0.35, cy), cz), 1 - Math.pow(0.0008, dt));
   const lookY = 1.35 + (phi < 0 ? -phi * 28 : -phi * 14);
-  _v2.set(px, lookY, pz);
+  const lookDist = S.aiming ? 8 : 0;
+  _v2.set(
+    px - Math.sin(S.yaw) * lookDist,
+    lookY,
+    pz - Math.cos(S.yaw) * lookDist
+  );
+  if (!S.aiming) _v2.set(px, lookY, pz);
   camera.lookAt(_v2);
+
+  // Zoom FOV khi ngắm
+  const wantFov = S.aiming ? (S.gun === 'bazooka' ? 32 : 26) : S.baseFov;
+  camera.fov += (wantFov - camera.fov) * Math.min(1, dt * 10);
+  camera.updateProjectionMatrix();
 
   // Spot gần + người chơi thật gần
   let near = null, best = 99;
@@ -2543,6 +2900,7 @@ function updateWorld(dt, t) {
   }
 
   updateParticles(dt);
+  updateProjectiles(dt);
   updateAI(dt);
   updateMinigame(dt);
   updateFortune(dt);

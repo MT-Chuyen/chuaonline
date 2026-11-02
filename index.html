@@ -500,17 +500,43 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 .music-actions .btn{min-height:44px;padding:10px 16px;background:#272727;color:#fff;border-color:#3f3f3f}
 .music-actions .btn.secondary{margin-top:0;background:transparent}
 .music-actions .btn#music-search-btn, .music-search-row .btn{background:#222}
-#yt-yard{
-  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.01);
-  width:min(920px,94vw);height:min(86vh,720px);z-index:145;pointer-events:none;opacity:0;
-  border-radius:12px;overflow:hidden;border:1px solid #303030;
-  box-shadow:0 16px 48px rgba(0,0,0,.75);
-  transition:opacity .2s;background:#0f0f0f;
-  display:flex;flex-direction:column;font-family:"Roboto","Be Vietnam Pro",sans-serif;
+/* CSS3D — video gắn vào bảng phố 3D, không cửa sổ phụ */
+#yt-css3d{
+  position:fixed;inset:0;z-index:145;pointer-events:none;overflow:hidden;
 }
-#yt-yard.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+#yt-css3d-cam{
+  width:100%;height:100%;transform-style:preserve-3d;
+}
+#yt-yard{
+  position:absolute;left:0;top:0;width:860px;height:485px;
+  opacity:0;overflow:hidden;background:#000;
+  display:flex;flex-direction:column;
+  font-family:"Roboto","Be Vietnam Pro",sans-serif;
+  transform-style:preserve-3d;backface-visibility:hidden;
+}
+#yt-yard.on{opacity:1}
+#yt-yard.yt-board{
+  border:0;border-radius:0;box-shadow:none;pointer-events:none;
+}
+#yt-yard.yt-board #yt-yard-top,
+#yt-yard.yt-board #yt-yard-side,
+#yt-yard.yt-board #yt-yard-bar{display:none!important}
+#yt-yard.yt-board #yt-yard-body{position:absolute;inset:0;display:block}
+#yt-yard.yt-board #yt-yard-frame{position:absolute;inset:0;width:100%;height:100%}
+/* Chỉ khi tìm bài mới hiện UI giữa màn */
+#yt-yard.yt-searching{
+  position:fixed;left:50%;top:50%;width:min(920px,94vw);height:min(86vh,720px);
+  transform:translate(-50%,-50%)!important;opacity:1;pointer-events:auto;
+  border:1px solid #303030;border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.75);
+  background:#0f0f0f;z-index:146;
+}
+#yt-yard.yt-searching #yt-yard-top,
+#yt-yard.yt-searching #yt-yard-bar{display:flex!important}
+#yt-yard.yt-searching #yt-yard-side{display:block}
+#yt-yard.yt-searching #yt-yard-body{position:relative;inset:auto;display:flex;flex:1;min-height:0}
+#yt-yard.yt-searching #yt-yard-frame{position:relative;flex:1;min-height:160px}
 #yt-yard-top{
-  flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:10px 12px;
+  flex:0 0 auto;display:none;align-items:center;gap:10px;padding:10px 12px;
   background:#0f0f0f;border-bottom:1px solid #272727;z-index:3;
 }
 #yt-yard-top .yt-mark{
@@ -533,26 +559,14 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   border-radius:0 40px 40px 0;border:1px solid #303030;background:#222;color:#fff;
   padding:0 16px;cursor:pointer;font-size:.9rem;font-family:inherit;flex-shrink:0;
 }
-#yt-yard-go:hover{background:#333}
 #yt-yard-body{flex:1;min-height:0;display:flex;position:relative;background:#000}
-#yt-yard-frame{
-  position:relative;flex:1;min-width:0;min-height:0;background:#000;z-index:0;
-}
+#yt-yard-frame{position:relative;flex:1;min-width:0;min-height:0;background:#000;z-index:0}
 #yt-yard iframe{
   position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#000;z-index:1;
 }
 #yt-yard-side{
   width:min(280px,38%);flex-shrink:0;overflow-y:auto;background:#0f0f0f;border-left:1px solid #272727;
   display:none;-webkit-overflow-scrolling:touch;
-}
-#yt-yard.on.yt-searching #yt-yard-side{display:block}
-@media (max-width:720px){
-  #yt-yard{height:min(92vh,820px)}
-  #yt-yard.on.yt-searching #yt-yard-body{flex-direction:column}
-  #yt-yard.on.yt-searching #yt-yard-side{
-    display:block;width:100%;max-height:42%;border-left:0;border-top:1px solid #272727;
-  }
-  #yt-yard.on.yt-searching #yt-yard-frame{min-height:48%}
 }
 .yt-side-item{
   display:flex;gap:8px;width:100%;text-align:left;border:0;background:transparent;color:#fff;
@@ -564,7 +578,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 .yt-side-item .m{font-size:.62rem;color:#aaa;margin-top:3px}
 .yt-side-empty{padding:16px;color:#aaa;font-size:.78rem;text-align:center}
 #yt-yard-bar{
-  flex:0 0 auto;display:flex;gap:6px;justify-content:flex-end;align-items:center;
+  flex:0 0 auto;display:none;gap:6px;justify-content:flex-end;align-items:center;
   padding:8px 10px;background:#0f0f0f;border-top:1px solid #272727;pointer-events:auto;z-index:2;
 }
 #yt-yard-bar .yt-now{flex:1;min-width:0;font-size:.72rem;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
@@ -572,25 +586,6 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   border:1px solid #3f3f3f;background:#272727;color:#fff;
   border-radius:18px;padding:7px 12px;font-size:.72rem;font-family:inherit;cursor:pointer;
 }
-#yt-yard-bar button:hover{background:#3f3f3f}
-/* Đang phát: máy nghe + xem rõ ở đáy màn (iframe YouTube thật) */
-#yt-yard.yt-playing{
-  top:auto;bottom:max(10px, calc(8px + var(--sb, 0px)));left:50%;
-  transform:translateX(-50%);
-  width:min(720px,94vw);height:auto;aspect-ratio:16/9;max-height:min(42vh,420px);
-  opacity:1;pointer-events:auto;border-radius:12px;border:1px solid #404040;
-  box-shadow:0 12px 40px rgba(0,0,0,.7);
-}
-#yt-yard.yt-playing #yt-yard-top{display:none}
-#yt-yard.yt-playing #yt-yard-side{display:none}
-#yt-yard.yt-playing #yt-yard-bar{display:flex}
-#yt-yard.yt-playing #yt-yard-body{flex:1;min-height:0}
-#yt-yard.yt-playing.yt-searching{
-  top:50%;bottom:auto;transform:translate(-50%,-50%);
-  width:min(920px,94vw);height:min(86vh,720px);aspect-ratio:auto;max-height:none;
-}
-#yt-yard.yt-playing.yt-searching #yt-yard-top{display:flex}
-#yt-yard.yt-playing.yt-searching #yt-yard-side{display:block}
 </style>
 </head>
 <body>
@@ -731,23 +726,27 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
     </div>
   </div>
 </div>
-<div id="yt-yard" aria-hidden="true">
-  <div id="yt-yard-top">
-    <div class="yt-mark"><i aria-hidden="true"></i> YouTube</div>
-    <div id="yt-yard-search-row">
-      <input id="yt-yard-q" type="search" maxlength="120" placeholder="Tìm kiếm" autocomplete="off" enterkeyhint="search"/>
-      <button type="button" id="yt-yard-go" title="Tìm kiếm">🔍</button>
+<div id="yt-css3d" aria-hidden="true">
+  <div id="yt-css3d-cam">
+    <div id="yt-yard" aria-hidden="true">
+      <div id="yt-yard-top">
+        <div class="yt-mark"><i aria-hidden="true"></i> YouTube</div>
+        <div id="yt-yard-search-row">
+          <input id="yt-yard-q" type="search" maxlength="120" placeholder="Tìm kiếm" autocomplete="off" enterkeyhint="search"/>
+          <button type="button" id="yt-yard-go" title="Tìm kiếm">🔍</button>
+        </div>
+      </div>
+      <div id="yt-yard-body">
+        <div id="yt-yard-frame"></div>
+        <div id="yt-yard-side"><div class="yt-side-empty">Kết quả tìm kiếm hiện ở đây</div></div>
+      </div>
+      <div id="yt-yard-bar">
+        <span class="yt-now" id="yt-yard-now"></span>
+        <button type="button" id="yt-yard-beat">Hòa nhịp</button>
+        <button type="button" id="yt-yard-search">Mở panel</button>
+        <button type="button" id="yt-yard-close">Tắt</button>
+      </div>
     </div>
-  </div>
-  <div id="yt-yard-body">
-    <div id="yt-yard-frame"></div>
-    <div id="yt-yard-side"><div class="yt-side-empty">Kết quả tìm kiếm hiện ở đây</div></div>
-  </div>
-  <div id="yt-yard-bar">
-    <span class="yt-now" id="yt-yard-now"></span>
-    <button type="button" id="yt-yard-beat">Hòa nhịp</button>
-    <button type="button" id="yt-yard-search">Mở panel</button>
-    <button type="button" id="yt-yard-close">Tắt</button>
   </div>
 </div>
 <!-- Âm thanh ẩn — hình ảnh gắn trên mesh 3D như tranh Ronaldo–Messi -->
@@ -793,6 +792,9 @@ const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.15, 3
 const clock = new THREE.Clock();
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3();
 const _ytC = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+const _ytQ = new THREE.Quaternion();
+const _ytMat = new THREE.Matrix4();
+const _ytCssEps = (n) => (Math.abs(n) < 1e-10 ? 0 : n);
 
 const S = {
   name: '', muted: false, playing: false,
@@ -11403,13 +11405,9 @@ function paintMusicBoardPoster(videoId, title, byName) {
     grd.addColorStop(1, 'rgba(0,0,0,.92)');
     ctx.fillStyle = grd;
     ctx.fillRect(0, 500, 1280, 220);
-    ctx.fillStyle = '#ff4444';
-    ctx.beginPath();
-    ctx.moveTo(56, 560); ctx.lineTo(56, 620); ctx.lineTo(108, 590); ctx.closePath();
-    ctx.fill();
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 36px "Be Vietnam Pro","Segoe UI",sans-serif';
-    ctx.fillText('PHỐ AN LẠC · ĐANG PHÁT', 130, 598);
+    ctx.fillText('PHỐ AN LẠC · ĐANG PHÁT', 56, 598);
     ctx.font = 'bold 42px "Be Vietnam Pro","Segoe UI",sans-serif';
     ctx.fillText(nice, 56, 660);
     if (by) {
@@ -11494,9 +11492,12 @@ function mountStreetVideo(videoId, title, muted, startSec = 0) {
     title="${nice}"
   ></iframe>`;
   yard.classList.add('on');
-  yard.classList.add('yt-playing');
-  yard.classList.remove('yt-board');
+  yard.classList.add('yt-board');
+  yard.classList.remove('yt-playing');
+  yard.classList.remove('yt-searching');
   yard.setAttribute('aria-hidden', 'false');
+  const cssRoot = $('yt-css3d');
+  if (cssRoot) cssRoot.setAttribute('aria-hidden', 'false');
   try { updateYardYtOverlay(); } catch (_) {}
 }
 
@@ -11611,6 +11612,18 @@ function stopMusicOnYard(opts = {}) {
     yard.style.width = '';
     yard.style.height = '';
   }
+  const cssRoot = $('yt-css3d');
+  if (cssRoot) {
+    cssRoot.setAttribute('aria-hidden', 'true');
+    cssRoot.style.perspective = '';
+  }
+  const camEl = $('yt-css3d-cam');
+  if (camEl) camEl.style.transform = '';
+  const panel = S.musicRoot?.userData?.panel;
+  if (panel?.material) {
+    panel.material.opacity = 1;
+    panel.material.transparent = false;
+  }
   const audio = $('yt-audio');
   if (audio) { try { audio.src = 'about:blank'; } catch (_) {} }
   const nowEl = $('yt-yard-now');
@@ -11693,7 +11706,7 @@ function playMusicOnYard(videoId, title, opts = {}) {
   if (!opts.skipNet) publishStreetMusic(id, niceTitle);
 
   if (!opts.silent) {
-    toast(`🎵 Đang phát cho cả phố · ${niceTitle}${startSec ? ` · từ ${startSec}s` : ''}`);
+    toast(`🎵 Phát trên bảng phố · ${niceTitle}${startSec ? ` · từ ${startSec}s` : ''}`);
   }
   try { playWhoosh(); } catch (_) {}
   if (!remote) {
@@ -11853,49 +11866,106 @@ function actMusicHoaNhip() {
   setTimeout(() => { if (!S.musicMode) S.busy = false; }, 600);
 }
 
+function css3dCameraMatrix(matrix) {
+  const e = matrix.elements;
+  return 'matrix3d(' +
+    _ytCssEps(e[0]) + ',' + _ytCssEps(-e[1]) + ',' + _ytCssEps(e[2]) + ',' + _ytCssEps(e[3]) + ',' +
+    _ytCssEps(e[4]) + ',' + _ytCssEps(-e[5]) + ',' + _ytCssEps(e[6]) + ',' + _ytCssEps(e[7]) + ',' +
+    _ytCssEps(e[8]) + ',' + _ytCssEps(-e[9]) + ',' + _ytCssEps(e[10]) + ',' + _ytCssEps(e[11]) + ',' +
+    _ytCssEps(e[12]) + ',' + _ytCssEps(-e[13]) + ',' + _ytCssEps(e[14]) + ',' + _ytCssEps(e[15]) + ')';
+}
+
+function css3dObjectMatrix(matrix) {
+  const e = matrix.elements;
+  return 'translate(-50%,-50%) matrix3d(' +
+    _ytCssEps(e[0]) + ',' + _ytCssEps(e[1]) + ',' + _ytCssEps(e[2]) + ',' + _ytCssEps(e[3]) + ',' +
+    _ytCssEps(-e[4]) + ',' + _ytCssEps(-e[5]) + ',' + _ytCssEps(-e[6]) + ',' + _ytCssEps(-e[7]) + ',' +
+    _ytCssEps(e[8]) + ',' + _ytCssEps(e[9]) + ',' + _ytCssEps(e[10]) + ',' + _ytCssEps(e[11]) + ',' +
+    _ytCssEps(e[12]) + ',' + _ytCssEps(e[13]) + ',' + _ytCssEps(e[14]) + ',' + _ytCssEps(e[15]) + ')';
+}
+
 function updateYardYtOverlay() {
   const el = $('yt-yard');
+  const camEl = $('yt-css3d-cam');
+  const root = $('yt-css3d');
   if (!el) return;
   const panel = S.musicRoot?.userData?.panel;
   if (panel && S.musicScreenAnchor) {
     panel.getWorldPosition(S.musicScreenAnchor);
   }
+
   const searching = el.classList.contains('yt-searching') || document.activeElement === $('yt-yard-q');
   if (searching) {
     el.classList.add('on');
-    el.classList.add('yt-playing');
-    el.style.opacity = '1';
-    el.style.pointerEvents = 'auto';
-    el.style.left = '50%';
-    el.style.top = '50%';
-    el.style.bottom = 'auto';
+    el.classList.remove('yt-board');
     el.style.width = '';
     el.style.height = '';
-    el.style.transform = 'translate(-50%, -50%) scale(1)';
+    el.style.opacity = '1';
+    el.style.pointerEvents = 'auto';
+    el.style.transform = 'translate(-50%, -50%)';
+    if (camEl) camEl.style.transform = '';
+    if (root) {
+      root.style.perspective = '';
+      root.setAttribute('aria-hidden', 'false');
+    }
     el.setAttribute('aria-hidden', 'false');
     return;
   }
-  if (S.musicPlaying) {
-    // Cửa sổ phát cố định đáy màn — luôn thấy + nghe được
-    el.classList.add('on');
-    el.classList.add('yt-playing');
-    el.classList.remove('yt-board');
-    el.style.opacity = '1';
-    el.style.pointerEvents = 'auto';
-    el.style.left = '';
-    el.style.top = '';
-    el.style.bottom = '';
-    el.style.width = '';
-    el.style.height = '';
-    el.style.transform = '';
-    el.setAttribute('aria-hidden', 'false');
+
+  if (!S.musicPlaying || !panel || !camera) {
+    if (!S.musicPlaying && el.classList.contains('on') && !S.musicMode) {
+      el.classList.remove('on');
+      el.classList.remove('yt-board');
+      el.classList.remove('yt-playing');
+      el.setAttribute('aria-hidden', 'true');
+      if (root) root.setAttribute('aria-hidden', 'true');
+    }
     return;
   }
-  if (el.classList.contains('on') && !S.musicMode) {
-    el.classList.remove('on');
-    el.classList.remove('yt-playing');
-    el.classList.remove('yt-board');
-    el.setAttribute('aria-hidden', 'true');
+
+  // Gắn iframe YouTube lên mặt bảng 3D (CSS3D) — không cửa sổ phụ
+  panel.updateWorldMatrix(true, false);
+  panel.getWorldPosition(_v);
+  panel.getWorldQuaternion(_ytQ);
+  _v2.set(0, 0, 1).transformDirection(panel.matrixWorld);
+  const toCam = new THREE.Vector3().copy(camera.position).sub(_v).normalize();
+  const facing = _v2.dot(toCam) > 0.08;
+
+  // Object scale: 860×485 px ↔ panel 8.6×4.85 world
+  if (!S._ytCssObj) S._ytCssObj = new THREE.Object3D();
+  S._ytCssObj.position.copy(_v);
+  S._ytCssObj.quaternion.copy(_ytQ);
+  S._ytCssObj.scale.set(8.6 / 860, 4.85 / 485, 1);
+  S._ytCssObj.updateMatrixWorld(true);
+
+  camera.updateMatrixWorld();
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const fov = camera.projectionMatrix.elements[5] * (h * 0.5);
+  if (root) {
+    root.style.perspective = `${fov}px`;
+    root.setAttribute('aria-hidden', 'false');
+  }
+  if (camEl) {
+    camEl.style.transform = `translateZ(${fov}px) ${css3dCameraMatrix(camera.matrixWorldInverse)}`;
+  }
+  el.classList.add('on');
+  el.classList.add('yt-board');
+  el.classList.remove('yt-playing');
+  el.style.width = '860px';
+  el.style.height = '485px';
+  el.style.left = '0';
+  el.style.top = '0';
+  el.style.bottom = 'auto';
+  el.style.transform = css3dObjectMatrix(S._ytCssObj.matrixWorld);
+  el.style.opacity = facing ? '1' : '0';
+  el.style.pointerEvents = 'none';
+  el.setAttribute('aria-hidden', 'false');
+
+  // Ẩn poster mesh khi nhìn thấy video (tránh đè hình tĩnh)
+  if (panel.material) {
+    panel.material.transparent = true;
+    panel.material.opacity = facing ? 0.05 : 1;
   }
 }
 

@@ -301,21 +301,74 @@ const SPOTS = [
 
 const BAD = ['đm','dm','địt','dit','đụ','đu','cặc','cac','lồn','lon','đéo','deo','fuck','shit','bitch','vl','vcl','clgt','đcm','dcm'];
 const QUẺ = [
-  'Tâm an thì đường đi cũng êm.','Hôm nay hãy chậm lại một nhịp thở.','Điều tốt đang đến gần, cứ bình thản.',
-  'Gia đình ấm áp là phúc lớn nhất.','Một nụ cười cũng đủ làm ngày sáng hơn.','Kiên nhẫn sẽ mở ra cánh cửa mới.',
-  'Hãy tin vào bước chân nhỏ của mình.','Sự tử tế luôn được đáp lại bằng bình an.','Học hành chăm chỉ, tâm trí sáng suốt.',
-  'Sức khoẻ là nền tảng của mọi ước mơ.','Buông bỏ lo âu, đón nhận bình yên.','Người thân đang nghĩ tốt về bạn.',
-  'Mỗi ngày là một cơ hội mới.','Lòng biết ơn làm cuộc sống dịu dàng.','Con đường phía trước rộng mở và sáng sủa.',
-  'Hãy lắng nghe trái tim mình nhiều hơn.','Công việc xuôi chèo mát mái.','Tình bạn chân thành sẽ đồng hành cùng bạn.',
-  'Một chút im lặng cũng là chữa lành.','Ước nguyện chân thành luôn có chỗ đứng.','Hôm nay trời trong, lòng cũng trong.',
-  'Đừng vội — điều đẹp cần thời gian.','Bạn đang trên hành trình đúng hướng.','Hạnh phúc nằm trong những điều giản dị.',
-  'Thêm một việc tốt, thêm một niềm vui.','Gia đạo thuận hoà, mọi sự êm đềm.','Tâm sáng thì mọi việc đều sáng.',
-  'Hãy nâng niu sức khoẻ của chính mình.','Thi cử hay công việc — cứ làm hết lòng.','Bình an lan toả từ bạn tới mọi người.',
-  'Những ngày sắp tới thật dịu dàng.','Một lời nói dịu dàng đổi cả bầu không khí.','Bạn xứng đáng được nghỉ ngơi và yêu thương.',
-  'Hoa sen nở chậm nhưng rất đẹp.','Hãy giữ vững niềm tin vào điều thiện.','Mọi khó khăn rồi cũng sẽ qua.',
-  'Ánh sáng nhỏ cũng đủ soi đường.','Hôm nay là ngày tốt để bắt đầu lại.','Lòng từ bi làm thế giới mềm mại hơn.',
-  'An nhiên từng hơi thở — đó là quà tặng.',
+  // An lành (cổ điển, dịu)
+  { rank: 'Thượng Cát', title: 'Tâm An', text: 'Tâm an thì đường đi cũng êm — hôm nay khỏi chạy deadline tâm hồn.' },
+  { rank: 'Thượng Cát', title: 'Sen Nở', text: 'Hoa sen nở chậm nhưng rất đẹp. Giống bạn submit bài… sát giờ mà vẫn được điểm.' },
+  { rank: 'Trung Cát', title: 'Chậm Mà Chắc', text: 'Đừng vội — điều đẹp cần thời gian. Wifi cũng vậy, đừng F5 thêm lần nữa.' },
+  { rank: 'Thượng Cát', title: 'Gia Đạo', text: 'Gia đình ấm áp là phúc lớn nhất. Nhắn tin hỏi thăm mẹ đi, đừng chỉ thả tim story.' },
+  { rank: 'Trung Cát', title: 'Biết Ơn', text: 'Lòng biết ơn làm cuộc sống dịu dàng. Bắt đầu bằng… cảm ơn người pha trà/cà phê giúp bạn.' },
+  // Công việc / học hành
+  { rank: 'Đại Cát', title: 'Deadline Lui', text: 'Công việc xuôi chèo mát mái. Deadline tự dưng… được gia hạn (tin được không?).' },
+  { rank: 'Trung Cát', title: 'Bug Biến', text: 'Hôm nay code chạy được ngay lần đầu. Không phải ảo giác — là phúc đức tổ tiên.' },
+  { rank: 'Tiểu Cát', title: 'Họp Ngắn', text: 'Cuộc họp sẽ ngắn bất ngờ. Ai cũng đói cơm trưa cả.' },
+  { rank: 'Trung Cát', title: 'Thi Vận', text: 'Học hành sáng suốt: mở sách ra là nhớ… ít nhất là nhớ mình từng highlight chỗ đó.' },
+  { rank: 'Đại Cát', title: 'Mail Tốt', text: 'Hộp thư sắp có tin vui. Không phải spam “chúc mừng trúng thưởng”.' },
+  { rank: 'Trung Cát', title: 'Review Pass', text: 'Pull request được approve nhanh. Reviewer hôm nay… tâm từ bi.' },
+  { rank: 'Tiểu Cát', title: 'Não Cá Vàng', text: 'Quên mật khẩu một lần nữa cũng được — vũ trụ nhắc bạn nên dùng password manager.' },
+  // Tình cảm / xã hội
+  { rank: 'Thượng Cát', title: 'Crush Rõ', text: 'Người ấy đang nghĩ về bạn. Hoặc đang nghĩ ăn gì. Xác suất 50-50, cứ đi.' },
+  { rank: 'Trung Cát', title: 'Bạn Hiền', text: 'Tình bạn chân thành đồng hành cùng bạn — kể cả lúc bạn gửi meme lúc 2 giờ sáng.' },
+  { rank: 'Tiểu Cát', title: 'Seen Chưa Reply', text: 'Đừng đọc thầm tin nhắn. Có khi họ đang… tìm emoji phù hợp suốt 3 tiếng.' },
+  { rank: 'Trung Cát', title: 'Nói Dịu', text: 'Một lời nói dịu dàng đổi cả bầu không khí. Thử “ừm được á” thay vì “kệ”.' },
+  { rank: 'Đại Cát', title: 'Quen Người Mới', text: 'Sắp gặp duyên mới — có thể là bạn học, đồng nghiệp, hoặc… shipper giao đúng món.' },
+  // Đời thường hài hước
+  { rank: 'Đại Cát', title: 'Cơm Ngon', text: 'Hôm nay ăn gì cũng hợp khẩu vị. Kể cả cơm nguội với mắm — cũng thành fine dining.' },
+  { rank: 'Trung Cát', title: 'Ngủ Ngon', text: 'Đêm nay ngủ sâu. Trừ khi bạn mở TikTok “chỉ một video”.' },
+  { rank: 'Tiểu Cát', title: 'Pin Yếu', text: 'Điện thoại báo 1% nhưng vẫn sống thêm 20 phút — đó là phép màu chùa này ban.' },
+  { rank: 'Trung Cát', title: 'Tắc Đường', text: 'Đường về nhà êm hơn. Nếu vẫn kẹt xe: coi như thiền trên yên xe máy.' },
+  { rank: 'Đại Cát', title: 'Shipper Tới', text: 'Đơn hàng đến sớm hơn dự kiến. Vũ trụ hiểu bạn đói.' },
+  { rank: 'Tiểu Cát', title: 'Vớ Lẻ', text: 'Hôm nay bạn sẽ tìm thấy chiếc vớ thất lạc. Hoặc chấp nhận đi một chân ấm một chân lạnh.' },
+  { rank: 'Trung Cát', title: 'Wi‑Fi Mạnh', text: 'Mạng ổn định bất thường. Download xong mới tin.' },
+  { rank: 'Đại Cát', title: 'Sale Trúng', text: 'Món bạn để wishlist… giảm giá thật. Đừng mua thêm bảy món “tiện thể”.' },
+  { rank: 'Tiểu Cát', title: 'Chìa Khoá', text: 'Chìa khoá đang ở túi bạn. Kiểm tra lại trước khi đổ tội cho nghiệp.' },
+  { rank: 'Trung Cát', title: 'Cà Phê Đúng', text: 'Ly cà phê hôm nay đúng độ đắng cuộc đời — tức là… uống được.' },
+  // Sức khoẻ / tâm
+  { rank: 'Thượng Cát', title: 'Thở Đã', text: 'Hôm nay hãy chậm lại một nhịp thở. Inbox không cháy… chắc vậy.' },
+  { rank: 'Đại Cát', title: 'Khoẻ Khoắn', text: 'Sức khoẻ lên hương. Uống nước, đứng dậy vươn vai — chùa khuyến khích.' },
+  { rank: 'Trung Cát', title: 'Buông Lo', text: 'Buông bỏ lo âu. Lo được thì lo, không được thì… đi xin quẻ tiếp.' },
+  { rank: 'Thượng Cát', title: 'Tâm Sáng', text: 'Tâm sáng thì mọi việc đều sáng. Kể cả khi theme IDE của bạn là dark mode.' },
+  { rank: 'Trung Cát', title: 'Im Lặng Chữa Lành', text: 'Một chút im lặng cũng là chữa lành. Tắt thông báo nhóm lớp 15 phút xem sao.' },
+  // Hơi “xui” nhưng vui
+  { rank: 'Tiểu Hung', title: 'Trễ 5 Phút', text: 'Bạn sẽ trễ một chút — nhưng đúng giờ để tránh chuyện phiền. Vũ trụ làm traffic controller.' },
+  { rank: 'Trung Bình', title: 'Mưa Lẻ', text: 'Trời có thể mưa đúng lúc bạn quên ô. Coi như tắm miễn phí + detox.' },
+  { rank: 'Tiểu Hung', title: 'Nói Nhầm', text: 'Suýt gửi nhầm tin nhắn. Đọc lại trước khi Enter — nghiệp báo đang canh.' },
+  { rank: 'Trung Bình', title: 'Ăn Kiêng Fail', text: 'Hôm nay kiêng đồ ngọt… đến khi thấy trà sữa. Thôi, bắt đầu lại từ ngày mai.' },
+  { rank: 'Tiểu Hung', title: 'Tab Mở 87', text: 'Máy bạn sắp chậm vì 87 tab. Đóng bớt = tích đức số.' },
+  { rank: 'Trung Bình', title: 'Ngáp Hội Nghị', text: 'Bạn sẽ ngáp trong họp. Để mic tắt — đó là thượng sách.' },
+  // Đặc biệt / random vui
+  { rank: 'Đại Cát', title: 'Superman Mode', text: 'Hôm nay bạn bay thấp hơn tượng Superman một chút — nhưng vẫn cứu được deadline.' },
+  { rank: 'Thượng Cát', title: 'Bạn Bè Online', text: 'Sân chùa đông vui. Ai đó ngoài kia cũng đang cầm cần ảo như bạn.' },
+  { rank: 'Đại Cát', title: 'Đấm Nhẹ', text: 'Gần bạn bè thì chào trước khi đấm. Nghiệp báo có camera đấy.' },
+  { rank: 'Trung Cát', title: 'Nhìn Trời', text: 'Ngẩng lên: có sao, Trái Đất, tàu bay. Cuộc đời rộng hơn cái màn hình.' },
+  { rank: 'Đại Cát', title: 'Quẻ May', text: 'Đây là quẻ may mắn thật sự. Screenshot lại… rồi quên mất vì hết dung lượng.' },
+  { rank: 'Trung Cát', title: 'Làm Lại', text: 'Hôm nay là ngày tốt để bắt đầu lại. Kể cả series bạn bỏ dở từ tập 3.' },
+  { rank: 'Thượng Cát', title: 'Từ Bi Online', text: 'Thả tym thay vì tranh cãi. Internet dịu lại một độ.' },
+  { rank: 'Tiểu Cát', title: 'Hết Tiền Mặt', text: 'Quên tiền mặt cũng được — nhưng đừng quên… mang theo bình an.' },
+  { rank: 'Đại Cát', title: 'Về Nhà Ấm', text: 'Về nhà có người hỏi “ăn cơm chưa?”. Đó là phước lớn hơn trúng số.' },
+  { rank: 'Trung Cát', title: 'Cat Energy', text: 'Hôm nay vận mèo: ngủ được lúc nào ngủ, vui thì chạy lung tung.' },
+  { rank: 'Thượng Cát', title: 'An Nhiên', text: 'An nhiên từng hơi thở — đó là quà tặng. Bonus: không cần cập nhật app.' },
+  { rank: 'Đại Cát', title: 'Ước Thành', text: 'Ước nguyện chân thành luôn có chỗ đứng. Viết vào sổ cầu an đi, đừng chỉ nghĩ trong đầu.' },
+  { rank: 'Trung Cát', title: 'Bước Nhỏ', text: 'Hãy tin vào bước chân nhỏ của mình. 10.000 bước? Thôi 2.000 cũng đáng khen.' },
+  { rank: 'Tiểu Cát', title: 'Random Crit', text: 'Vận may kiểu game: đánh quái thường rơi đồ hiếm. Hôm nay bạn là nhân vật chính.' },
+  { rank: 'Trung Bình', title: 'Lag Một Nhịp', text: 'Mọi thứ chậm nửa nhịp — như mạng chùa giờ cao điểm. Thở, rồi thử lại.' },
+  { rank: 'Đại Cát', title: 'Cười Bật', text: 'Hôm nay bạn sẽ cười một cái rất vô duyên. Cứ cười — phúc đức tăng damage.' },
+  { rank: 'Thượng Cát', title: 'Bình An Lan', text: 'Bình an lan từ bạn tới mọi người. Kể cả group chat đang loạn emoji.' },
 ];
+function drawQue() {
+  const q = QUẺ[(Math.random() * QUẺ.length) | 0];
+  const n = String((Math.random() * 99 | 0) + 1).padStart(2, '0');
+  return { ...q, n };
+}
 const BUBBLES = ['Cầu cho mẹ khoẻ','Mong thi đậu','Bình an cả nhà','Nam mô A Di Đà Phật','Cầu cho ông bà','Con ngoan học giỏi','Gia đình êm ấm','Sức khoẻ bình an','An lành năm mới','Cho bố mẹ sống lâu'];
 
 const KEY = 'chua_cau_an_v1';
@@ -1878,13 +1931,15 @@ function updateFortune(dt) {
     S.fortuneMode = false; S.shake = 0;
     if (S.fortuneTube) S.fortuneTube.rotation.z = 0;
     endMinigame();
-    const q = QUẺ[(Math.random()*QUẺ.length)|0];
-    S.fortunes.push({ text: q, at: Date.now() }); saveAll();
+    const q = drawQue();
+    const line = `Quẻ ${q.n} · ${q.rank} · ${q.title}: ${q.text}`;
+    S.fortunes.push({ text: line, at: Date.now() }); saveAll();
     playWhoosh();
     openModal(`
-      <h2>Quẻ của bạn</h2>
-      <p style="font-size:1.1rem;color:var(--gold);margin:16px 0">${q}</p>
-      <p class="tiny">Mang tính giải trí</p>
+      <h2>Quẻ số ${q.n}</h2>
+      <p class="tiny" style="margin-top:4px">${q.rank} — ${q.title}</p>
+      <p style="font-size:1.08rem;color:var(--gold);margin:16px 0;line-height:1.55">${q.text}</p>
+      <p class="tiny">Mang tính giải trí · Lắc lại để ra quẻ khác</p>
       <div class="row"><button class="btn" id="m-ok">Nhận lời</button></div>
     `);
     $('m-ok').onclick = () => { closeModal(); S.busy = false; };

@@ -140,6 +140,18 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 .selfie-frame .sf-title{position:absolute;top:10px;left:0;right:0;text-align:center;font-size:.72rem;color:#e8d5ff;letter-spacing:.04em}
 .selfie-frame .sf-crew{font-size:1.6rem;letter-spacing:.08em;margin-bottom:6px}
 .selfie-frame .sf-cap{font-size:.78rem;color:rgba(243,235,224,.85);text-align:center;line-height:1.35}
+.bts-photo-wrap{display:flex;flex-direction:column;align-items:center;margin:6px 0 12px}
+.bts-photo{
+  width:min(168px,42vw);height:min(210px,52vw);object-fit:cover;object-position:center top;
+  border-radius:14px;border:2px solid rgba(220,180,255,.55);
+  box-shadow:0 10px 28px rgba(0,0,0,.45);background:#2a1830;
+}
+.bts-photo.round{width:120px;height:120px;border-radius:50%;object-position:center 20%}
+.bts-photo-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.bts-photo-row img{width:52px;height:64px;object-fit:cover;object-position:center top;border-radius:8px;border:1px solid rgba(220,180,255,.4)}
+.bts-credit{font-size:.62rem;color:rgba(243,235,224,.4);margin-top:6px;text-align:center}
+.bubble3d.bts-label{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px}
+.bubble3d.bts-label img{width:28px;height:28px;border-radius:50%;object-fit:cover;object-position:center 18%;border:1px solid rgba(220,180,255,.5)}
 #weapon-bar{
   position:absolute;right:12px;bottom:calc(168px + var(--sb));display:none;flex-direction:column;gap:6px;
   pointer-events:auto;z-index:55;align-items:flex-end;
@@ -2161,28 +2173,37 @@ function spawnGroup() {
 
 /* ========== BTS — khách đặc biệt (fanmeet cầu an, hài) ========== */
 const BTS_MEMBERS = [
-  { id: 'rm', name: 'RM', full: 'Kim Namjoon', color: 0x2d1b4e, lines: [
+  { id: 'rm', name: 'RM', full: 'Kim Namjoon', color: 0x2d1b4e, photo: './assets/bts/rm.jpg', lines: [
     'Cầu an trước, album sau 💜', 'IQ 148 nhưng vẫn xếp hàng thắp hương', 'Nam mô… Dynamite?',
   ]},
-  { id: 'jin', name: 'Jin', full: 'Kim Seokjin', color: 0x4a3040, lines: [
+  { id: 'jin', name: 'Jin', full: 'Kim Seokjin', color: 0x4a3040, photo: './assets/bts/jin.jpg', lines: [
     'Worldwide handsome… đang cầu cho da đẹp', 'Ăn gì cũng được, miễn là có cơm chùa', 'I am sick — sick of waiting in line',
   ]},
-  { id: 'suga', name: 'Suga', full: 'Min Yoongi', color: 0x1a1a22, lines: [
+  { id: 'suga', name: 'Suga', full: 'Min Yoongi', color: 0x1a1a22, photo: './assets/bts/suga.jpg', lines: [
     'Ký nhanh rồi để anh ngủ tiếp', 'Beat drop = tiếng chuông chùa', 'Đừng gọi anh dậy lúc 5 giờ sáng',
   ]},
-  { id: 'jhope', name: 'J-Hope', full: 'Jung Hoseok', color: 0xb85c20, lines: [
+  { id: 'jhope', name: 'J-Hope', full: 'Jung Hoseok', color: 0xb85c20, photo: './assets/bts/jhope.jpg', lines: [
     'Hope World ngay trên thiên đường!', 'Nhảy một điệu rồi mới xin quẻ', 'ARMY ơi, cười lên nào~',
   ]},
-  { id: 'jimin', name: 'Jimin', full: 'Park Jimin', color: 0x6b3a5c, lines: [
+  { id: 'jimin', name: 'Jimin', full: 'Park Jimin', color: 0x6b3a5c, photo: './assets/bts/jimin.jpg', lines: [
     'Chữ ký cute bằng cả một concert', 'Filter sẵn rồi, selfie đi!', 'Cầu cho eo nhỏ… à không, tâm an',
   ]},
-  { id: 'v', name: 'V', full: 'Kim Taehyung', color: 0x3d4a2a, lines: [
+  { id: 'v', name: 'V', full: 'Kim Taehyung', color: 0x3d4a2a, photo: './assets/bts/v.jpg', lines: [
     'Tae Tae gửi bình an kiểu hộp sữa', 'Chụp nghiêng 45 độ là đẹp nhất', 'Borahe — cầu an version',
   ]},
-  { id: 'jk', name: 'Jungkook', full: 'Jeon Jungkook', color: 0x2a3548, lines: [
+  { id: 'jk', name: 'Jungkook', full: 'Jeon Jungkook', color: 0x2a3548, photo: './assets/bts/jk.jpg', lines: [
     'Golden maknae ký bằng cả hai tay', 'Selfie xong còn thỉnh chuông giúp bạn', 'Jeon… mô A Di Đà Phật',
   ]},
 ];
+const BTS_PHOTO_CREDIT = 'Ảnh: Dispatch · CC BY 3.0 (Wikimedia Commons)';
+function btsPhotoHtml(m, { round = false, huge = false } = {}) {
+  if (huge) {
+    const imgs = BTS_MEMBERS.map(x => `<img src="${x.photo}" alt="${x.name}" loading="lazy"/>`).join('');
+    return `<div class="bts-photo-row">${imgs}</div><div class="bts-credit">${BTS_PHOTO_CREDIT}</div>`;
+  }
+  const cls = round ? 'bts-photo round' : 'bts-photo';
+  return `<div class="bts-photo-wrap"><img class="${cls}" src="${m.photo}" alt="${m.name}" loading="lazy"/><div class="bts-credit">${BTS_PHOTO_CREDIT}</div></div>`;
+}
 const BTS_CHAT = [
   'Jin: “Bạn xếp hàng sau đúng 7 kiếp nữa nhé.”',
   'Suga: “Ký rồi đó. Đừng tag story lúc anh ngủ.”',
@@ -2216,7 +2237,8 @@ function killBts(b, big = false) {
   b.body.rotation.x = 0.4;
   b.body.position.y = 0.1;
   b.label.classList.remove('on');
-  b.label.textContent = `💀 ${b.member.name}`;
+      b.label.innerHTML = `<img src="${b.member.photo}" alt=""/><span>💀 ${b.member.name}</span>`;
+      if (b.portrait) b.portrait.visible = false;
   spawnExplosionBurst(b.mesh.position.x, 1.0, b.mesh.position.z, !!big);
   const line = BTS_DEATH_LINES[b.member.id] || `${b.member.name} đã hạ!`;
   toast(line);
@@ -2228,7 +2250,8 @@ function respawnBts(b) {
   b.mesh.position.set(b.baseX, 0, b.baseZ);
   b.body.rotation.set(0, 0, 0);
   b.body.position.y = 0;
-  b.label.textContent = `🎤 ${b.member.name}`;
+  b.label.innerHTML = `<img src="${b.member.photo}" alt=""/><span>🎤 ${b.member.name}</span>`;
+  if (b.portrait) b.portrait.visible = true;
   toast(`Encore! ${b.member.name} hồi sinh tại fanmeet 💜`);
 }
 function damageBts(b, amount, big = false) {
@@ -2280,14 +2303,29 @@ function buildBtsCrew() {
     scene.add(root);
 
     const label = document.createElement('div');
-    label.className = 'bubble3d on';
+    label.className = 'bubble3d on bts-label';
     label.style.borderColor = 'rgba(180,120,255,.55)';
     label.style.background = 'rgba(40,20,60,.78)';
-    label.textContent = `🎤 ${m.name}`;
+    label.innerHTML = `<img src="${m.photo}" alt=""/><span>🎤 ${m.name}</span>`;
     nameLabels.appendChild(label);
 
+    // Ảnh thật treo trên đầu (billboard luôn nhìn camera)
+    const portrait = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.62, 0.78),
+      new THREE.MeshBasicMaterial({ color: 0x4a2080, transparent: true, opacity: 0.95, side: THREE.DoubleSide })
+    );
+    portrait.position.set(0, 2.35, 0);
+    root.add(portrait);
+    const loader = new THREE.TextureLoader();
+    loader.load(m.photo, tex => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      portrait.material.map = tex;
+      portrait.material.color.setHex(0xffffff);
+      portrait.material.needsUpdate = true;
+    }, undefined, () => { /* giữ nền tím nếu lỗi ảnh */ });
+
     btsCrew.push({
-      mesh: root, body: mesh, member: m, label,
+      mesh: root, body: mesh, member: m, label, portrait,
       baseX: x, baseZ: z, phase: i * 0.9, bounce: 0,
       hp: BTS_MAX_HP, deadUntil: 0,
     });
@@ -2315,6 +2353,10 @@ function updateBts(dt, t) {
     const bob = Math.sin(t * 3.2 + b.phase) * 0.04;
     const sway = Math.sin(t * 2.1 + b.phase) * 0.08;
     b.body.position.y = bob;
+    if (b.portrait) {
+      b.portrait.position.y = 2.35 + bob * 0.5;
+      b.portrait.quaternion.copy(camera.quaternion); // luôn quay mặt vào camera
+    }
     const ud = b.body.userData;
     if (ud) {
       ud.armL.rotation.z = 0.35 + sway;
@@ -2327,7 +2369,7 @@ function updateBts(dt, t) {
         ud.legR.rotation.x = -Math.sin(t * 6) * 0.4;
       }
     }
-    _v.set(b.mesh.position.x, 2.05, b.mesh.position.z);
+    _v.set(b.mesh.position.x, 2.55, b.mesh.position.z);
     _v.project(camera);
     if (_v.z < 1) {
       b.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
@@ -2367,6 +2409,7 @@ function openBtsMenu(member) {
   S.interactOpen = true;
   openModal(`
     <h2>🎤 Fanmeet BTS</h2>
+    ${btsPhotoHtml(m)}
     <p><strong>${m.name}</strong> (${m.full}) đang cầu an tại chùa thiên đường.<br/>Xin gì nào, ARMY?</p>
     <div class="row">
       <button class="choice" id="bts-hug">🤗 Ôm chặt</button>
@@ -2423,6 +2466,7 @@ function hugBts(m) {
   }
   openModal(`
     <h2>${huge ? '🤗 HUGE HUG — cả BTS!' : `🤗 Ôm ${m.name}`}</h2>
+    ${huge ? btsPhotoHtml(m, { huge: true }) : btsPhotoHtml(m, { round: true })}
     <p>${huge
       ? `<strong>Cả bảy người</strong> lao vào ôm ${S.name || 'bạn'} giữa sân chùa. Đèn lồng cũng rung!`
       : `<strong>${m.name}</strong> ôm bạn: “${line}”`}</p>
@@ -2482,6 +2526,7 @@ function askBtsSignature(m) {
   playWhoosh();
   openModal(`
     <h2>Chữ ký của ${m.name}!</h2>
+    ${btsPhotoHtml(m, { round: true })}
     <div class="sig-card">
       <div class="sig-name">To: ${S.name || 'ARMY'}</div>
       <div class="sig-line">✧ ${m.name} ✧</div>
@@ -2527,9 +2572,10 @@ function takeBtsSelfie(m) {
     <h2>📸 Selfie với ${m.name}</h2>
     <div class="selfie-frame">
       <div class="sf-title">BTS FANMEET · CHÙA AN LẠC</div>
-      <div class="sf-crew">🧍‍♂️🎤✨</div>
+      <img class="bts-photo round" src="${m.photo}" alt="${m.name}" style="width:110px;height:110px;margin:28px 0 8px;border-color:rgba(255,255,255,.45)"/>
       <div class="sf-cap"><strong>${S.name}</strong> + <strong>${m.name}</strong><br/>${cap}</div>
     </div>
+    <div class="bts-credit">${BTS_PHOTO_CREDIT}</div>
     <p class="tiny">Đã lưu · Tổng ${S.btsSelfies} selfie</p>
     <div class="row">
       <button class="btn" id="m-ok" type="button">Đăng story (tưởng tượng)</button>
@@ -2548,6 +2594,7 @@ function chatBts(m) {
   const personal = m.lines[(Math.random() * m.lines.length) | 0];
   openModal(`
     <h2>💬 Nói chuyện với ${m.name}</h2>
+    ${btsPhotoHtml(m, { round: true })}
     <p><strong>${m.name}:</strong> “${personal}”</p>
     <p>${joke}</p>
     <div class="row">

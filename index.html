@@ -100,43 +100,47 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 #hit-flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 40%,rgba(255,80,80,.25),transparent 55%);transition:opacity .15s;z-index:40}
 #hit-flash.on{opacity:1}
 #weapon-bar{
-  position:absolute;right:12px;bottom:calc(110px + var(--sb));display:none;flex-direction:column;gap:8px;
-  pointer-events:auto;z-index:24;align-items:flex-end;
+  position:absolute;right:12px;bottom:calc(168px + var(--sb));display:none;flex-direction:column;gap:6px;
+  pointer-events:auto;z-index:55;align-items:flex-end;
 }
 #weapon-bar.show{display:flex}
 .weapon-btn{
-  min-width:88px;min-height:42px;padding:8px 12px;border-radius:12px;border:1px solid rgba(243,235,224,.28);
-  background:rgba(12,8,6,.55);color:rgba(243,235,224,.92);font-size:.78rem;font-weight:600;
+  min-width:86px;min-height:40px;padding:8px 12px;border-radius:12px;border:1px solid rgba(243,235,224,.28);
+  background:rgba(12,8,6,.72);color:rgba(243,235,224,.92);font-size:.76rem;font-weight:600;
   cursor:pointer;font-family:inherit;backdrop-filter:blur(12px);text-align:left;
 }
-.weapon-btn.on{border-color:rgba(243,235,224,.55);background:rgba(243,235,224,.16)}
-#gun-actions{display:none;gap:10px;pointer-events:auto;z-index:24}
+.weapon-btn.on{border-color:rgba(243,235,224,.55);background:rgba(243,235,224,.18)}
+#gun-actions{
+  position:absolute;right:14px;bottom:calc(24px + var(--sb));display:none;flex-direction:row;gap:12px;
+  pointer-events:auto;z-index:55;align-items:center;
+}
 #gun-actions.show{display:flex}
 #btn-aim,#btn-fire{
-  width:64px;height:64px;border-radius:50%;border:1px solid rgba(243,235,224,.35);
-  background:rgba(12,8,6,.55);color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;
-  font-family:inherit;backdrop-filter:blur(12px);
+  width:72px;height:72px;border-radius:50%;border:2px solid rgba(243,235,224,.45);
+  background:rgba(12,8,6,.78);color:#fff;font-size:.75rem;font-weight:700;cursor:pointer;
+  font-family:inherit;backdrop-filter:blur(12px);line-height:1.15;box-shadow:0 8px 24px rgba(0,0,0,.45);
 }
-#btn-aim.holding{background:rgba(100,160,255,.35);border-color:rgba(160,200,255,.6)}
-#btn-fire:active{transform:scale(.94);background:rgba(200,60,40,.45)}
-#gun-actions{position:absolute;right:14px;bottom:calc(280px + var(--sb));flex-direction:column}
+#btn-aim.holding{background:rgba(50,120,220,.55);border-color:rgba(160,200,255,.85)}
+#btn-fire{background:rgba(160,40,30,.82);border-color:rgba(255,120,100,.65)}
+#btn-fire:active{transform:scale(.94);background:rgba(200,50,35,.9)}
+/* Dấu cộng đỏ giữa màn — hiện ngay khi cầm súng */
 #crosshair{
-  position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);width:36px;height:36px;
-  pointer-events:none;opacity:0;z-index:25;transition:opacity .15s,width .15s,height .15s;
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:44px;height:44px;pointer-events:none;display:none;z-index:60;
 }
-#crosshair.on{opacity:1}
-/* Dấu cộng đỏ — điểm ngắm khi cầm súng (cả khi chưa zoom) */
-#crosshair::before,#crosshair::after{
-  content:'';position:absolute;background:#e53935;border-radius:1px;
-  box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 6px rgba(229,57,53,.45);
+#crosshair.on{display:block}
+#crosshair .ch-h,#crosshair .ch-v{
+  position:absolute;background:#ff2222;border-radius:2px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.5),0 0 8px rgba(255,30,30,.7);
 }
-#crosshair::before{left:50%;top:0;width:3px;height:100%;transform:translateX(-50%)}
-#crosshair::after{top:50%;left:0;height:3px;width:100%;transform:translateY(-50%)}
-#crosshair.zoom{width:22px;height:22px}
-#crosshair.zoom::before,#crosshair.zoom::after{background:#ff1744}
+#crosshair .ch-h{left:0;top:50%;width:100%;height:4px;transform:translateY(-50%)}
+#crosshair .ch-v{top:0;left:50%;width:4px;height:100%;transform:translateX(-50%)}
+#crosshair.zoom{width:28px;height:28px}
+#crosshair.zoom .ch-h,#crosshair.zoom .ch-v{background:#ff1744;height:3px}
+#crosshair.zoom .ch-v{width:3px;height:100%}
 #scope-vignette{
-  position:absolute;inset:0;pointer-events:none;opacity:0;z-index:23;
-  background:radial-gradient(circle at 50% 48%,transparent 28%,rgba(0,0,0,.55) 72%);
+  position:absolute;inset:0;pointer-events:none;opacity:0;z-index:22;
+  background:radial-gradient(circle at 50% 50%,transparent 34%,rgba(0,0,0,.35) 78%);
   transition:opacity .2s;
 }
 #scope-vignette.on{opacity:1}
@@ -255,7 +259,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button id="btn-aim" type="button">Ngắm<br/>Zoom</button>
       <button id="btn-fire" type="button">Bắn</button>
     </div>
-    <div id="crosshair"></div>
+    <div id="crosshair" aria-hidden="true"><span class="ch-v"></span><span class="ch-h"></span></div>
     <div id="scope-vignette"></div>
     <div id="hit-flash"></div>
     <div id="joy-zone">
@@ -2531,11 +2535,14 @@ async function greetPlayer(target) {
 /* ========== SÚNG: AK-47 · BAZOOKA · ZOOM · BẮN ========== */
 function updateCrosshair() {
   const ch = $('crosshair');
+  if (!ch) return;
   const armed = !!S.gun;
   ch.classList.toggle('on', armed);
   ch.classList.toggle('zoom', armed && S.aiming);
+  ch.style.display = armed ? 'block' : 'none';
   $('scope-vignette').classList.toggle('on', armed && S.aiming);
   $('btn-aim').classList.toggle('holding', S.aiming);
+  $('btn-aim').innerHTML = S.aiming ? 'Tắt<br>zoom' : 'Ngắm<br>Zoom';
 }
 function setGun(type) {
   S.gun = type || '';
@@ -2548,12 +2555,16 @@ function setGun(type) {
   if (!armed) S.aiming = false;
   updateCrosshair();
   publishPresence(true);
-  toast(S.gun === 'ak' ? 'Cầm AK-47 — giữ Ngắm để zoom, Bắn để khai hoả' : S.gun === 'bazooka' ? 'Cầm Bazooka — ngắm kỹ rồi bắn tên lửa' : 'Bỏ vũ khí');
+  toast(S.gun === 'ak' ? 'AK-47: dấu + đỏ = tâm ngắm · bấm Ngắm để zoom · Bắn hoặc phím F' : S.gun === 'bazooka' ? 'Bazooka: bấm Ngắm (bật/tắt zoom), rồi Bắn' : 'Bỏ vũ khí');
 }
 function setAiming(on) {
   if (!S.gun) on = false;
   S.aiming = !!on;
   updateCrosshair();
+}
+function toggleAiming() {
+  if (!S.gun) return;
+  setAiming(!S.aiming);
 }
 function getAimRay() {
   const origin = camera.position.clone();
@@ -2686,21 +2697,16 @@ $('weapon-bar').addEventListener('click', e => {
   if (!btn || !S.playing) return;
   setGun(btn.dataset.gun || '');
 });
-$('btn-fire').onclick = () => fireWeapon();
-const aimDown = e => { e.preventDefault(); setAiming(true); };
-const aimUp = () => setAiming(false);
-$('btn-aim').addEventListener('pointerdown', aimDown);
-$('btn-aim').addEventListener('pointerup', aimUp);
-$('btn-aim').addEventListener('pointerleave', aimUp);
-$('btn-aim').addEventListener('pointercancel', aimUp);
+$('btn-fire').onclick = e => { e.preventDefault(); e.stopPropagation(); fireWeapon(); };
+// Ngắm = bật/tắt (không cần giữ) — vẫn đi được + thấy nút Bắn khi zoom
+$('btn-aim').onclick = e => { e.preventDefault(); e.stopPropagation(); toggleAiming(); };
 addEventListener('contextmenu', e => { if (S.playing && S.gun) e.preventDefault(); });
 addEventListener('mousedown', e => {
   if (!S.playing || !S.gun) return;
-  if (e.button === 2) setAiming(true);
+  if (e.button === 2) toggleAiming();
 });
 addEventListener('mouseup', e => {
-  if (e.button === 2) setAiming(false);
-  if (e.button === 0 && S.gun && S.aiming && e.target === canvas) fireWeapon();
+  if (e.button === 0 && S.gun && e.target === canvas) fireWeapon();
 });
 
 function updateRemotes(dt) {

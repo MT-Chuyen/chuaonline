@@ -2856,12 +2856,12 @@ function setGun(type) {
   toast(tips[S.gun] ?? 'Đổi vũ khí');
 }
 function setAiming(on) {
-  if (!S.gun) on = false;
+  if (!S.gun || S.gun === 'knife') on = false;
   S.aiming = !!on;
   updateCrosshair();
 }
 function toggleAiming() {
-  if (!S.gun) return;
+  if (!S.gun || S.gun === 'knife') return;
   setAiming(!S.aiming);
 }
 /** Súng FPS gắn vào camera khi zoom từ mắt */

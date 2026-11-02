@@ -259,7 +259,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   #joy-zone,#look-zone,#btn-sprint,#joy-hint,#look-hint{display:none !important}
 }
 
-.modal{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);padding:16px;padding-bottom:calc(16px + var(--sb));backdrop-filter:blur(2px)}
+.modal{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);padding:16px;padding-bottom:calc(16px + var(--sb));backdrop-filter:blur(2px);z-index:130}
 .modal.open{display:flex}
 .panel{
   width:min(400px,100%);max-height:min(78vh,620px);overflow-y:auto;
@@ -282,7 +282,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 .stat{background:rgba(255,255,255,.04);border-radius:12px;padding:12px;text-align:center;border:1px solid var(--line)}
 .stat .v{font-size:1.25rem;color:#fff;font-weight:600}.stat .l{font-size:.7rem;opacity:.65;margin-top:3px}
 
-#minigame{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,5,3,.5);pointer-events:auto;backdrop-filter:blur(3px)}
+#minigame{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,5,3,.5);pointer-events:auto;backdrop-filter:blur(3px);z-index:120}
 #minigame.open{display:flex}
 #mg-title{font-family:"Literata",Georgia,serif;color:#f7f0e6;font-size:1.35rem;margin-bottom:8px}
 #mg-hint{font-size:.88rem;margin-bottom:20px;color:var(--muted);text-align:center;padding:0 16px}
@@ -2838,8 +2838,14 @@ function openMinigame(title, hint) {
 function endMinigame() {
   $('minigame').classList.remove('open');
   $('ring-wrap').style.display = 'none'; $('mg-tap').style.display = 'none';
-  mg.running = false; mg.type = null; S.busy = false;
-  $('shake-hint').style.display = 'none'; S.fortuneMode = false;
+  const tap = $('mg-tap');
+  if (tap) { tap.onpointerdown = tap.onpointerup = tap.onpointerleave = tap.onpointercancel = tap.onclick = null; }
+  mg.running = false; mg.type = null;
+  // Fortune tự mở modal sau — giữ busy; minigame khác thì mở khóa
+  if (!S.fortuneMode) S.busy = false;
+  $('shake-hint').style.display = 'none';
+  S.fortuneMode = false;
+  S._fortuneHold = null;
 }
 
 function actBell() {
@@ -2971,42 +2977,65 @@ function spawnWishVisual(way) {
   }
 }
 
+function finishFortuneDraw() {
+  if (!S.fortuneMode) return;
+  S.fortuneMode = false; S.shake = 0;
+  S._fortuneHold = null;
+  if (S.fortuneTube) S.fortuneTube.rotation.z = 0;
+  endMinigame();
+  const q = drawQue();
+  const line = `Quẻ ${q.n} · ${q.rank} · ${q.title}: ${q.text}`;
+  S.fortunes.push({ text: line, at: Date.now() }); saveAll();
+  playWhoosh();
+  openModal(`
+    <h2>Quẻ số ${q.n}</h2>
+    <p class="tiny" style="margin-top:4px">${q.rank} — ${q.title}</p>
+    <p style="font-size:1.08rem;color:#e8c87a;margin:16px 0;line-height:1.55">${q.text}</p>
+    <p class="tiny">Mang tính giải trí · Xin lại để ra quẻ khác</p>
+    <div class="row"><button class="btn" id="m-ok" type="button">Nhận lời</button></div>
+  `);
+  $('m-ok').onclick = () => { closeModal(); S.busy = false; };
+}
+
 function actFortune() {
   S.busy = true; S.fortuneMode = true; S.shake = 0;
-  openMinigame('Xin quẻ đầu năm', 'Lắc điện thoại hoặc giữ chạm nút để lắc ống xăm');
-  $('mg-tap').style.display = 'block'; $('mg-tap').textContent = 'Giữ để lắc';
+  openMinigame('Xin quẻ đầu năm', 'Bấm / giữ nút để lắc ống xăm — hoặc lắc điện thoại');
+  $('ring-wrap').style.display = 'none';
+  const tap = $('mg-tap');
+  tap.style.display = 'block';
+  tap.textContent = 'Lắc quẻ';
   $('shake-hint').style.display = 'block';
-  let holding = false, holdTimer = null;
-  const onDown = () => { holding = true; };
+  $('mg-feedback').textContent = 'Chạm nút để lắc…';
+  let holding = false;
+  const onDown = e => {
+    e.preventDefault(); e.stopPropagation();
+    holding = true;
+    // Mỗi lần chạm cũng cộng lắc (máy tính / chạm nhanh vẫn được)
+    S.shake += 0.35;
+    try { tap.setPointerCapture(e.pointerId); } catch (_) {}
+  };
   const onUp = () => { holding = false; };
-  $('mg-tap').onpointerdown = onDown; $('mg-tap').onpointerup = onUp; $('mg-tap').onpointerleave = onUp;
-  mg = { type: 'fortune', running: true, holding: () => holding };
-  // poll trong updateMinigame-like via animate
+  tap.onpointerdown = onDown;
+  tap.onpointerup = onUp;
+  tap.onpointercancel = onUp;
+  tap.onpointerleave = onUp;
+  // Click dự phòng nếu pointer bị nuốt
+  tap.onclick = e => {
+    e.preventDefault(); e.stopPropagation();
+    if (!S.fortuneMode) return;
+    S.shake += 0.45;
+  };
+  mg = { type: 'fortune', running: true };
   S._fortuneHold = () => holding;
 }
 
 function updateFortune(dt) {
   if (!S.fortuneMode || !mg.running) return;
-  if (S._fortuneHold?.()) S.shake += dt * 0.9;
-  if (S.fortuneTube) S.fortuneTube.rotation.z = Math.sin(performance.now()*0.02) * Math.min(S.shake, 1) * 0.25;
-  $('mg-feedback').textContent = S.shake < 1 ? 'Đang lắc…' : 'Sắp rơi quẻ…';
-  if (S.shake >= 1.8) {
-    S.fortuneMode = false; S.shake = 0;
-    if (S.fortuneTube) S.fortuneTube.rotation.z = 0;
-    endMinigame();
-    const q = drawQue();
-    const line = `Quẻ ${q.n} · ${q.rank} · ${q.title}: ${q.text}`;
-    S.fortunes.push({ text: line, at: Date.now() }); saveAll();
-    playWhoosh();
-    openModal(`
-      <h2>Quẻ số ${q.n}</h2>
-      <p class="tiny" style="margin-top:4px">${q.rank} — ${q.title}</p>
-      <p style="font-size:1.08rem;color:var(--gold);margin:16px 0;line-height:1.55">${q.text}</p>
-      <p class="tiny">Mang tính giải trí · Lắc lại để ra quẻ khác</p>
-      <div class="row"><button class="btn" id="m-ok">Nhận lời</button></div>
-    `);
-    $('m-ok').onclick = () => { closeModal(); S.busy = false; };
-  }
+  if (S._fortuneHold?.()) S.shake += dt * 1.15;
+  if (S.fortuneTube) S.fortuneTube.rotation.z = Math.sin(performance.now() * 0.02) * Math.min(S.shake, 1) * 0.25;
+  const pct = Math.min(100, (S.shake / 1.8) * 100) | 0;
+  $('mg-feedback').textContent = pct < 100 ? `Đang lắc… ${pct}%` : 'Sắp rơi quẻ…';
+  if (S.shake >= 1.8) finishFortuneDraw();
 }
 
 function openBook() {

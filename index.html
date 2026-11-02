@@ -931,6 +931,12 @@ const S = {
   khachPhoBay: false, thucThanPho: false,
   _phoBayTipAt: 0, _phoBayStreetTip: false, _phoBayAnTip: false,
   _phoBayDuyenReady: false, _phoBayDuyenTip: false,
+  // Cờ Tướng Bay · Quân Phi (south-mid east curb)
+  nearCoTuong: null, coTuongStand: null, coTuongAct: null,
+  coTuongNgoi: 0, coTuongDat: 0, coTuongXuong: 0, coTuongLog: [],
+  kyThuPho: false, tuongPho: false,
+  _coTuongTipAt: 0, _coTuongStreetTip: false, _coTuongXuongTip: false,
+  _coTuongDuyenReady: false, _coTuongDuyenTip: false,
   // Giờ Vàng · Đèn Bay (mid-street Phố An Lạc)
   nearGioVang: null, gioVangStand: null, phoVangCall: null,
   phoVangUses: 0, phoVangBestTier: '', phoVangLog: [],
@@ -1252,6 +1258,18 @@ function loadSave() {
         at: w.at | 0,
       })).filter(w => w.text);
     }
+    if (typeof d.coTuongNgoi === 'number') S.coTuongNgoi = Math.max(0, d.coTuongNgoi | 0);
+    if (typeof d.coTuongDat === 'number') S.coTuongDat = Math.max(0, d.coTuongDat | 0);
+    if (typeof d.coTuongXuong === 'number') S.coTuongXuong = Math.max(0, d.coTuongXuong | 0);
+    if (typeof d.kyThuPho === 'boolean') S.kyThuPho = d.kyThuPho;
+    if (typeof d.tuongPho === 'boolean') S.tuongPho = d.tuongPho;
+    if (Array.isArray(d.coTuongLog)) {
+      S.coTuongLog = d.coTuongLog.slice(-12).map(w => ({
+        text: String(w.text || '').slice(0, 80),
+        kind: String(w.kind || '').slice(0, 12),
+        at: w.at | 0,
+      })).filter(w => w.text);
+    }
     if (typeof d.phoVangUses === 'number') S.phoVangUses = Math.max(0, d.phoVangUses | 0);
     if (typeof d.phoVangBestTier === 'string' && ['lap', 'ruc', 'rang'].includes(d.phoVangBestTier)) {
       S.phoVangBestTier = d.phoVangBestTier;
@@ -1446,6 +1464,12 @@ function saveAll() {
       khachPhoBay: !!S.khachPhoBay,
       thucThanPho: !!S.thucThanPho,
       phoBayLog: (S.phoBayLog || []).slice(-12),
+      coTuongNgoi: S.coTuongNgoi | 0,
+      coTuongDat: S.coTuongDat | 0,
+      coTuongXuong: S.coTuongXuong | 0,
+      kyThuPho: !!S.kyThuPho,
+      tuongPho: !!S.tuongPho,
+      coTuongLog: (S.coTuongLog || []).slice(-12),
       phoVangUses: S.phoVangUses | 0,
       phoVangBestTier: S.phoVangBestTier || '',
       khachGioVang: !!S.khachGioVang,
@@ -1532,6 +1556,8 @@ function templeFlairSuffix() {
   if (S.banTraMua) parts.push('Bạn Trà Mưa');
   if (S.thucThanPho) parts.push('Thực Thần Phố');
   else if (S.khachPhoBay) parts.push('Khách Phở Bay');
+  if (S.tuongPho) parts.push('Tướng Phố');
+  else if (S.kyThuPho) parts.push('Kỳ Thủ Phố');
   if (S.khachGioVang) parts.push('Khách Giờ Vàng');
   if (S.anhEmPho) parts.push('Anh Em Phố');
   else if (S.banPho) parts.push('Bạn Phố');
@@ -3357,10 +3383,7 @@ function buildScene() {
   for (let z = 2; z <= 10; z += 2) box(0.45, 1.9, 0.45, M.stone, -10.5, 0.95, z);
   // Tranh Ronaldo–Messi trên tường trái sân
   hangWallPoster();
-  // Phải x=+10.5 — chỉ đoạn thấp gần hồ; z≈5…11 để trống đi ra phố
-  box(0.35, 1.6, 3.0, M.plaster, 10.5, 0.85, 2.0);
-  addCol(10.5, 2.0, 0.55, 3.2, null);
-  for (let z of [1, 3]) box(0.45, 1.9, 0.45, M.stone, 10.5, 0.95, z);
+  // Phải x=+10.5 — bỏ hàng rào cạnh màn nhạc / lối ra Phố An Lạc (trống hoàn toàn)
 
   // ——— Chính điện (rỗng + bàn thờ) + lối đá sân ———
   const hz = -10;
@@ -3777,6 +3800,7 @@ function buildStreetDistrict() {
   buildHotHoStand();
   buildMuaTraStand();
   buildPhoBayStand();
+  buildCoTuongStand();
   buildBoyPhoStand();
   buildBongDaStand();
   buildGioVangStand();
@@ -7705,6 +7729,7 @@ function streetPhoBayBlocked() {
   if (S.muaTraHen) return 'mưa trà';
   if (S.boyPhoAct) return 'boy phố';
   if (S.bongDaAct) return 'bóng đá';
+  if (S.coTuongAct) return 'cờ tướng';
   return null;
 }
 function markPhoBayDuyen() {
@@ -8373,6 +8398,746 @@ function updatePhoBay(dt, t) {
   if (u >= 1) finishPhoBayAct(false);
 }
 
+/* ========== Cờ Tướng Bay · Quân Phi · south-mid east curb ========== */
+/** East of paper-mail, west of rewind, north of mưa trà/hốt họ — priority after Phở Bay */
+const CO_TUONG_SPOT = { x: 22.8, z: STREET_Z - 2.4, r: 1.35 };
+const CO_TUONG_NGOI_LINES = [
+  '♟️ “Nước này hay!” · ghế nhựa An Lạc',
+  '🛤️ Kỳ thủ hè · ngồi bàn nhìn quân bay',
+];
+const CO_TUONG_DAT_LINES = [
+  '♟️ Đặt quân · click nhẹ trên bàn gỗ',
+  '✨ Quân nhảy ô · phố lắng nghe nước đi',
+  '🛤️ Pháo / mã nhớ chỗ mình vừa để',
+];
+const CO_TUONG_XUONG_LINES = [
+  '♟️ Xuống tướng bay · hai tướng loft lên trời!',
+  '✨ Chiếu tướng bay! · hè An Lạc vỗ tay',
+  '🛤️ Quân đụng nhau giữa không · chỉ có trên phố này',
+];
+
+function coTuongDatUnlocked() {
+  return (S.coTuongNgoi | 0) >= 1;
+}
+function coTuongXuongUnlocked() {
+  return (S.coTuongDat | 0) >= 1 || (S.coTuongNgoi | 0) >= 2;
+}
+function pickCoTuongVerb() {
+  if (!coTuongDatUnlocked()) return 'ngoi';
+  if (!coTuongXuongUnlocked()) return 'dat';
+  return 'xuong';
+}
+function coTuongVerbLabel(v) {
+  if (v === 'dat') return 'Đặt quân';
+  if (v === 'xuong') return 'Xuống tướng bay';
+  return 'Ngồi bàn';
+}
+function streetCoTuongBlocked() {
+  if (S.xichLoRide) return 'xích lô';
+  if (S.karaokePerf) return 'karaoke';
+  if (S.phoVangCall) return 'giờ vàng';
+  if (S.hotHoDraw) return 'hốt họ';
+  if (S.muaTraHen) return 'mưa trà';
+  if (S.boyPhoAct) return 'boy phố';
+  if (S.bongDaAct) return 'bóng đá';
+  if (S.phoBayAct) return 'phở bay';
+  return null;
+}
+function markCoTuongDuyen() {
+  if (S._coTuongDuyenReady) return;
+  S._coTuongDuyenReady = true;
+  if (!S._coTuongDuyenTip) {
+    S._coTuongDuyenTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast('♟️ Khách phố / quán nhớ mình — nước tướng kế tiếp thêm duyên');
+    }, 900);
+  }
+}
+function coTuongOrbitBoost() {
+  return S.tuongPho ? 1.4 : (S.kyThuPho ? 1.18 : 1);
+}
+
+function buildCoTuongPiece(kind, color) {
+  const g = new THREE.Group();
+  const wood = new THREE.MeshStandardMaterial({
+    color: color || 0xc45c48, roughness: 0.55, metalness: 0.08,
+    emissive: 0x2a1810, emissiveIntensity: 0.12,
+  });
+  if (kind === 'tuong') {
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.16, 10), wood);
+    body.position.y = 0.08;
+    g.add(body);
+    const hat = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 0.05, 0.12),
+      new THREE.MeshStandardMaterial({ color: 0xe8c878, roughness: 0.5, metalness: 0.15, emissive: 0x3a2810, emissiveIntensity: 0.1 })
+    );
+    hat.position.y = 0.2;
+    g.add(hat);
+  } else if (kind === 'ma') {
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.075, 0.08, 8), wood);
+    base.position.y = 0.04;
+    g.add(base);
+    const neck = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.08), wood);
+    neck.position.set(0.01, 0.14, 0);
+    g.add(neck);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.05, 0.06), wood);
+    head.position.set(0.04, 0.2, 0);
+    g.add(head);
+  } else {
+    // pháo
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.075, 0.14, 10), wood);
+    body.position.y = 0.07;
+    g.add(body);
+    const rim = new THREE.Mesh(
+      new THREE.TorusGeometry(0.055, 0.012, 6, 12),
+      new THREE.MeshStandardMaterial({ color: 0xd4a060, roughness: 0.45, metalness: 0.2 })
+    );
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = 0.15;
+    g.add(rim);
+  }
+  g.userData.kind = kind;
+  g.userData.mat = wood;
+  return g;
+}
+
+function buildCoTuongStand() {
+  const sx = CO_TUONG_SPOT.x, sz = CO_TUONG_SPOT.z;
+  const stand = new THREE.Group();
+
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(1.1, 24),
+    new THREE.MeshBasicMaterial({
+      color: 0xb85840, transparent: true, opacity: 0.14,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.set(0, 0.032, 0);
+  stand.add(glow);
+
+  const tip = textPlane('♟️ Cờ Tướng Bay', 320, 48, '#fff8f0', '#3a1810', 15);
+  tip.position.set(0, 2.28, 0);
+  tip.scale.set(2.15, 0.38, 1);
+  stand.add(tip);
+
+  // Bàn cờ mỏng
+  const board = new THREE.Mesh(
+    new THREE.BoxGeometry(0.95, 0.06, 0.95),
+    new THREE.MeshStandardMaterial({ color: 0xc9a06a, roughness: 0.65, metalness: 0.05 })
+  );
+  board.position.set(0, 0.42, 0);
+  stand.add(board);
+  // Simple grid lines (cross)
+  const lineMat = new THREE.MeshBasicMaterial({ color: 0x3a2818, transparent: true, opacity: 0.55 });
+  for (let i = -2; i <= 2; i++) {
+    const hx = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.008, 0.012), lineMat);
+    hx.position.set(0, 0.455, i * 0.18);
+    stand.add(hx);
+    const hz = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.008, 0.88), lineMat);
+    hz.position.set(i * 0.18, 0.455, 0);
+    stand.add(hz);
+  }
+
+  // 2 ghế nhựa
+  const stoolMat = new THREE.MeshStandardMaterial({ color: 0xc45838, roughness: 0.55, metalness: 0.05 });
+  const stools = [];
+  [[-0.55, 0.55], [0.55, 0.55]].forEach(([ox, oz]) => {
+    const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.2, 0.06, 12), stoolMat);
+    seat.position.set(ox, 0.38, oz);
+    stand.add(seat);
+    const leg = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.05, 0.35, 8),
+      new THREE.MeshStandardMaterial({ color: 0x8a4030, roughness: 0.6 })
+    );
+    leg.position.set(ox, 0.18, oz);
+    stand.add(leg);
+    stools.push(seat);
+  });
+
+  const pieces = [];
+  const pieceSpecs = [
+    { kind: 'tuong', color: 0xc45c48, ox: -0.22, oz: -0.18, ph: 0.0, baseY: 1.05 },
+    { kind: 'tuong', color: 0x3a5a88, ox: 0.24, oz: 0.16, ph: 2.2, baseY: 1.25 },
+    { kind: 'ma', color: 0xb85040, ox: 0.05, oz: -0.28, ph: 1.1, baseY: 1.15 },
+    { kind: 'phao', color: 0xd47848, ox: -0.32, oz: 0.12, ph: 3.4, baseY: 1.35 },
+    { kind: 'phao', color: 0x4a6888, ox: 0.3, oz: -0.08, ph: 4.5, baseY: 1.45 },
+  ];
+  if (IS_MOBILE) pieceSpecs.length = 3;
+  pieceSpecs.forEach((spec) => {
+    const mesh = buildCoTuongPiece(spec.kind, spec.color);
+    mesh.position.set(spec.ox, spec.baseY, spec.oz);
+    stand.add(mesh);
+    pieces.push({
+      mesh, kind: spec.kind, ox: spec.ox, oz: spec.oz, ph: spec.ph, baseY: spec.baseY,
+      homeX: spec.ox, homeZ: spec.oz,
+    });
+  });
+
+  const sparks = [];
+  const nSpark = IS_MOBILE ? 3 : 6;
+  for (let i = 0; i < nSpark; i++) {
+    const sp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.035 + (i % 2) * 0.01, 5, 4),
+      new THREE.MeshBasicMaterial({ color: 0xffe0a0, transparent: true, opacity: 0.0, depthWrite: false })
+    );
+    sp.position.set(0, 1.2, 0);
+    stand.add(sp);
+    sparks.push({ mesh: sp, ph: Math.random() * 6.28, spd: 0.8 + Math.random() * 0.6 });
+  }
+
+  const pl = new THREE.PointLight(0xffcc88, 0.2, 4.5, 2);
+  pl.position.set(0, 1.7, 0);
+  stand.add(pl);
+
+  stand.position.set(sx, 0, sz);
+  scene.add(stand);
+
+  S.coTuongStand = {
+    mesh: stand, glow, tip, light: pl, board, pieces, sparks, stools,
+    pos: new THREE.Vector3(sx, 0, sz),
+  };
+}
+
+function pickNearCoTuong() {
+  if (!playerRoot || S.coTuongAct || !S.coTuongStand) return null;
+  const d = Math.hypot(
+    playerRoot.position.x - CO_TUONG_SPOT.x,
+    playerRoot.position.z - CO_TUONG_SPOT.z
+  );
+  if (d > CO_TUONG_SPOT.r) return null;
+  const verb = pickCoTuongVerb();
+  return { id: 'cotuong', label: coTuongVerbLabel(verb), verb, pos: CO_TUONG_SPOT };
+}
+
+function startCoTuongAct() {
+  if (S.busy || S.coTuongAct || !S.coTuongStand) return;
+  const blocked = streetCoTuongBlocked();
+  if (blocked) {
+    toast('♟️ Đợi hết lượt phố đã');
+    return;
+  }
+  if (S.khachPho || shopVisitCount() > 0 || S.shopVisited?.cafe) {
+    try { markCoTuongDuyen(); } catch (_) {}
+  }
+  const verb = pickCoTuongVerb();
+  if (verb === 'ngoi') startCoTuongNgoi();
+  else if (verb === 'dat') startCoTuongDat();
+  else startCoTuongXuong();
+}
+
+function startCoTuongNgoi() {
+  const first = (S.coTuongNgoi | 0) === 0;
+  const dur = IS_MOBILE ? 2.2 : 2.8;
+  S.busy = true;
+  playerRoot.position.set(CO_TUONG_SPOT.x - 0.55, 0, CO_TUONG_SPOT.z + 0.55);
+  S.coTuongAct = {
+    kind: 'ngoi', t: 0, dur, first, rewarded: false,
+    lineIdx: 0, nextLineAt: 0.45,
+    lines: CO_TUONG_NGOI_LINES.slice(),
+    faceYaw: 0,
+  };
+  const yaw = Math.atan2(0.55, -0.55);
+  S.yaw = yaw;
+  S.coTuongAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(-0.35, 0, 0.25);
+    ud.armR.rotation.set(-0.45, 0, -0.2);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+  toast(first ? '♟️ Ngồi bàn · nước này hay!' : '♟️ Ngồi bàn cờ hè An Lạc');
+  if (S.coTuongStand?.glow?.material) S.coTuongStand.glow.material.opacity = 0.26;
+}
+
+function startCoTuongDat() {
+  if (!coTuongDatUnlocked()) {
+    toast('♟️ Ngồi bàn trước đã');
+    return;
+  }
+  if (streetCoTuongBlocked()) {
+    toast('♟️ Đợi hết lượt phố đã');
+    return;
+  }
+  const first = (S.coTuongDat | 0) === 0;
+  const dur = IS_MOBILE ? 6.2 : 8.0;
+  S.busy = true;
+  playerRoot.position.set(CO_TUONG_SPOT.x - 0.55, 0, CO_TUONG_SPOT.z + 0.55);
+  S.coTuongAct = {
+    kind: 'dat', t: 0, dur, first, rewarded: false,
+    lineIdx: 0, nextLineAt: 0.55,
+    lines: CO_TUONG_DAT_LINES.slice(),
+    faceYaw: 0,
+    moveA: 0, moveB: Math.min(1, (S.coTuongStand?.pieces?.length || 2) - 1),
+  };
+  const yaw = Math.atan2(0.55, -0.55);
+  S.yaw = yaw;
+  S.coTuongAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armR.rotation.set(-0.95, 0, -0.25);
+    ud.armL.rotation.set(-0.4, 0, 0.2);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+  toast(first ? '♟️ Đặt quân · nước đi trên hè' : '♟️ Đặt quân thêm trên bàn bay');
+  if (S.coTuongStand?.glow?.material) S.coTuongStand.glow.material.opacity = 0.3;
+}
+
+function startCoTuongXuong() {
+  if (!coTuongXuongUnlocked()) {
+    toast(coTuongDatUnlocked()
+      ? '♟️ Đặt quân thêm hoặc ngồi lần nữa để mở Xuống tướng bay'
+      : '♟️ Ngồi / đặt trước đã');
+    return;
+  }
+  if (streetCoTuongBlocked()) {
+    toast('♟️ Đợi hết lượt phố đã');
+    return;
+  }
+  const first = (S.coTuongXuong | 0) === 0;
+  const dur = IS_MOBILE ? 10.2 : 13.0;
+  const nightish = S.timePhase === 'night' || S.timePhase === 'dusk';
+  S.busy = true;
+  playerRoot.position.set(CO_TUONG_SPOT.x - 0.4, 0, CO_TUONG_SPOT.z + 0.7);
+  S.coTuongAct = {
+    kind: 'xuong', t: 0, dur, first, rewarded: false, nightish,
+    lineIdx: 0, nextLineAt: 0.5,
+    lines: CO_TUONG_XUONG_LINES.slice(),
+    faceYaw: 0,
+    duyen: !!S._coTuongDuyenReady,
+  };
+  const yaw = Math.atan2(0.4, -0.7);
+  S.yaw = yaw;
+  S.coTuongAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armR.rotation.set(-1.05, 0, -0.15);
+    ud.armL.rotation.set(-1.0, 0, 0.2);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+  toast(first
+    ? (nightish ? '♟️ Xuống tướng bay đêm · quân sáng ấm hơn!' : '♟️ Xuống tướng bay · hai tướng loft!')
+    : '♟️ Xuống tướng bay lại trên hè');
+  if (S.coTuongStand?.glow?.material) S.coTuongStand.glow.material.opacity = 0.36;
+}
+
+function finishCoTuongAct(early) {
+  const act = S.coTuongAct;
+  if (!act) return;
+  const elapsed = act.t;
+  const counts = !early || elapsed >= 1.2;
+
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+  } catch (_) {}
+  if (player) { player.rotation.z = 0; player.rotation.x = 0; }
+  playerRoot.position.y = 0;
+  playerRoot.position.set(
+    CO_TUONG_SPOT.x - Math.sin(act.faceYaw || 0) * 1.05,
+    0,
+    CO_TUONG_SPOT.z - Math.cos(act.faceYaw || 0) * 1.05
+  );
+
+  const stand = S.coTuongStand;
+  if (stand?.pieces) {
+    stand.pieces.forEach((p) => {
+      if (!p.mesh) return;
+      p.mesh.position.set(p.ox, p.baseY, p.oz);
+      p.mesh.rotation.set(0, 0, 0);
+      p.mesh.scale.set(1, 1, 1);
+    });
+  }
+  if (stand?.sparks) {
+    stand.sparks.forEach((s) => {
+      if (s.mesh?.material) s.mesh.material.opacity = 0;
+    });
+  }
+
+  if (counts && !act.rewarded) {
+    act.rewarded = true;
+    let gain = 2;
+
+    if (act.kind === 'ngoi') {
+      S.coTuongNgoi = (S.coTuongNgoi | 0) + 1;
+      const n = S.coTuongNgoi | 0;
+      gain = act.first ? 7 : (early ? 2 : 3);
+      S.coTuongLog = (S.coTuongLog || []).concat([{
+        text: `${early ? 'Ngồi sớm' : 'Ngồi bàn'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'ngoi', at: Date.now(),
+      }]).slice(-12);
+      if (n === 1) {
+        setTimeout(() => toast('♟️ Mở · Đặt quân trên bàn bay'), 800);
+      }
+      if (n >= 2 && !S.kyThuPho) {
+        S.kyThuPho = true;
+        setTimeout(() => {
+          toast('♟️ Flair · Kỳ Thủ Phố');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 1100);
+      }
+      if (coTuongXuongUnlocked() && n === 2) {
+        setTimeout(() => toast('♟️ Mở · Xuống tướng bay'), 1500);
+      }
+      saveAll();
+      gainCongDuc(gain, act.first ? '♟️ Cờ Tướng Bay · ngồi bàn' : 'Cờ Tướng Bay · ngồi bàn', true);
+      toast(early
+        ? `♟️ Ngồi sớm · +${gain}`
+        : `♟️ Cờ Tướng Bay · ngồi bàn · +${gain}${act.first ? ' · lần đầu' : ` · ${n} lần`}`);
+      try {
+        emitSmoke(CO_TUONG_SPOT.x, 1.2, CO_TUONG_SPOT.z, 1);
+      } catch (_) {}
+    } else if (act.kind === 'dat') {
+      S.coTuongDat = (S.coTuongDat | 0) + 1;
+      const n = S.coTuongDat | 0;
+      gain = act.first ? 5 : (early ? 2 : 3);
+      S.coTuongLog = (S.coTuongLog || []).concat([{
+        text: `${early ? 'Đặt sớm' : 'Đặt quân'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'dat', at: Date.now(),
+      }]).slice(-12);
+      if (!S.kyThuPho && coTuongXuongUnlocked()) {
+        S.kyThuPho = true;
+        setTimeout(() => {
+          toast('♟️ Flair · Kỳ Thủ Phố');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 900);
+      }
+      if (n === 1 && coTuongXuongUnlocked()) {
+        setTimeout(() => toast('♟️ Mở · Xuống tướng bay'), 1200);
+      }
+      saveAll();
+      gainCongDuc(gain, act.first ? '♟️ Cờ Tướng Bay · đặt quân' : 'Cờ Tướng Bay · đặt quân', true);
+      toast(early
+        ? `♟️ Đặt sớm · +${gain}`
+        : `♟️ Cờ Tướng Bay · đặt quân · +${gain}${act.first ? ' · lần đầu' : ` · ${n} lần`}`);
+      try {
+        const nSpark = IS_MOBILE ? 1 : 3;
+        for (let i = 0; i < nSpark; i++) {
+          emitSmoke(
+            CO_TUONG_SPOT.x + (Math.random() - 0.5) * 0.4,
+            1.1 + Math.random() * 0.4,
+            CO_TUONG_SPOT.z + (Math.random() - 0.5) * 0.3,
+            1
+          );
+        }
+      } catch (_) {}
+    } else if (act.kind === 'xuong') {
+      S.coTuongXuong = (S.coTuongXuong | 0) + 1;
+      const n = S.coTuongXuong | 0;
+      gain = act.first ? 10 : (early ? 3 : 6);
+      if (act.duyen && S._coTuongDuyenReady) {
+        S._coTuongDuyenReady = false;
+        gain += 1;
+        setTimeout(() => toast('♟️ Duyên phố · +1 công đức tướng bay'), 1200);
+      }
+      S.coTuongLog = (S.coTuongLog || []).concat([{
+        text: `${early ? 'Xuống sớm' : 'Xuống tướng bay'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'xuong', at: Date.now(),
+      }]).slice(-12);
+
+      if (!S.kyThuPho) {
+        S.kyThuPho = true;
+        setTimeout(() => {
+          toast('♟️ Flair · Kỳ Thủ Phố');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 800);
+      }
+      if (n === 1 && !S._coTuongXuongTip) {
+        S._coTuongXuongTip = true;
+        setTimeout(() => toast('♟️ Bàn nhớ nước của mình — quay lại hè nhé'), 1400);
+      }
+      if (n >= 3 && !S.tuongPho) {
+        S.tuongPho = true;
+        setTimeout(() => {
+          toast('✨ Flair · Tướng Phố · quân bay cao hơn!');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 1100);
+      } else if (S.tuongPho && !early) {
+        setTimeout(() => toast('✨ Tướng Phố · chiếu tướng bay!'), 700);
+      }
+
+      saveAll();
+      gainCongDuc(gain, act.first ? '♟️ Cờ Tướng Bay · xuống tướng bay' : 'Cờ Tướng Bay · xuống tướng', true);
+      toast(early
+        ? `♟️ Xuống sớm · +${gain}`
+        : `♟️ Xuống tướng bay · +${gain}${act.first ? ' · lần đầu' : ` · lần ${n}`}`);
+      try {
+        const nSpark = IS_MOBILE ? 2 : (act.nightish || S.tuongPho ? 7 : 5);
+        for (let i = 0; i < nSpark; i++) {
+          emitSmoke(
+            CO_TUONG_SPOT.x + (Math.random() - 0.5) * 0.8,
+            1.5 + Math.random() * 1.0,
+            CO_TUONG_SPOT.z + (Math.random() - 0.5) * 0.5,
+            1
+          );
+        }
+      } catch (_) {}
+      try { playWhoosh(); } catch (_) {}
+    }
+    updateMeritHud();
+    pulseMeritHud();
+    tryUnlockKhachPho();
+  } else if (!counts) {
+    toast('♟️ Chưa kịp — đứng gần bàn cờ thử lại');
+  }
+
+  if (stand?.glow?.material) {
+    stand.glow.material.opacity = 0.14;
+    stand.glow.scale.set(1, 1, 1);
+  }
+  if (stand?.light) stand.light.intensity = 0.2;
+
+  S.coTuongAct = null;
+  S.busy = false;
+}
+
+function cancelCoTuongAct() {
+  if (!S.coTuongAct) return;
+  finishCoTuongAct(true);
+}
+
+function updateCoTuong(dt, t) {
+  const stand = S.coTuongStand;
+  if (stand?.tip && camera) stand.tip.quaternion.copy(camera.quaternion);
+
+  const boost = coTuongOrbitBoost();
+  const nightish = S.timePhase === 'night' || S.timePhase === 'dusk';
+
+  // Idle bob / orbit
+  if (stand?.mesh && !S.coTuongAct) {
+    stand.mesh.position.y = Math.sin(t * 1.35) * 0.012;
+    if (stand.glow?.material) {
+      stand.glow.material.opacity = 0.11 + 0.07 * Math.abs(Math.sin(t * 1.5));
+      stand.glow.material.color.setHex(S.tuongPho ? 0xffaa55 : (S.kyThuPho ? 0xd46848 : 0xb85840));
+    }
+    if (stand.light) {
+      stand.light.intensity = (nightish ? 0.36 : 0.18) + 0.1 * Math.abs(Math.sin(t * 1.7));
+      stand.light.color.setHex(nightish || S.tuongPho ? 0xffcc88 : 0xffe0b0);
+    }
+    if (stand.pieces) {
+      const near = !!S.nearCoTuong;
+      stand.pieces.forEach((p) => {
+        if (!p.mesh) return;
+        const bobBase = 0.95 + (p.baseY - 0.95) * boost;
+        const orbitR = (near ? 0.14 : 0.06) * boost;
+        p.mesh.position.y = bobBase + Math.sin(t * 1.6 + p.ph) * (near ? 0.16 : 0.1) * boost;
+        p.mesh.position.x = p.ox + Math.cos(t * 0.95 + p.ph) * orbitR;
+        p.mesh.position.z = p.oz + Math.sin(t * 0.9 + p.ph) * orbitR * 0.85;
+        p.mesh.rotation.y = Math.sin(t * 0.65 + p.ph) * 0.25;
+        const mat = p.mesh.userData?.mat;
+        if (mat) {
+          mat.emissiveIntensity = nightish ? 0.28 : 0.12;
+          if (nightish) mat.emissive.setHex(0x4a2818);
+        }
+      });
+    }
+  }
+
+  if (S.nearCoTuong && !S.coTuongAct) {
+    const now = performance.now();
+    if (now - (S._coTuongTipAt || 0) > 16000) {
+      S._coTuongTipAt = now;
+      const v = pickCoTuongVerb();
+      toast(v === 'xuong'
+        ? (S.tuongPho ? '✨ Tướng Phố · quân bay sẵn sàng' : '♟️ Xuống tướng bay — hai tướng loft')
+        : v === 'dat'
+          ? '♟️ Đặt quân · nước đi trên bàn bay'
+          : '♟️ Cờ Tướng Bay — ngồi bàn trên hè');
+    }
+  }
+
+  const act = S.coTuongAct;
+  if (!act) return;
+
+  if ($('modal')?.classList.contains('open')) {
+    cancelCoTuongAct();
+    return;
+  }
+
+  act.t += dt;
+  const u = Math.min(1, act.t / act.dur);
+
+  if (playerRoot) {
+    if (player) player.rotation.y = act.faceYaw;
+    S.yaw = act.faceYaw;
+  }
+
+  if (act.kind === 'ngoi') {
+    if (playerRoot) {
+      playerRoot.position.set(
+        CO_TUONG_SPOT.x - 0.55,
+        Math.sin(act.t * 3.5) * 0.015,
+        CO_TUONG_SPOT.z + 0.55
+      );
+    }
+    try {
+      const ud = player.userData;
+      if (ud.armR) ud.armR.rotation.x = -0.45 + Math.sin(act.t * 4) * 0.1;
+    } catch (_) {}
+    if (stand?.pieces) {
+      stand.pieces.forEach((p) => {
+        if (!p.mesh) return;
+        p.mesh.position.y = p.baseY + Math.sin(act.t * 3.2 + p.ph) * 0.14;
+        p.mesh.rotation.z = Math.sin(act.t * 4 + p.ph) * 0.08;
+      });
+    }
+  } else if (act.kind === 'dat') {
+    if (playerRoot) {
+      playerRoot.position.set(
+        CO_TUONG_SPOT.x - 0.55,
+        Math.sin(act.t * 2.5) * 0.02,
+        CO_TUONG_SPOT.z + 0.55
+      );
+    }
+    try {
+      const ud = player.userData;
+      if (ud.armR) ud.armR.rotation.x = -0.95 + Math.sin(act.t * 3) * 0.12;
+    } catch (_) {}
+    if (stand?.pieces) {
+      const targets = [
+        { x: 0.18, z: -0.22 },
+        { x: -0.15, z: 0.2 },
+      ];
+      stand.pieces.forEach((p, i) => {
+        if (!p.mesh) return;
+        if (i === 0 || i === 1) {
+          const tgt = targets[i];
+          const lu = Math.min(1, Math.max(0, (u - 0.1 * i) / 0.55));
+          const ease = lu * lu * (3 - 2 * lu);
+          p.mesh.position.x = p.ox + (tgt.x - p.ox) * ease;
+          p.mesh.position.z = p.oz + (tgt.z - p.oz) * ease;
+          p.mesh.position.y = p.baseY + Math.sin(ease * Math.PI) * 0.35 + Math.sin(act.t * 2 + p.ph) * 0.05;
+          if (lu > 0.92 && Math.random() < (IS_MOBILE ? 0.08 : 0.18)) {
+            try {
+              emitSmoke(CO_TUONG_SPOT.x + tgt.x, 0.55, CO_TUONG_SPOT.z + tgt.z, 1);
+            } catch (_) {}
+          }
+        } else {
+          p.mesh.position.y = p.baseY + Math.sin(act.t * 2 + p.ph) * 0.1;
+        }
+      });
+    }
+    if (stand?.glow?.material) {
+      stand.glow.material.opacity = 0.26 + 0.18 * Math.abs(Math.sin(act.t * 3));
+    }
+    if (stand?.light) stand.light.intensity = 0.3 + 0.35 * Math.abs(Math.sin(act.t * 2.8));
+  } else if (act.kind === 'xuong') {
+    const loftAt = 0.2;
+    const clashAt = 0.55;
+    if (playerRoot) {
+      playerRoot.position.set(
+        CO_TUONG_SPOT.x - 0.4,
+        Math.sin(act.t * 2.8) * 0.02,
+        CO_TUONG_SPOT.z + 0.7
+      );
+      if (player && u > clashAt && u < clashAt + 0.25) {
+        player.rotation.x = -0.1;
+      } else if (player) {
+        player.rotation.x = -0.04;
+      }
+    }
+    try {
+      const ud = player.userData;
+      if (u > loftAt) {
+        if (ud.armR) ud.armR.rotation.x = -1.1 + Math.sin(act.t * 5) * 0.1;
+        if (ud.armL) ud.armL.rotation.x = -1.05 + Math.sin(act.t * 5 + 1) * 0.1;
+      }
+    } catch (_) {}
+
+    const tuongs = (stand?.pieces || []).filter(p => p.kind === 'tuong');
+    const a = tuongs[0] || stand?.pieces?.[0];
+    const b = tuongs[1] || stand?.pieces?.[1];
+    if (a?.mesh && b?.mesh) {
+      if (u < loftAt) {
+        const lu = u / loftAt;
+        a.mesh.position.set(a.ox, a.baseY + lu * 0.3, a.oz);
+        b.mesh.position.set(b.ox, b.baseY + lu * 0.3, b.oz);
+      } else if (u < clashAt) {
+        const lu = (u - loftAt) / (clashAt - loftAt);
+        const h = IS_MOBILE ? 1.7 : 2.15;
+        a.mesh.position.set(
+          a.ox * (1 - lu),
+          a.baseY + 0.3 + lu * (h - a.baseY),
+          a.oz * (1 - lu)
+        );
+        b.mesh.position.set(
+          b.ox * (1 - lu),
+          b.baseY + 0.3 + lu * (h - b.baseY),
+          b.oz * (1 - lu)
+        );
+        a.mesh.rotation.y = lu * 2;
+        b.mesh.rotation.y = -lu * 2;
+      } else {
+        const su = (u - clashAt) / (1 - clashAt);
+        const spin = su * Math.PI * 2;
+        const rad = 0.22 + Math.sin(su * Math.PI) * 0.18 * boost;
+        const h = (IS_MOBILE ? 1.75 : 2.2) + Math.sin(su * Math.PI) * 0.15;
+        a.mesh.position.set(Math.cos(spin) * rad, h, Math.sin(spin) * rad);
+        b.mesh.position.set(Math.cos(spin + Math.PI) * rad, h + 0.05, Math.sin(spin + Math.PI) * rad);
+        a.mesh.rotation.y = spin * 2;
+        b.mesh.rotation.y = -spin * 2;
+        a.mesh.scale.setScalar(1 + Math.sin(su * Math.PI) * 0.12);
+        b.mesh.scale.setScalar(1 + Math.sin(su * Math.PI) * 0.12);
+      }
+    }
+    if (stand?.pieces) {
+      stand.pieces.forEach((p) => {
+        if (!p.mesh || p.kind === 'tuong') return;
+        const ang = act.t * 1.6 + p.ph;
+        p.mesh.position.set(
+          Math.cos(ang) * 0.55 * boost,
+          p.baseY + 0.35 + Math.sin(act.t * 2 + p.ph) * 0.12,
+          Math.sin(ang) * 0.45
+        );
+      });
+    }
+    if (stand?.sparks) {
+      const show = u > loftAt;
+      stand.sparks.forEach((s, i) => {
+        if (!s.mesh) return;
+        if (IS_MOBILE && i > 2) { s.mesh.visible = false; return; }
+        s.mesh.visible = show;
+        if (!show) { s.mesh.material.opacity = 0; return; }
+        const dens = S.tuongPho ? 1.35 : 1;
+        const rise = ((act.t * s.spd + s.ph) % 1.1);
+        s.mesh.position.y = 1.4 + rise * (IS_MOBILE ? 0.7 : 1.1) * dens;
+        s.mesh.position.x = Math.cos(s.ph + act.t * 2.2) * (0.2 + rise * 0.45) * dens;
+        s.mesh.position.z = Math.sin(s.ph + act.t * 1.8) * (0.18 + rise * 0.35);
+        s.mesh.material.opacity = show ? (0.55 * dens * (1 - rise / 1.1)) : 0;
+        if (nightish) s.mesh.material.color.setHex(0xffcc88);
+        else s.mesh.material.color.setHex(0xffe0a0);
+      });
+    }
+    if (u > 0.55 && Math.random() < (IS_MOBILE ? 0.1 : 0.22)) {
+      try {
+        emitSmoke(
+          CO_TUONG_SPOT.x + (Math.random() - 0.5) * 0.4,
+          (IS_MOBILE ? 1.7 : 2.1) + Math.random() * 0.4,
+          CO_TUONG_SPOT.z + (Math.random() - 0.5) * 0.3,
+          1
+        );
+      } catch (_) {}
+    }
+    if (stand?.glow?.material) {
+      stand.glow.material.opacity = 0.3 + 0.25 * Math.abs(Math.sin(act.t * 4));
+      stand.glow.material.color.setHex(act.nightish || S.tuongPho ? 0xffaa55 : 0xd46848);
+    }
+    if (stand?.light) stand.light.intensity = 0.38 + 0.55 * Math.abs(Math.sin(act.t * 4));
+  }
+
+  if (act.lineIdx < act.lines.length && act.t >= act.nextLineAt) {
+    toast(act.lines[act.lineIdx]);
+    act.lineIdx += 1;
+    act.nextLineAt = act.t + (act.kind === 'ngoi' ? 1.1 : 2.4);
+  }
+
+  if (u >= 1) finishCoTuongAct(false);
+}
+
 /* ========== Giờ Vàng · Đèn Bay · giữa Phố An Lạc ========== */
 /** Mid-lane — lớn hơn vòng gossip (r 3.2) để đứng ngoài vòng vẫn gọi được; priority vẫn nhường gossip/shop/… */
 const GIO_VANG_SPOT = { x: 20.2, z: STREET_Z, r: 4.8 };
@@ -8925,6 +9690,9 @@ function streetBoyPhoBlocked() {
   if (S.phoVangCall) return 'giờ vàng';
   if (S.hotHoDraw) return 'hốt họ';
   if (S.muaTraHen) return 'mưa trà';
+  if (S.phoBayAct) return 'phở bay';
+  if (S.coTuongAct) return 'cờ tướng';
+  if (S.bongDaAct) return 'bóng đá';
   return null;
 }
 function markBoyPhoDuyen() {
@@ -9536,6 +10304,8 @@ function streetBongDaBlocked() {
   if (S.hotHoDraw) return 'hốt họ';
   if (S.muaTraHen) return 'mưa trà';
   if (S.boyPhoAct) return 'boy phố';
+  if (S.phoBayAct) return 'phở bay';
+  if (S.coTuongAct) return 'cờ tướng';
   return null;
 }
 function markBongDaDuyen() {
@@ -10690,6 +11460,15 @@ function goToStreetGate() {
         ? '🍜 Khói phở đang bay trước Bà Tư…'
         : '🍜 Phở Bay trước Bà Tư · gọi / hít / ăn tiếp');
     }, 7800);
+  }
+  if (!S._coTuongStreetTip) {
+    S._coTuongStreetTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast((S.coTuongNgoi | 0) === 0
+        ? '♟️ Cờ tướng đang bay trên hè…'
+        : '♟️ Cờ Tướng Bay trên hè · ngồi / đặt / xuống tướng');
+    }, 10500);
   }
   if (!S._gioVangStreetTip) {
     S._gioVangStreetTip = true;
@@ -16643,6 +17422,7 @@ $('action-btn').onclick = () => {
   if (S.hotHoDraw) { cancelHotHoDraw(); return; }
   if (S.muaTraHen) { cancelMuaTraHen(); return; }
   if (S.phoBayAct) { cancelPhoBayAct(); return; }
+  if (S.coTuongAct) { cancelCoTuongAct(); return; }
   if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
   if (S.bongDaAct) { cancelBongDaAct(); return; }
   if (S.phoVangCall) { cancelGioVangCall(); return; }
@@ -16728,6 +17508,10 @@ $('action-btn').onclick = () => {
   }
   if (S.nearPhoBay) {
     startPhoBayAct();
+    return;
+  }
+  if (S.nearCoTuong) {
+    startCoTuongAct();
     return;
   }
   if (S.nearMirrorPuddle) {
@@ -16889,6 +17673,7 @@ addEventListener('keydown', e => {
     if (S.hotHoDraw) { cancelHotHoDraw(); return; }
     if (S.muaTraHen) { cancelMuaTraHen(); return; }
     if (S.phoBayAct) { cancelPhoBayAct(); return; }
+    if (S.coTuongAct) { cancelCoTuongAct(); return; }
     if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
     if (S.bongDaAct) { cancelBongDaAct(); return; }
     if (S.phoVangCall) { cancelGioVangCall(); return; }

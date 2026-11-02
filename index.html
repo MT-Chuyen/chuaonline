@@ -6557,7 +6557,7 @@ function startInstituteGeneSpin(opts = {}) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
   }
-  const animals = (S.instituteAnimals || []).filter((a) => a && a.animal);
+  const animals = (S.instituteAnimals || []).filter((a) => a && a.animal && !a.paradePhase && a.cafeSeat == null);
   if (!animals.length) {
     toast('🎡 Chưa có thú trên sân để gắn gene carnival');
     return;
@@ -7354,6 +7354,13 @@ function updateInstitute(dt, t) {
       }
     });
   }
+  // Rare habitats can join golden parade
+  if (S.instituteRareAnimals) {
+    S.instituteRareAnimals.forEach((a) => {
+      if (a.tip && camera) a.tip.quaternion.copy(camera.quaternion);
+      tickParadeAnimal(a);
+    });
+  }
 
   if (S.instituteGateTip && camera) S.instituteGateTip.quaternion.copy(camera.quaternion);
   if (S.instituteShowLabel && camera) S.instituteShowLabel.quaternion.copy(camera.quaternion);
@@ -7362,6 +7369,38 @@ function updateInstitute(dt, t) {
   if (S.instituteBoothTip && camera) S.instituteBoothTip.quaternion.copy(camera.quaternion);
   if (S.instituteCafeTip && camera) S.instituteCafeTip.quaternion.copy(camera.quaternion);
   if (S.instituteCafeMenuTip && camera) S.instituteCafeMenuTip.quaternion.copy(camera.quaternion);
+  if (S.instituteParadeTip && camera) S.instituteParadeTip.quaternion.copy(camera.quaternion);
+  if (S.instituteParadeBoardTip && camera) S.instituteParadeBoardTip.quaternion.copy(camera.quaternion);
+  if (S.instituteParadeFlag) {
+    S.instituteParadeFlag.rotation.y = Math.sin(t * 2.2) * 0.35;
+    S.instituteParadeFlag.rotation.z = Math.sin(t * 3.1) * 0.08;
+    if (S._vienParadePathBoost && S.instituteParadeFlag.material) {
+      S.instituteParadeFlag.material.emissiveIntensity = 0.35 + 0.25 * Math.abs(Math.sin(t * 2));
+    }
+  }
+  if (S.instituteParadeRim?.material && (S.nguoiCamCoDieu || S.chuDieuHanh)) {
+    S.instituteParadeRim.material.emissiveIntensity = 0.4 + 0.28 * Math.abs(Math.sin(t * 1.5));
+  }
+  if (S.instituteParadeZoneRing?.material) {
+    S.instituteParadeZoneRing.material.emissiveIntensity = 0.16 + 0.12 * Math.abs(Math.sin(t * 1.25));
+  }
+  if (S.instituteParadePathMarkers) {
+    const boost = S._vienParadePathBoost || paradeAct ? 1.35 : 1;
+    const gold = paradeAct?.golden;
+    S.instituteParadePathMarkers.forEach((m, i) => {
+      if (!m?.material) return;
+      m.material.emissiveIntensity = (0.16 + 0.14 * Math.abs(Math.sin(t * 1.6 + i))) * boost;
+      if (gold) m.material.emissive?.setHex?.(0xffcc66);
+    });
+  }
+  if (S.instituteParadeHalo?.visible && playerRoot) {
+    S.instituteParadeHalo.position.x = playerRoot.position.x;
+    S.instituteParadeHalo.position.z = playerRoot.position.z;
+    S.instituteParadeHalo.position.y = 0.08 + Math.sin(t * 3) * 0.03;
+    if (S.instituteParadeHalo.material) {
+      S.instituteParadeHalo.material.opacity = 0.7 + 0.2 * Math.abs(Math.sin(t * 2.5));
+    }
+  }
   if (S.instituteCafeDeck) {
     S.instituteCafeDeck.position.y = 1.22 + Math.sin(t * 1.1) * 0.06;
   }
@@ -7422,8 +7461,8 @@ function updateInstitute(dt, t) {
     });
   }
 
-  // Soft tip near animal / show / album / wheel / cafe
-  if (!S.instituteAct && !S.instituteShowAct && !S.instituteWheelAct && !S.instituteCafeAct) {
+  // Soft tip near animal / show / album / wheel / cafe / parade
+  if (!S.instituteAct && !S.instituteShowAct && !S.instituteWheelAct && !S.instituteCafeAct && !S.instituteParadeAct) {
     const now = performance.now();
     if (S.nearInstituteAnimal && now - (S._instituteTipAt || 0) > 15000) {
       S._instituteTipAt = now;
@@ -7462,23 +7501,40 @@ function updateInstitute(dt, t) {
         S._vienCafeTipOffer = false;
         toast(`${instituteCafeVerbLabel(pickInstituteCafeVerb())} · Cafe Bay Viện?`);
       }
+    } else if (S.nearInstituteParade && now - (S._instituteTipAt || 0) > 16000) {
+      S._instituteTipAt = now;
+      if (vienCoGeneCount() > 0 && (now / 16000 | 0) % 2 === 1) {
+        S._vienParadeTipOffer = true;
+        S._vienParadeTipAt = now;
+        const filled = INSTITUTE_ANIMAL_SPECS.filter((s) => S.vienCoGene && S.vienCoGene[s.id]).map((s) => s.name.split(' ').slice(0, 2).join(' ')).slice(0, 2);
+        toast(`📋 Xem Bảng Cờ · ${filled.join(' · ') || 'đang sáng'} — bấm tương tác`);
+      } else {
+        S._vienParadeTipOffer = false;
+        toast(`${instituteParadeVerbLabel(pickInstituteParadeVerb())} · Diễu Hành Thú Bay?`);
+      }
     }
   }
 
-  // Soft tip if on isle ~8s (cafe then wheel) without spam
-  if (S.playing && playerRoot && playerRoot.position.x < -16) {
+  // Soft tip if on isle ~8s (parade / cafe / wheel) without spam
+  if (S.playing && playerRoot && playerRoot.position.x < -14) {
     if (!S._vienIsleSince) S._vienIsleSince = nowMs;
     const enteredAt = S._instituteEnteredAt || S._vienIsleSince;
     if (nowMs - enteredAt > 8000) {
-      if (!S._vienCafeWarpTip && (S.vienCafePhucVu | 0) < 1) {
+      if (!S._vienParadeWarpTip && (S.vienDieuHanh | 0) < 1 && ((S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
+        S._vienParadeWarpTip = true;
+        toast('🎏 Diễu Hành Thú Bay mở góc đông-bắc sân…');
+      } else if (!S._vienCafeWarpTip && (S.vienCafePhucVu | 0) < 1) {
         S._vienCafeWarpTip = true;
         toast('🧋 Cafe Bay Cho Thú mở góc tây-bắc sân…');
       } else if (!S._vienWheelWarpTip && (S.vienQuayGene | 0) < 1) {
         S._vienWheelWarpTip = true;
         toast('🎡 Vòng Quay Đột Biến mở phía nam sân…');
+      } else if (!S._vienParadeWarpTip && (S.vienDieuHanh | 0) < 1) {
+        S._vienParadeWarpTip = true;
+        toast('🎏 Diễu Hành Thú Bay mở góc đông-bắc sân…');
       }
     }
-  } else if (playerRoot && playerRoot.position.x >= -16) {
+  } else if (playerRoot && playerRoot.position.x >= -14) {
     S._vienIsleSince = 0;
   }
 
@@ -7489,6 +7545,87 @@ function updateInstitute(dt, t) {
       S._instituteCourtyardTip = true;
       toast('🧬 Viện Nghiên Cứu Di Truyền mở sân thú biến đổi… · nút mint / phím I');
     }
+  }
+
+  // —— Parade act tick ——
+  if (paradeAct) {
+    if ($('modal')?.classList.contains('open')) {
+      cancelInstituteParadeAct();
+      return;
+    }
+    paradeAct.t += dt;
+    const u = Math.min(1, paradeAct.t / paradeAct.dur);
+    const allA = [...(S.instituteAnimals || []), ...(S.instituteRareAnimals || [])];
+    if (paradeAct.kind === 'diCung') {
+      const lead = allA.find((x) => x.id === paradeAct.leadId) || allA.find((x) => x.paradePhase);
+      paradeAct.marshalT = (paradeAct.marshalT || 0) + dt * 0.72;
+      const mp = paradePathXZ(paradeAct.marshalT);
+      if (playerRoot) {
+        playerRoot.position.x = mp.x;
+        playerRoot.position.z = mp.z;
+        playerRoot.position.y = 0;
+      }
+      if (lead) {
+        const yaw = Math.atan2(-(lead.x - mp.x), -(lead.z - mp.z));
+        S.yaw = yaw;
+        if (player) player.rotation.y = yaw;
+        paradeAct.faceYaw = yaw;
+      }
+    } else if (player) {
+      player.rotation.y = paradeAct.faceYaw;
+      S.yaw = paradeAct.faceYaw;
+    }
+    // Soft cheer / march bubbles during hô / vàng / cổ vũ
+    if ((paradeAct.kind === 'hoDieu' || paradeAct.kind === 'dieuHoangKim' || paradeAct.kind === 'coVu')
+      && paradeAct.jokes && paradeAct.jokeIdx < paradeAct.jokes.length && paradeAct.t >= paradeAct.nextJokeAt) {
+      const line = paradeAct.jokes[paradeAct.jokeIdx];
+      const gid = paradeAct.guestIds?.[paradeAct.jokeIdx];
+      const g = allA.find((x) => x.id === gid);
+      if (g) spawnParadeJokeBubble(g, line);
+      else if (line) toast(line);
+      paradeAct.jokeIdx += 1;
+      paradeAct.nextJokeAt = paradeAct.t + (IS_MOBILE ? 2.0 : 2.4);
+    } else if ((paradeAct.kind === 'hoDieu' || paradeAct.kind === 'dieuHoangKim') && !paradeAct.jokes) {
+      // Build rotating jokes once guests are on path
+      const guests = (paradeAct.guestIds || []).map((id) => allA.find((x) => x.id === id)).filter(Boolean);
+      paradeAct.jokes = guests.slice(0, IS_MOBILE ? 4 : 8).map((g, i) => instituteParadeJoke(g.name, i + (S.vienDieuHanh | 0)));
+      paradeAct.jokeIdx = 0;
+      paradeAct.nextJokeAt = paradeAct.t + 1.5;
+    }
+    if (paradeAct.kind === 'coVu') {
+      if (!IS_MOBILE && Math.random() < 0.1) {
+        try {
+          emitSmoke(
+            INSTITUTE_X + 9.5 + (Math.random() - 0.5) * 3,
+            1.2 + Math.random(),
+            INSTITUTE_Z + 9.0 + (Math.random() - 0.5) * 3,
+            1
+          );
+        } catch (_) {}
+      }
+    }
+    if (paradeAct.golden && !IS_MOBILE && Math.random() < 0.07) {
+      try {
+        const ang = Math.random() * Math.PI * 2;
+        const p = paradePathXZ(ang);
+        emitSmoke(p.x, 0.9 + Math.random(), p.z, 1);
+      } catch (_) {}
+    }
+    // Begin return home near end of hô / vàng
+    if ((paradeAct.kind === 'hoDieu' || paradeAct.kind === 'dieuHoangKim') && u > 0.82) {
+      (paradeAct.guestIds || []).forEach((id) => {
+        const g = allA.find((x) => x.id === id);
+        if (g && g.paradePhase === 'orbit') {
+          g.paradePhase = 'toHome';
+          g.paradeLerp = 0;
+          g.paradeFromX = g.mesh.position.x;
+          g.paradeFromZ = g.mesh.position.z;
+          g.paradeFromY = g.mesh.position.y;
+        }
+      });
+    }
+    if (u >= 1) finishInstituteParadeAct(false);
+    return;
   }
 
   // —— Cafe Bay act tick ——
@@ -22872,7 +23009,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin-top:6px">${nextLine}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🔥 Chuỗi ngày: <strong>${dailyBook.streak}</strong>${dailyBook.flair}${dailyBook.clearNote}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">Ấn khám phá: ${stamps}</p>
-    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}${S.nhaNghienCuuSan ? ' · 🧬 Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · 🧬 Thực Tập Sinh Viện' : '')}${S.daoDienSanVien ? ' · 🎬 Đạo Diễn Sân Viện' : (S.khanGiaDotBien ? ' · 🌙 Khán Giả Đột Biến' : '')}${S.chuQuayCarnival ? ' · 🌈 Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · 🎡 Tay Quay Gene' : '')}${S.chuCafeBay ? ' · 🧋 Chủ Cafe Bay Viện' : (S.nguoiPhaGene ? ' · 🧋 Người Pha Gene' : '')}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}${S.nhaNghienCuuSan ? ' · 🧬 Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · 🧬 Thực Tập Sinh Viện' : '')}${S.daoDienSanVien ? ' · 🎬 Đạo Diễn Sân Viện' : (S.khanGiaDotBien ? ' · 🌙 Khán Giả Đột Biến' : '')}${S.chuQuayCarnival ? ' · 🌈 Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · 🎡 Tay Quay Gene' : '')}${S.chuCafeBay ? ' · 🧋 Chủ Cafe Bay Viện' : (S.nguoiPhaGene ? ' · 🧋 Người Pha Gene' : '')}${S.chuDieuHanh ? ' · 🎏 Chủ Diễu Hành Viện' : (S.nguoiCamCoDieu ? ' · 🎏 Người Cầm Cờ Diễu' : '')}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🌦️ Đang: <strong>${weatherNow}</strong></p>
     <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm · ${S.btsSigs} chữ ký BTS${S.btsPrincessMode ? ' · 👑 Công Chúa' : ''}${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
     <h2 style="font-size:1rem;margin-top:8px">📋 Mục tiêu hôm nay</h2>
@@ -22887,6 +23024,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin:0 0 8px">🌙 Show đêm <strong>${S.vienShowDem|0}</strong> · diễn tập <strong>${S.vienShowTap|0}</strong> · stamp album <strong>${vienStampN}</strong>/12${S.daoDienSanVien ? ' · flair Đạo Diễn Sân Viện' : (S.khanGiaDotBien ? ' · flair Khán Giả Đột Biến' : '')}${S._vienRareSpawned ? ' · thú hiếm lồng bay' : ''}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">🎡 Quay gene <strong>${S.vienQuayGene|0}</strong> · vé gene <strong>${typeof vienVeGeneCount==='function'?vienVeGeneCount():Object.keys(S.vienVeGene||{}).filter(k=>S.vienVeGene[k]).length}</strong>/8 · siêu quay <strong>${S.vienSieuQuay?'✅':'⬜'}</strong>${S.chuQuayCarnival ? ' · flair Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · flair Tay Quay Gene' : '')}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">🧋 Phục vụ cafe <strong>${S.vienCafePhucVu|0}</strong> · ly gene <strong>${typeof vienLyGeneCount==='function'?vienLyGeneCount():Object.keys(S.vienLyGene||{}).filter(k=>S.vienLyGene[k]).length}</strong>/6 · tiệc bay <strong>${S.vienTiecBay?'✅':'⬜'}</strong>${S.chuCafeBay ? ' · flair Chủ Cafe Bay Viện' : (S.nguoiPhaGene ? ' · flair Người Pha Gene' : '')}</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">🎏 Diễu hành <strong>${S.vienDieuHanh|0}</strong> · cờ gene <strong>${typeof vienCoGeneCount==='function'?vienCoGeneCount():Object.keys(S.vienCoGene||{}).filter(k=>S.vienCoGene[k]).length}</strong>/10 · Diễu Hoàng Kim <strong>${S.vienDieuHoangKim?'✅':'⬜'}</strong>${S.chuDieuHanh ? ' · flair Chủ Diễu Hành Viện' : (S.nguoiCamCoDieu ? ' · flair Người Cầm Cờ Diễu' : '')}</p>
     <ul class="book-list">${vienChecks}</ul>
     ${vienRareChecks ? `<p class="tiny" style="text-align:center;margin:8px 0 4px">✨ Thú hiếm lồng bay</p><ul class="book-list">${vienRareChecks}</ul>` : ''}
     <p class="tiny" style="text-align:center;margin:8px 0 4px">📷 Stamp Album Ảnh Kỳ</p>
@@ -22895,6 +23033,8 @@ function openBook() {
     <ul class="book-list">${(typeof INSTITUTE_GENE_OUTCOMES!=='undefined'?INSTITUTE_GENE_OUTCOMES:[]).map((o)=>`<li>${(S.vienVeGene&&S.vienVeGene[o.id])?'✅':'⬜'} ${o.name}</li>`).join('')||'<li>Chưa có vé</li>'}</ul>
     <p class="tiny" style="text-align:center;margin:8px 0 4px">🧋 Ly Gene Cafe</p>
     <ul class="book-list">${(typeof INSTITUTE_CAFE_DRINKS!=='undefined'?INSTITUTE_CAFE_DRINKS:[]).map((d)=>`<li>${(S.vienLyGene&&S.vienLyGene[d.id])?'✅':'⬜'} ${d.name}</li>`).join('')||'<li>Chưa có ly</li>'}</ul>
+    <p class="tiny" style="text-align:center;margin:8px 0 4px">🎏 Cờ Gene Diễu Hành</p>
+    <ul class="book-list">${(typeof INSTITUTE_ANIMAL_SPECS!=='undefined'?INSTITUTE_ANIMAL_SPECS:[]).map((s)=>`<li>${(S.vienCoGene&&S.vienCoGene[s.id])?'✅':'⬜'} ${s.name}</li>`).join('')||'<li>Chưa có cờ</li>'}</ul>
     <h2 style="font-size:1rem;margin-top:8px">🪷 Sen Bay</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ngồi <strong>${S.senBayRides | 0}</strong> lần · tầng cao nhất: <strong>${senBest}</strong></p>
     <ul class="book-list">${senLogs}</ul>

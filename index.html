@@ -1619,6 +1619,7 @@ function destroyStructure(col) {
   col.baseY = col.root.position.y;
   col.baseRot = { x: col.root.rotation.x, y: col.root.rotation.y, z: col.root.rotation.z };
   col.baseScale = col.root.scale.x;
+  col.spin = Math.random() > 0.5 ? 1 : -1;
   return true;
 }
 function updateDestroyables(dt) {
@@ -1632,7 +1633,7 @@ function updateDestroyables(dt) {
       root.scale.setScalar(s);
       root.position.y = col.baseY - u * 2.2;
       root.rotation.x = col.baseRot.x + u * 0.55;
-      root.rotation.z = col.baseRot.z + u * (Math.random() > 0.5 ? 0.9 : -0.9) * 0.02 + u * 0.7;
+      root.rotation.z = col.baseRot.z + u * 0.85 * (col.spin || 1);
       if (u >= 1) {
         root.visible = false;
         root.scale.setScalar(0.01);

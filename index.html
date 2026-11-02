@@ -167,7 +167,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   <div class="screen" id="screen-welcome">
     <div class="welcome-card">
       <div class="logo">Lên Chùa Cầu An</div>
-      <p class="tagline">Chùa An Lạc lúc chiều tà — bước vào sân chùa, chậm lại một nhịp thở.</p>
+      <p class="tagline">Chùa An Lạc trên thiên đường — nhìn xuống là biển mây, nhìn lên là sao trời.</p>
       <input class="input" id="name-input" maxlength="20" placeholder="Tên của bạn" autocomplete="off"/>
       <button class="btn big" id="btn-enter">Vào chùa</button>
       <p class="hint">Có thể chơi cùng bạn bè · Không quảng cáo · Sổ cầu an lưu trên máy bạn</p>
@@ -178,7 +178,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <div class="logo" style="font-size:1.55rem;margin-bottom:14px">Cách đi trong chùa</div>
       <ol class="steps">
         <li><span class="n">1</span><span>Điện thoại: kéo cần góc trái. Máy tính: WASD hoặc mũi tên.</span></li>
-        <li><span class="n">2</span><span>Kéo màn hình để nhìn quanh. Tới gần lư hương, chuông, mõ, cây bồ đề hoặc ống xăm.</span></li>
+        <li><span class="n">2</span><span>Kéo xuống để thấy biển mây dưới chân; kéo lên để thấy sao. Tới gần lư hương, chuông, mõ…</span></li>
         <li><span class="n">3</span><span>Chạm nút hành động ở giữa dưới màn hình.</span></li>
       </ol>
       <button class="btn big" id="btn-guide-ok">Bắt đầu</button>
@@ -269,7 +269,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x2a1830);
 scene.fog = new THREE.FogExp2(0x2a1830, 0.012);
 
-const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.15, 200);
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.15, 320);
 const clock = new THREE.Clock();
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3();
 
@@ -792,13 +792,18 @@ function buildSupermanStatue(x, z) {
 /* ========== CẢNH CHÙA ========== */
 let hemi, sun, fillL;
 function buildScene() {
-  // Nền cỏ + sân gạch (rộng hơn để chứa tháp lớn)
-  const grass = new THREE.Mesh(new THREE.PlaneGeometry(56, 60), mat(0x4a5c38, 0.95));
-  grass.rotation.x = -Math.PI / 2; grass.position.y = -0.02; grass.receiveShadow = true; scene.add(grass);
+  // Đảo thiên đường: sân gạch nổi trên biển mây (không còn đồng cỏ trần)
+  const isle = new THREE.Mesh(
+    new THREE.CircleGeometry(18, 48),
+    new THREE.MeshStandardMaterial({ color: 0xc4b49a, roughness: 0.95, metalness: 0.04, emissive: 0x3a2a18, emissiveIntensity: 0.08 })
+  );
+  isle.rotation.x = -Math.PI / 2; isle.position.y = -0.04; isle.receiveShadow = true; scene.add(isle);
   const yard = new THREE.Mesh(new THREE.PlaneGeometry(24, 36), new THREE.MeshStandardMaterial({
     map: makeBrickTex(), roughness: 0.92, metalness: 0.02, color: 0xffffff,
   }));
   yard.rotation.x = -Math.PI / 2; yard.position.set(0, 0.01, -2); yard.receiveShadow = true; scene.add(yard);
+  // Viền mây mềm quanh đảo (nhìn ngang cũng thấy mây)
+  buildCloudSea();
   // Viền sân đá
   box(22.4, 0.18, 0.35, M.stone, 0, 0.08, 14, scene, false);
   box(22.4, 0.18, 0.35, M.stone, 0, 0.08, -14, scene, false);
@@ -1004,8 +1009,8 @@ function buildScene() {
   box(0.08, 0.5, 0.08, M.woodD, 0.48, 0.1, 0, mok);
   mok.position.set(3.2, 1.05, -6.0); scene.add(mok);
 
-  // Ánh sáng
-  hemi = new THREE.HemisphereLight(0xffc8a0, 0x2a1a10, 0.58); scene.add(hemi);
+  // Ánh sáng thiên đường — bầu trời ấm, phản chiếu mây dưới
+  hemi = new THREE.HemisphereLight(0xffd0b0, 0xb8c8e8, 0.72); scene.add(hemi);
   sun = new THREE.DirectionalLight(0xffaa66, 1.0); sun.position.set(-12, 16, 8);
   sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
   sun.shadow.camera.near = 1; sun.shadow.camera.far = 55;
@@ -1036,6 +1041,104 @@ function addFloat(ai) {
   const a = Math.random()*6.28, r = 0.55 + Math.random()*1.85;
   g.position.set(S.pond.x + Math.cos(a)*r, 0.42, S.pond.z + Math.sin(a)*r);
   g.userData = { a, r, sp: 0.07 + Math.random()*0.12, ai }; scene.add(g); S.floats.push(g); return g;
+}
+
+/* ========== BIỂN MÂY DƯỚI CHÂN CHÙA ========== */
+function makeCloudTex() {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0, 0, 256, 256);
+  for (let i = 0; i < 10; i++) {
+    const x = 40 + Math.random() * 176, y = 50 + Math.random() * 156;
+    const r = 28 + Math.random() * 55;
+    const g = ctx.createRadialGradient(x, y, 4, x, y, r);
+    g.addColorStop(0, `rgba(255,252,248,${0.55 + Math.random() * 0.4})`);
+    g.addColorStop(0.45, `rgba(230,235,250,${0.25 + Math.random() * 0.25})`);
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill();
+  }
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; return tex;
+}
+
+function buildCloudSea() {
+  const root = new THREE.Group();
+  S.clouds = { root, puffs: [], sheets: [] };
+  const tex = makeCloudTex();
+  const puffMat = () => noFog(new THREE.MeshBasicMaterial({
+    map: tex, transparent: true, opacity: 0.72, depthWrite: false, side: THREE.DoubleSide,
+  }));
+
+  // Tầng mây sâu — nhìn xuống thấy biển trắng
+  for (let layer = 0; layer < 3; layer++) {
+    const sheet = new THREE.Mesh(
+      new THREE.PlaneGeometry(140 - layer * 18, 140 - layer * 18),
+      noFog(new THREE.MeshBasicMaterial({
+        color: layer === 0 ? 0xdde6f8 : layer === 1 ? 0xfff0e4 : 0xe8f0ff,
+        transparent: true, opacity: 0.55 - layer * 0.1, depthWrite: false, side: THREE.DoubleSide,
+      }))
+    );
+    sheet.rotation.x = -Math.PI / 2;
+    sheet.position.y = -10 - layer * 5.5;
+    root.add(sheet);
+    S.clouds.sheets.push(sheet);
+  }
+
+  // Cục mây mềm quanh / dưới đảo
+  for (let i = 0; i < 70; i++) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), puffMat());
+    const ang = Math.random() * Math.PI * 2;
+    const rad = 12 + Math.random() * 48;
+    const y = -2.5 - Math.random() * 16;
+    const sc = 4 + Math.random() * 10;
+    m.scale.set(sc * (0.8 + Math.random() * 0.6), sc * (0.45 + Math.random() * 0.35), 1);
+    m.position.set(Math.cos(ang) * rad, y, Math.sin(ang) * rad);
+    m.userData = {
+      baseY: y, ph: Math.random() * 6.28, spin: (Math.random() - 0.5) * 0.08,
+      drift: 0.15 + Math.random() * 0.35, ang, rad, rad0: rad,
+    };
+    root.add(m);
+    S.clouds.puffs.push(m);
+  }
+  // Mây vành đai sát mép sân — nhìn ngang thấy “chùa nổi trên mây”
+  for (let i = 0; i < 28; i++) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), puffMat());
+    const ang = (i / 28) * Math.PI * 2;
+    const rad = 15.5 + (i % 3) * 1.4;
+    m.scale.set(5 + (i % 4), 2.2 + (i % 3) * 0.4, 1);
+    m.position.set(Math.cos(ang) * rad, -0.6 - (i % 4) * 0.35, Math.sin(ang) * rad);
+    m.userData = { baseY: m.position.y, ph: i * 0.4, spin: 0.04, drift: 0.1, ang, rad, rad0: rad, rim: true };
+    root.add(m);
+    S.clouds.puffs.push(m);
+  }
+
+  // Ánh hồng dưới mây (thiên đường)
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(55, 32),
+    noFog(new THREE.MeshBasicMaterial({ color: 0xffc9a0, transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide }))
+  );
+  glow.rotation.x = -Math.PI / 2; glow.position.y = -22; root.add(glow);
+
+  scene.add(root);
+}
+
+function updateClouds(dt, t) {
+  if (!S.clouds) return;
+  const cam = camera.position;
+  S.clouds.puffs.forEach(m => {
+    const u = m.userData;
+    u.ang += u.drift * dt * 0.04;
+    const rr = u.rad0 + Math.sin(t * 0.2 + u.ph) * (u.rim ? 0.25 : 1.2);
+    m.position.x = Math.cos(u.ang) * rr;
+    m.position.z = Math.sin(u.ang) * rr;
+    m.position.y = u.baseY + Math.sin(t * 0.35 + u.ph) * 0.35;
+    m.rotation.z += u.spin * dt;
+    // Billboards hướng camera (chỉ yaw)
+    m.rotation.y = Math.atan2(cam.x - m.position.x, cam.z - m.position.z);
+  });
+  S.clouds.sheets.forEach((s, i) => {
+    s.rotation.z = Math.sin(t * 0.05 + i) * 0.04;
+    s.material.opacity = 0.42 + 0.12 * Math.sin(t * 0.3 + i);
+  });
 }
 
 /* ========== BẦU TRỜI: SAO · NGÂN HÀ · TRÁI ĐẤT · VỆ TINH · MÁY BAY · TÀU VŨ TRỤ ========== */
@@ -1552,7 +1655,7 @@ function startPlay() {
   canvas.setAttribute('tabindex', '0');
   canvas.style.outline = 'none';
   setTimeout(() => { try { canvas.focus({ preventScroll: true }); } catch (_) { canvas.focus(); } }, 50);
-  toast(`Chào ${S.name}! Máy tính: WASD / mũi tên · Kéo chuột để nhìn.`);
+  toast(`Chào ${S.name}! Kéo nhìn xuống — chùa nổi trên biển mây thiên đường.`);
 }
 
 $('btn-mute').onclick = () => setMute(!S.muted);
@@ -1626,10 +1729,10 @@ canvas.addEventListener('pointermove', e => {
   if (!S.drag || e.pointerId !== lookPtr) return;
   const dx = e.clientX - S.lx, dy = e.clientY - S.ly;
   S.lx = e.clientX; S.ly = e.clientY;
-  // Kéo ngang xoay, kéo dọc: lên = nhìn trời/tháp, xuống = nhìn sân
+  // Kéo ngang xoay · kéo lên = trời · kéo xuống = biển mây
   S.yaw -= dx * 0.0055;
   S.pitch += dy * 0.0045;
-  S.pitch = Math.max(-0.95, Math.min(1.15, S.pitch)); // âm = nhìn lên trời
+  S.pitch = Math.max(-0.95, Math.min(1.45, S.pitch)); // âm = nhìn trời · dương = nhìn biển mây
 });
 const endLook = e => { if (e.pointerId === lookPtr) { S.drag = false; lookPtr = null; } };
 canvas.addEventListener('pointerup', endLook); canvas.addEventListener('pointercancel', endLook);
@@ -2338,17 +2441,17 @@ function updatePlayer(dt) {
     }
   }
 
-  // Camera quỹ đạo quanh nhân vật — cho phép nhìn lên trời / tháp cao
+  // Camera quỹ đạo — ngẩng: sao/Trái Đất · cúi: biển mây thiên đường
   const dist = 6.2;
-  const phi = S.pitch; // -0.55..1.15
+  const phi = S.pitch;
   const cosP = Math.cos(phi);
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   const cx = px + Math.sin(S.yaw) * dist * Math.max(0.12, cosP);
   const cy = playerRoot.position.y + 1.35 + Math.sin(phi) * dist;
   const cz = pz + Math.cos(S.yaw) * dist * Math.max(0.12, cosP);
-  camera.position.lerp(_v.set(cx, Math.max(0.6, cy), cz), 1 - Math.pow(0.0008, dt));
-  // Khi ngẩng nhìn: điểm nhìn nâng cao rõ để thấy Trái Đất / sao / tàu
-  const lookY = 1.35 + (phi < 0 ? -phi * 28 : 0);
+  // Cho phép camera hơi thấp khi cúi nhìn mây (không xuyên sàn đảo)
+  camera.position.lerp(_v.set(cx, Math.max(0.35, cy), cz), 1 - Math.pow(0.0008, dt));
+  const lookY = 1.35 + (phi < 0 ? -phi * 28 : -phi * 14);
   _v2.set(px, lookY, pz);
   camera.lookAt(_v2);
 
@@ -2390,18 +2493,19 @@ function updatePlayer(dt) {
 }
 
 function updateWorld(dt, t) {
-  // Hoàng hôn → đêm (nhanh hơn một chút để sớm thấy bầu trời)
+  // Hoàng hôn → đêm trên thiên đường
   S.dusk = Math.min(1, S.dusk + dt * 0.012);
   const d = S.dusk;
-  scene.background.setRGB(0.16 - d * 0.12, 0.09 - d * 0.07, 0.14 - d * 0.04);
-  scene.fog.color.copy(scene.background);
-  // Giảm sương khi nhìn trời đêm
-  scene.fog.density = 0.008; // giữ thấp để bầu trời không bị nuốt
-  hemi.intensity = 0.55 - d * 0.28;
+  // Nền trời: tím hồng thiên đường → đêm sâu
+  scene.background.setRGB(0.18 - d * 0.12, 0.12 - d * 0.07, 0.22 - d * 0.08);
+  scene.fog.color.setRGB(0.55 - d * 0.35, 0.48 - d * 0.28, 0.58 - d * 0.32);
+  scene.fog.density = 0.0065;
+  hemi.intensity = 0.72 - d * 0.32;
   sun.intensity = 0.95 - d * 0.7;
   sun.color.setRGB(1, 0.65 - d * 0.25, 0.35 - d * 0.2);
-  fillL.intensity = 0.2 + d * 0.35;
+  fillL.intensity = 0.28 + d * 0.3;
   updateSky(dt, t, d);
+  updateClouds(dt, t);
 
   // Đèn lung linh
   S.lanterns.forEach(L => {

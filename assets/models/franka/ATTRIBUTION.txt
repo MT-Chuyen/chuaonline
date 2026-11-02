@@ -1,0 +1,5 @@
+Franka Emika Panda 7-DOF kinematics & collision STLs
+Source: Google DeepMind MuJoCo Menagerie — franka_emika_panda
+https://github.com/google-deepmind/mujoco_menagerie/tree/main/franka_emika_panda
+License: Apache-2.0 (see LICENSE in this folder)
+Used as reference for Viện “lab robot arm” dual-arm biology table scene.

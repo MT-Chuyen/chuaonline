@@ -4274,6 +4274,346 @@ function buildInstituteAnimalMesh(spec) {
   return g;
 }
 
+/* —— Viện · Hai robot 7 khớp (Franka Panda kinematics) thí nghiệm sinh học —— */
+/** Quat MuJoCo (w,x,y,z) → THREE (x,y,z,w) */
+function mujocoQuat(w, x, y, z) {
+  return new THREE.Quaternion(x, y, z, w);
+}
+/** Franka-style 7-DOF lab arm — joint hierarchy from MuJoCo Menagerie panda.xml */
+function buildLabRobotArm({ mirror = 1, accent = 0x0a8ac7 } = {}) {
+  const white = new THREE.MeshStandardMaterial({
+    color: 0xf4f6f8, roughness: 0.38, metalness: 0.28,
+    emissive: 0x222830, emissiveIntensity: 0.04,
+  });
+  const offW = new THREE.MeshStandardMaterial({
+    color: 0xe6ebef, roughness: 0.42, metalness: 0.22,
+  });
+  const black = new THREE.MeshStandardMaterial({
+    color: 0x2a2c30, roughness: 0.5, metalness: 0.4,
+  });
+  const blue = new THREE.MeshStandardMaterial({
+    color: accent, roughness: 0.35, metalness: 0.45,
+    emissive: accent, emissiveIntensity: 0.18,
+  });
+  const green = new THREE.MeshStandardMaterial({
+    color: 0x2ecc71, roughness: 0.4, metalness: 0.3,
+    emissive: 0x0a4020, emissiveIntensity: 0.15,
+  });
+
+  const root = new THREE.Group();
+  // MuJoCo Z-up → Three Y-up
+  root.rotation.x = -Math.PI / 2;
+  root.scale.setScalar(1.15);
+
+  function cyl(rTop, rBot, h, material, y = 0) {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(rTop, rBot, h, 14), material);
+    m.position.y = y;
+    m.castShadow = true;
+    return m;
+  }
+  function jointDisc(r, material) {
+    return cyl(r, r, 0.045, material, 0);
+  }
+
+  // link0 base (fixed)
+  const link0 = new THREE.Group();
+  link0.add(cyl(0.09, 0.11, 0.08, offW, 0.04));
+  link0.add(cyl(0.07, 0.07, 0.22, white, 0.18));
+  link0.add(cyl(0.055, 0.055, 0.06, black, 0.3));
+  root.add(link0);
+
+  // Joint pivots: each rotates about local +Z (MuJoCo default), which is +Y after root X-rot… 
+  // We keep building in MuJoCo frame (Z up); rotation.z on joint groups = joint angle.
+  const joints = [];
+
+  const j1 = new THREE.Group();
+  j1.position.set(0, 0, 0.333);
+  link0.add(j1);
+  j1.add(jointDisc(0.065, black));
+  j1.add(cyl(0.055, 0.055, 0.14, white, 0.08));
+  joints.push(j1);
+
+  const j2 = new THREE.Group();
+  j2.quaternion.copy(mujocoQuat(1, -1, 0, 0).normalize());
+  j1.add(j2);
+  j2.add(jointDisc(0.06, black));
+  const l2 = cyl(0.05, 0.05, 0.18, white, 0.1);
+  l2.rotation.x = Math.PI / 2;
+  l2.position.set(0, -0.08, 0);
+  j2.add(l2);
+  joints.push(j2);
+
+  const j3 = new THREE.Group();
+  j3.position.set(0, -0.316, 0);
+  j3.quaternion.copy(mujocoQuat(1, 1, 0, 0).normalize());
+  j2.add(j3);
+  j3.add(jointDisc(0.055, black));
+  j3.add(cyl(0.048, 0.048, 0.2, white, 0.1));
+  joints.push(j3);
+
+  const j4 = new THREE.Group();
+  j4.position.set(0.0825, 0, 0);
+  j4.quaternion.copy(mujocoQuat(1, 1, 0, 0).normalize());
+  j3.add(j4);
+  j4.add(jointDisc(0.05, black));
+  const l4 = cyl(0.045, 0.045, 0.22, white, 0);
+  l4.rotation.x = Math.PI / 2;
+  l4.position.set(0, 0.12, 0);
+  j4.add(l4);
+  joints.push(j4);
+
+  const j5 = new THREE.Group();
+  j5.position.set(-0.0825, 0.384, 0);
+  j5.quaternion.copy(mujocoQuat(1, -1, 0, 0).normalize());
+  j4.add(j5);
+  j5.add(jointDisc(0.048, black));
+  j5.add(cyl(0.042, 0.042, 0.14, white, 0.07));
+  joints.push(j5);
+
+  const j6 = new THREE.Group();
+  j6.quaternion.copy(mujocoQuat(1, 1, 0, 0).normalize());
+  j5.add(j6);
+  j6.add(jointDisc(0.045, blue));
+  j6.add(cyl(0.038, 0.038, 0.1, white, 0.05));
+  j6.add(cyl(0.03, 0.03, 0.04, green, 0.12));
+  joints.push(j6);
+
+  const j7 = new THREE.Group();
+  j7.position.set(0.088, 0, 0);
+  j7.quaternion.copy(mujocoQuat(1, 1, 0, 0).normalize());
+  j6.add(j7);
+  j7.add(jointDisc(0.04, black));
+  j7.add(cyl(0.035, 0.035, 0.08, white, 0.04));
+  joints.push(j7);
+
+  // Hand + fingers
+  const hand = new THREE.Group();
+  hand.position.set(0, 0, 0.107);
+  hand.quaternion.copy(mujocoQuat(0.9238795, 0, 0, -0.3826834).normalize());
+  j7.add(hand);
+  hand.add(cyl(0.04, 0.045, 0.05, offW, 0.02));
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.03, 0.05), black);
+  grip.position.set(0, 0, 0.04);
+  hand.add(grip);
+
+  const fingerL = new THREE.Group();
+  fingerL.position.set(0, 0.018, 0.0584);
+  const fl = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.012, 0.05), offW);
+  fl.position.z = 0.025;
+  fingerL.add(fl);
+  hand.add(fingerL);
+
+  const fingerR = new THREE.Group();
+  fingerR.position.set(0, -0.018, 0.0584);
+  const fr = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.012, 0.05), offW);
+  fr.position.z = 0.025;
+  fingerR.add(fr);
+  hand.add(fingerR);
+
+  // Home pose from panda.xml key
+  const home = [0, 0, 0, -1.57079, 0, 1.57079, -0.7853];
+  joints.forEach((j, i) => { j.rotation.z = home[i]; });
+
+  // Mirror for left/right table placement
+  if (mirror < 0) root.scale.x *= -1;
+
+  return { root, joints, fingerL, fingerR, hand, home };
+}
+
+function setLabArmJoints(arm, angles) {
+  if (!arm?.joints) return;
+  arm.joints.forEach((j, i) => {
+    if (angles[i] != null) j.rotation.z = angles[i];
+  });
+}
+
+function buildInstituteBioLab(parent, ix, iz) {
+  const cx = ix - 5.2, cz = iz + 3.2;
+  const lab = new THREE.Group();
+  lab.position.set(cx, 0, cz);
+  parent.add(lab);
+
+  // Lab table
+  const topMat = new THREE.MeshStandardMaterial({
+    color: 0xd8e4ec, roughness: 0.35, metalness: 0.15,
+    emissive: 0x203040, emissiveIntensity: 0.06,
+  });
+  const legMat = new THREE.MeshStandardMaterial({ color: 0x4a5560, roughness: 0.6, metalness: 0.3 });
+  const top = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.08, 1.35), topMat);
+  top.position.y = 0.92;
+  top.castShadow = true;
+  top.receiveShadow = true;
+  lab.add(top);
+  for (const [lx, lz] of [[-1.1, -0.5], [1.1, -0.5], [-1.1, 0.5], [1.1, 0.5]]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.9, 8), legMat);
+    leg.position.set(lx, 0.45, lz);
+    lab.add(leg);
+  }
+  // Under-shelf
+  const shelf = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.04, 1.1), legMat);
+  shelf.position.y = 0.35;
+  lab.add(shelf);
+
+  // Biology experiment props
+  const glass = new THREE.MeshStandardMaterial({
+    color: 0xb8e8ff, transparent: true, opacity: 0.45, roughness: 0.15, metalness: 0.1,
+  });
+  const liquid = new THREE.MeshStandardMaterial({
+    color: 0x44cc88, transparent: true, opacity: 0.7, roughness: 0.4,
+    emissive: 0x116633, emissiveIntensity: 0.25,
+  });
+  const liquid2 = new THREE.MeshStandardMaterial({
+    color: 0xff6688, transparent: true, opacity: 0.65, roughness: 0.4,
+    emissive: 0x661122, emissiveIntensity: 0.2,
+  });
+
+  function petri(x, z, matLiq) {
+    const g = new THREE.Group();
+    const dish = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.025, 16), glass);
+    dish.position.y = 0.96;
+    g.add(dish);
+    const liq = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.012, 14), matLiq);
+    liq.position.y = 0.955;
+    g.add(liq);
+    g.position.set(x, 0, z);
+    lab.add(g);
+    return g;
+  }
+  petri(-0.25, 0.15, liquid);
+  petri(0.15, -0.2, liquid2);
+  petri(0.45, 0.25, liquid);
+
+  // Test tubes rack
+  const rack = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.08, 0.18), new THREE.MeshStandardMaterial({ color: 0x888890, metalness: 0.5, roughness: 0.4 }));
+  rack.position.set(-0.7, 0.98, -0.35);
+  lab.add(rack);
+  for (let i = 0; i < 4; i++) {
+    const tube = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.16, 8), glass);
+    tube.position.set(-0.82 + i * 0.08, 1.08, -0.35);
+    lab.add(tube);
+    const fill = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.014, 0.014, 0.07 + Math.random() * 0.04, 6),
+      i % 2 ? liquid : liquid2
+    );
+    fill.position.copy(tube.position);
+    fill.position.y -= 0.02;
+    lab.add(fill);
+  }
+
+  // Microscope-ish
+  const scopeWhite = new THREE.MeshStandardMaterial({ color: 0xe8ecef, roughness: 0.45, metalness: 0.2 });
+  const scopeBlack = new THREE.MeshStandardMaterial({ color: 0x222428, roughness: 0.5, metalness: 0.35 });
+  const scope = new THREE.Group();
+  const sBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.04, 10), legMat);
+  sBase.position.y = 0.96;
+  scope.add(sBase);
+  const sArm = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.28, 0.04), scopeWhite);
+  sArm.position.set(0, 1.12, -0.02);
+  scope.add(sArm);
+  const sHead = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 0.1, 10), scopeBlack);
+  sHead.rotation.x = Math.PI / 2;
+  sHead.position.set(0, 1.22, 0.06);
+  scope.add(sHead);
+  scope.position.set(0.75, 0, -0.25);
+  lab.add(scope);
+
+  // Pipette held conceptually by animation (table pipette stand)
+  const pipetteStand = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 0.06, 8), legMat);
+  pipetteStand.position.set(0.05, 0.97, 0.35);
+  lab.add(pipetteStand);
+
+  // Overhead lab lamp
+  const lamp = new THREE.PointLight(0xd0f0ff, 0.55, 6, 2);
+  lamp.position.set(0, 2.4, 0);
+  lab.add(lamp);
+  const lampMesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.12, 0.18, 0.08, 12),
+    new THREE.MeshStandardMaterial({ color: 0x8899aa, emissive: 0xaaccff, emissiveIntensity: 0.4 })
+  );
+  lampMesh.position.set(0, 2.35, 0);
+  lab.add(lampMesh);
+
+  // Two 7-DOF arms at table ends
+  const armR = buildLabRobotArm({ mirror: 1, accent: 0x0a8ac7 });
+  armR.root.position.set(1.05, 0.96, 0.15);
+  armR.root.rotation.y = Math.PI * 0.55;
+  lab.add(armR.root);
+
+  const armL = buildLabRobotArm({ mirror: -1, accent: 0x2ecc71 });
+  armL.root.position.set(-1.05, 0.96, 0.15);
+  armL.root.rotation.y = -Math.PI * 0.55;
+  lab.add(armL.root);
+
+  const tip = textPlane('🧬 Lab Robot 7 khớp · Thí nghiệm', 420, 52, '#e8fff8', '#0a3a48', 16);
+  tip.position.set(0, 2.15, 0);
+  tip.scale.set(2.5, 0.4, 1);
+  lab.add(tip);
+
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(2.0, 28),
+    new THREE.MeshBasicMaterial({
+      color: 0x66ddee, transparent: true, opacity: 0.14,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.y = 0.04;
+  lab.add(glow);
+
+  S.instituteBioLab = {
+    root: lab, tip, glow, armL, armR,
+    pos: new THREE.Vector3(cx, 0, cz),
+    phase: Math.random() * 6.28,
+  };
+  return lab;
+}
+
+function updateInstituteBioLab(dt, t) {
+  const lab = S.instituteBioLab;
+  if (!lab) return;
+  if (lab.tip && camera) lab.tip.quaternion.copy(camera.quaternion);
+  if (lab.glow?.material) {
+    lab.glow.material.opacity = 0.1 + 0.08 * Math.abs(Math.sin(t * 1.4));
+  }
+  const home = lab.armR?.home || [0, 0, 0, -1.57, 0, 1.57, -0.78];
+  // Arm R: pipette / reach toward center dishes
+  if (lab.armR) {
+    const a = t * 1.1 + lab.phase;
+    setLabArmJoints(lab.armR, [
+      home[0] + Math.sin(a) * 0.25,
+      home[1] + Math.sin(a * 0.7) * 0.35,
+      home[2] + Math.cos(a * 0.9) * 0.2,
+      home[3] + Math.sin(a * 1.2) * 0.15,
+      home[4] + Math.cos(a) * 0.4,
+      home[5] + Math.sin(a * 0.8) * 0.2,
+      home[6] + Math.sin(a * 1.5) * 0.35,
+    ]);
+    if (lab.armR.fingerL) {
+      const g = 0.012 + Math.abs(Math.sin(a * 2)) * 0.01;
+      lab.armR.fingerL.position.y = g;
+      lab.armR.fingerR.position.y = -g;
+    }
+  }
+  // Arm L: mix / hold tube — phase offset
+  if (lab.armL) {
+    const a = t * 0.95 + lab.phase + 1.7;
+    setLabArmJoints(lab.armL, [
+      home[0] + Math.cos(a) * 0.3,
+      home[1] + Math.cos(a * 0.6) * 0.3,
+      home[2] + Math.sin(a * 0.85) * 0.25,
+      home[3] + Math.cos(a * 1.1) * 0.12,
+      home[4] + Math.sin(a * 1.3) * 0.45,
+      home[5] + Math.cos(a * 0.75) * 0.25,
+      home[6] + Math.cos(a * 1.4) * 0.3,
+    ]);
+    if (lab.armL.fingerL) {
+      const g = 0.01 + Math.abs(Math.cos(a * 1.8)) * 0.012;
+      lab.armL.fingerL.position.y = g;
+      lab.armL.fingerR.position.y = -g;
+    }
+  }
+}
+
 /** Landmark 3D — tải GLB T-Rex thật (polyfork) + tint đột biến, idle anim */
 const MUTATION_DINO_URL = './assets/models/mutation-dino.glb';
 function placeInstituteMutationDino(parent, ix, iz) {
@@ -4594,6 +4934,8 @@ function buildInstituteDistrict() {
   S.instituteAnimals = animals;
   // Landmark GLB khủng long (mesh thật, không ghép box/sphere)
   try { placeInstituteMutationDino(root, ix, iz); } catch (err) { console.warn('institute dino glb', err); }
+  // Hai cánh tay robot 7 khớp · bàn thí nghiệm sinh học
+  try { buildInstituteBioLab(root, ix, iz); } catch (err) { console.warn('institute bio lab', err); }
   buildInstituteShowAlbum(root, ix, iz);
   buildInstituteGeneWheel(root, ix, iz);
   buildInstituteCafeBay(root, ix, iz);
@@ -7002,18 +7344,17 @@ function guideFreeTourAnimals() {
   });
 }
 function pickInstituteGuideVerb() {
-  if (vienTourDenLongUnlocked() && !S._vienTourDenLongSession && !S.vienTourDenLong) return 'tourDenLong';
   if (vienTourDenLongUnlocked() && !S._vienTourDenLongSession) return 'tourDenLong';
   const n = S.vienHuongDan | 0;
   const stamps = vienTheGhiChuCount();
   if (n < 1) return 'moiTour';
   const last = S._vienGuideLastKind;
-  if (n >= 1 && (last === 'moiTour' || last === 'tourDenLong')) return 'ghiChu';
-  if ((n >= 5 || stamps >= 4) && last === 'ghiChu') return 'hoiDap';
-  if ((n >= 5 || stamps >= 4) && last === 'hoiDap') return 'moiTour';
-  if (n >= 1 && last === 'ghiChu') return 'moiTour';
-  if (n >= 1) return 'ghiChu';
-  return 'moiTour';
+  const quizOk = n >= 5 || stamps >= 4;
+  if (last === 'moiTour' || last === 'tourDenLong') return 'ghiChu';
+  if (quizOk && last === 'ghiChu') return 'hoiDap';
+  if (quizOk && last === 'hoiDap') return 'moiTour';
+  if (last === 'ghiChu') return 'moiTour';
+  return 'ghiChu';
 }
 function instituteGuideVerbLabel(v) {
   if (v === 'ghiChu') return '📋 Ghi Chú';
@@ -7754,14 +8095,20 @@ function goToInstituteGate() {
   S._instituteEntered = true;
   S._instituteEnteredAt = performance.now();
   toast('🧬 Giữa Sân Thú Biến Đổi — đi vòng xem các em đang… biến!');
-  // Soft tip cycle: dusk→show; else prefer unplayed: balloon / parade / cafe / wheel / album
-  if (!S._vienShowWarpTip && !S._vienWheelWarpTip && !S._vienCafeWarpTip && !S._vienParadeWarpTip && !S._vienBalloonWarpTip) {
+  // Soft tip cycle: dusk→show; else prefer unplayed: guide / balloon / parade / cafe / wheel / album
+  if (!S._vienShowWarpTip && !S._vienWheelWarpTip && !S._vienCafeWarpTip && !S._vienParadeWarpTip && !S._vienBalloonWarpTip && !S._vienGuideWarpTip) {
     const nightish = S.timePhase === 'dusk' || S.timePhase === 'night';
     if (nightish) {
       S._vienShowWarpTip = true;
       setTimeout(() => {
         if (!S.playing) return;
         toast('🌙 Show Đột Biến Đêm sắp mở trên sân giữa…');
+      }, 4500);
+    } else if ((S.vienHuongDan | 0) < 1) {
+      S._vienGuideWarpTip = true;
+      setTimeout(() => {
+        if (!S.playing) return;
+        toast('🔬 Hướng Dẫn Viên Gene đang đợi góc tây sân…');
       }, 4500);
     } else if ((S.vienKhinhKhi | 0) < 1 && ((S.vienDieuHanh | 0) >= 1 || (S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
       S._vienBalloonWarpTip = true;
@@ -7806,6 +8153,12 @@ function goToInstituteGate() {
         toast('📷 Tường Album Ảnh Kỳ gần cổng — đứng xem ảnh viện');
       }, 4500);
     }
+  } else if (!S._vienGuideWarpTip && (S.vienHuongDan | 0) < 1) {
+    S._vienGuideWarpTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast('🔬 Hướng Dẫn Viên Gene đang đợi góc tây sân…');
+    }, 8000);
   } else if (!S._vienBalloonWarpTip && (S.vienKhinhKhi | 0) < 1) {
     S._vienBalloonWarpTip = true;
     setTimeout(() => {
@@ -8771,6 +9124,7 @@ function updateInstitute(dt, t) {
       S.instituteDino.spikeRoot.rotation.y = Math.sin(t * 0.6) * 0.04;
     }
   }
+  try { updateInstituteBioLab(dt, t); } catch (_) {}
 
   const animals = S.instituteAnimals;
   const showAct = S.instituteShowAct;
@@ -8778,6 +9132,7 @@ function updateInstitute(dt, t) {
   const cafeAct = S.instituteCafeAct;
   const paradeAct = S.instituteParadeAct;
   const balloonAct = S.instituteBalloonAct;
+  const guideAct = S.instituteGuideAct;
   const nowMs = performance.now();
   const tickParadeAnimal = (a) => {
     if (!a?.mesh || !a.paradePhase) return false;
@@ -9224,6 +9579,17 @@ function updateInstitute(dt, t) {
         S._vienBalloonTipOffer = false;
         toast(`${instituteBalloonVerbLabel(pickInstituteBalloonVerb())} · Khinh Khí Cầu Viện?`);
       }
+    } else if (S.nearInstituteGuide && now - (S._instituteTipAt || 0) > 16000) {
+      S._instituteTipAt = now;
+      if (vienTheGhiChuCount() > 0 && (now / 16000 | 0) % 2 === 1) {
+        S._vienGuideTipOffer = true;
+        S._vienGuideTipAt = now;
+        const filled = INSTITUTE_ANIMAL_SPECS.filter((s) => S.vienTheGhiChu && S.vienTheGhiChu[s.id]).map((s) => s.name.split(' ').slice(0, 2).join(' ')).slice(0, 2);
+        toast(`📋 Xem Thẻ Ghi Chú · ${filled.join(' · ') || 'đang sáng'} — bấm tương tác`);
+      } else {
+        S._vienGuideTipOffer = false;
+        toast(`${instituteGuideVerbLabel(pickInstituteGuideVerb())} · Hướng Dẫn Viên Gene?`);
+      }
     }
   }
 
@@ -9232,7 +9598,10 @@ function updateInstitute(dt, t) {
     if (!S._vienIsleSince) S._vienIsleSince = nowMs;
     const enteredAt = S._instituteEnteredAt || S._vienIsleSince;
     if (nowMs - enteredAt > 8000) {
-      if (!S._vienBalloonWarpTip && (S.vienKhinhKhi | 0) < 1 && ((S.vienDieuHanh | 0) >= 1 || (S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
+      if (!S._vienGuideWarpTip && (S.vienHuongDan | 0) < 1) {
+        S._vienGuideWarpTip = true;
+        toast('🔬 Hướng Dẫn Viên Gene đang đợi góc tây sân…');
+      } else if (!S._vienBalloonWarpTip && (S.vienKhinhKhi | 0) < 1 && ((S.vienDieuHanh | 0) >= 1 || (S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
         S._vienBalloonWarpTip = true;
         toast('🎈 Tour Khinh Khí Cầu mở góc đông-nam sân…');
       } else if (!S._vienParadeWarpTip && (S.vienDieuHanh | 0) < 1 && ((S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
@@ -9263,6 +9632,177 @@ function updateInstitute(dt, t) {
       S._instituteCourtyardTip = true;
       toast('🧬 Viện Nghiên Cứu Di Truyền mở sân thú biến đổi… · nút mint / phím I');
     }
+  }
+
+
+  // —— Guide tour act tick ——
+  if (guideAct) {
+    // Hỏi Đáp keeps modal open — don't auto-cancel
+    if (guideAct.kind !== 'hoiDap' && $('modal')?.classList.contains('open')) {
+      cancelInstituteGuideAct();
+      return;
+    }
+    guideAct.t += dt;
+    const deskX = guideAct.deskX != null ? guideAct.deskX : INSTITUTE_X - 11.2;
+    const deskZ = guideAct.deskZ != null ? guideAct.deskZ : INSTITUTE_Z - 3.5;
+    const npc = S.instituteGuideNpc;
+    const animals = S.instituteAnimals || [];
+
+    // Idle bob handled below; trail decay
+    if (S.instituteGuideTrail?.length) {
+      S.instituteGuideTrail = S.instituteGuideTrail.filter((p) => {
+        p.userData.life -= dt;
+        if (p.material) p.material.opacity = Math.max(0, p.userData.life);
+        p.position.y += dt * 0.4;
+        if (p.userData.life <= 0) {
+          try { p.parent?.remove(p); p.geometry?.dispose?.(); p.material?.dispose?.(); } catch (_) {}
+          return false;
+        }
+        return true;
+      });
+    }
+    if (S.instituteGuideLanterns?.length) {
+      S.instituteGuideLanterns.forEach((m, i) => {
+        if (m?.material) m.material.emissiveIntensity = 0.55 + 0.25 * Math.sin(t * 3 + i);
+        m.position.y = 1.55 + Math.sin(t * 2 + i) * 0.12;
+      });
+    }
+    animals.forEach((a) => {
+      if (a.guideBubble && camera) a.guideBubble.quaternion.copy(camera.quaternion);
+      if (a.guideBubbleUntil && nowMs > a.guideBubbleUntil) clearGuideJokeBubble(a);
+      if (a.guideSpotUntil && nowMs > a.guideSpotUntil) {
+        a.guideSpotUntil = 0;
+        if (a.glow?.material && a._guideGlowPrev != null) {
+          a.glow.material.opacity = a._guideGlowPrev;
+          a._guideGlowPrev = null;
+        }
+      }
+    });
+
+    if (guideAct.kind === 'moiTour' || guideAct.kind === 'tourDenLong') {
+      const stops = (guideAct.stopIds || []).map((id) => animals.find((a) => a.id === id)).filter(Boolean);
+      const pauseDur = 2.0;
+      // Segment timeline: travel to each stop + pause, then return desk
+      // Use stopIdx / phase machine
+      if (guideAct.stopIdx < 0) {
+        guideAct.stopIdx = 0;
+        guideAct.phase = 'toStop';
+        guideAct.legT = 0;
+        guideAct.legDur = Math.max(1.6, (guideAct.dur - pauseDur * stops.length - 2.2) / Math.max(1, stops.length + 1));
+        guideAct.fromX = deskX; guideAct.fromZ = deskZ;
+        if (stops[0]) { guideAct.toX = stops[0].x; guideAct.toZ = stops[0].z; }
+      }
+      if (guideAct.phase === 'toStop' || guideAct.phase === 'toDesk') {
+        guideAct.legT = (guideAct.legT || 0) + dt;
+        const u = Math.min(1, guideAct.legT / (guideAct.legDur || 2));
+        const e = 1 - Math.pow(1 - u, 2);
+        const nx = guideAct.fromX + (guideAct.toX - guideAct.fromX) * e;
+        const nz = guideAct.fromZ + (guideAct.toZ - guideAct.fromZ) * e;
+        if (npc) {
+          // world position relative to desk parent
+          const root = S.instituteGuideRoot;
+          if (root) {
+            npc.position.set(nx - root.position.x, 0.05 * Math.sin(t * 4), nz - root.position.z);
+            npc.rotation.y = Math.atan2(-(guideAct.toX - guideAct.fromX), -(guideAct.toZ - guideAct.fromZ));
+          }
+          if ((guideAct._sparkAt || 0) + 0.35 < guideAct.t) {
+            guideAct._sparkAt = guideAct.t;
+            spawnGuideTrailSpark(nx, nz);
+          }
+        }
+        // Soft player follow
+        if (playerRoot) {
+          const px = playerRoot.position.x, pz = playerRoot.position.z;
+          const dNpc = Math.hypot(px - nx, pz - nz);
+          if (dNpc < 6.5) {
+            const tx = nx + Math.cos(t) * 0.6;
+            const tz = nz + 1.1;
+            playerRoot.position.x += (tx - px) * Math.min(1, dt * 1.8);
+            playerRoot.position.z += (tz - pz) * Math.min(1, dt * 1.8);
+            S.yaw = Math.atan2(-(nx - playerRoot.position.x), -(nz - playerRoot.position.z));
+            if (player) player.rotation.y = S.yaw;
+          } else if (nowMs - (guideAct.followToastAt || 0) > 4500) {
+            guideAct.followToastAt = nowMs;
+            toast('🔬 Đi theo hướng dẫn viên');
+          }
+        }
+        if (u >= 1) {
+          if (guideAct.phase === 'toStop') {
+            guideAct.phase = 'pause';
+            guideAct.pauseUntil = guideAct.t + pauseDur;
+            const animal = stops[guideAct.stopIdx];
+            if (animal) {
+              highlightGuideSpot(animal, pauseDur * 1000 + 400);
+              const line = instituteGuideNote(animal.name, (S.vienHuongDan | 0) + guideAct.stopIdx);
+              if (!IS_MOBILE) spawnGuideJokeBubble(animal, line);
+              else toast(line);
+            }
+          } else {
+            // arrived desk
+            finishInstituteGuideAct(false);
+            return;
+          }
+        }
+      } else if (guideAct.phase === 'pause') {
+        if (guideAct.t >= (guideAct.pauseUntil || 0)) {
+          guideAct.stopIdx += 1;
+          if (guideAct.stopIdx >= stops.length) {
+            guideAct.phase = 'toDesk';
+            guideAct.legT = 0;
+            const root = S.instituteGuideRoot;
+            const curX = root ? root.position.x + (npc?.position.x || 0) : deskX;
+            const curZ = root ? root.position.z + (npc?.position.z || 0) : deskZ;
+            guideAct.fromX = curX; guideAct.fromZ = curZ;
+            guideAct.toX = deskX; guideAct.toZ = deskZ;
+            guideAct.legDur = 2.0;
+          } else {
+            guideAct.phase = 'toStop';
+            guideAct.legT = 0;
+            const root = S.instituteGuideRoot;
+            const curX = root ? root.position.x + (npc?.position.x || 0) : deskX;
+            const curZ = root ? root.position.z + (npc?.position.z || 0) : deskZ;
+            guideAct.fromX = curX; guideAct.fromZ = curZ;
+            guideAct.toX = stops[guideAct.stopIdx].x;
+            guideAct.toZ = stops[guideAct.stopIdx].z;
+          }
+        }
+      }
+      if (guideAct.t >= guideAct.dur) {
+        finishInstituteGuideAct(false);
+        return;
+      }
+    } else if (guideAct.kind === 'ghiChu') {
+      if (npc) npc.position.y = 0.04 * Math.sin(t * 5);
+      if (!guideAct.stamped && guideAct.t >= (guideAct.stampAt || 1.4)) {
+        guideAct.stamped = true;
+        (guideAct.stampIds || []).forEach((id) => {
+          const a = animals.find((x) => x.id === id);
+          if (a) {
+            highlightGuideSpot(a, 2200);
+            spawnGuideJokeBubble(a, instituteGuideNote(a.name, S.vienHuongDan | 0));
+          }
+        });
+        if (S.instituteGuideBoard?.material) {
+          S.instituteGuideBoard.material.emissiveIntensity = 0.8;
+        }
+      }
+      if (guideAct.t >= guideAct.dur) {
+        finishInstituteGuideAct(false);
+        return;
+      }
+    } else if (guideAct.kind === 'hoiDap') {
+      if (npc) npc.position.y = 0.05 * Math.sin(t * 4);
+      if (guideAct.t >= guideAct.dur) {
+        finishInstituteGuideAct(false);
+        return;
+      }
+    }
+  } else if (S.instituteGuideNpc) {
+    // Idle bob at desk
+    const npc = S.instituteGuideNpc;
+    npc.position.y = 0.04 * Math.sin(t * 2.2);
+    if (S.instituteGuideTip && camera) S.instituteGuideTip.quaternion.copy(camera.quaternion);
+    if (S.instituteGuideBoardTip && camera) S.instituteGuideBoardTip.quaternion.copy(camera.quaternion);
   }
 
   // —— Balloon safari act tick ——
@@ -23660,6 +24200,7 @@ $('action-btn').onclick = () => {
   if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
   if (S.bongDaAct) { cancelBongDaAct(); return; }
   if (S.phoVangCall) { cancelGioVangCall(); return; }
+  if (S.instituteGuideAct) { cancelInstituteGuideAct(); return; }
   if (S.instituteBalloonAct) { cancelInstituteBalloonAct(); return; }
   if (S.instituteParadeAct) { cancelInstituteParadeAct(); return; }
   if (S.instituteCafeAct) { cancelInstituteCafeAct(); return; }
@@ -23725,6 +24266,15 @@ $('action-btn').onclick = () => {
       return;
     }
     startInstituteBalloonAct({});
+    return;
+  }
+  if (S.nearInstituteGuide) {
+    if (S._vienGuideTipOffer && vienTheGhiChuCount() > 0 && performance.now() - (S._vienGuideTipAt || 0) < 4000) {
+      S._vienGuideTipOffer = false;
+      openInstituteGuideTheBoard();
+      return;
+    }
+    startInstituteGuideAct({});
     return;
   }
   if (S.nearThapMo) {
@@ -23979,6 +24529,7 @@ addEventListener('keydown', e => {
     if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
     if (S.bongDaAct) { cancelBongDaAct(); return; }
     if (S.phoVangCall) { cancelGioVangCall(); return; }
+    if (S.instituteGuideAct) { cancelInstituteGuideAct(); return; }
     if (S.instituteBalloonAct) { cancelInstituteBalloonAct(); return; }
     if (S.instituteParadeAct) { cancelInstituteParadeAct(); return; }
     if (S.instituteCafeAct) { cancelInstituteCafeAct(); return; }
@@ -24874,7 +25425,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin-top:6px">${nextLine}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🔥 Chuỗi ngày: <strong>${dailyBook.streak}</strong>${dailyBook.flair}${dailyBook.clearNote}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">Ấn khám phá: ${stamps}</p>
-    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}${S.nhaNghienCuuSan ? ' · 🧬 Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · 🧬 Thực Tập Sinh Viện' : '')}${S.daoDienSanVien ? ' · 🎬 Đạo Diễn Sân Viện' : (S.khanGiaDotBien ? ' · 🌙 Khán Giả Đột Biến' : '')}${S.chuQuayCarnival ? ' · 🌈 Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · 🎡 Tay Quay Gene' : '')}${S.chuCafeBay ? ' · 🧋 Chủ Cafe Bay Viện' : (S.nguoiPhaGene ? ' · 🧋 Người Pha Gene' : '')}${S.chuDieuHanh ? ' · 🎏 Chủ Diễu Hành Viện' : (S.nguoiCamCoDieu ? ' · 🎏 Người Cầm Cờ Diễu' : '')}${S.chuSafariBauTroi ? ' · 🎈 Chủ Safari Bầu Trời Viện' : (S.nguoiLaiKhinhKhi ? ' · 🎈 Người Lái Khinh Khí' : '')}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}${S.nhaNghienCuuSan ? ' · 🧬 Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · 🧬 Thực Tập Sinh Viện' : '')}${S.daoDienSanVien ? ' · 🎬 Đạo Diễn Sân Viện' : (S.khanGiaDotBien ? ' · 🌙 Khán Giả Đột Biến' : '')}${S.chuQuayCarnival ? ' · 🌈 Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · 🎡 Tay Quay Gene' : '')}${S.chuCafeBay ? ' · 🧋 Chủ Cafe Bay Viện' : (S.nguoiPhaGene ? ' · 🧋 Người Pha Gene' : '')}${S.chuDieuHanh ? ' · 🎏 Chủ Diễu Hành Viện' : (S.nguoiCamCoDieu ? ' · 🎏 Người Cầm Cờ Diễu' : '')}${S.chuSafariBauTroi ? ' · 🎈 Chủ Safari Bầu Trời Viện' : (S.nguoiLaiKhinhKhi ? ' · 🎈 Người Lái Khinh Khí' : '')}${S.huongDanVienSanVien ? ' · 🔬 Hướng Dẫn Viên Sân Viện' : (S.banDongHanhGene ? ' · 🔬 Bạn Đồng Hành Gene' : '')}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🌦️ Đang: <strong>${weatherNow}</strong></p>
     <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm · ${S.btsSigs} chữ ký BTS${S.btsPrincessMode ? ' · 👑 Công Chúa' : ''}${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
     <h2 style="font-size:1rem;margin-top:8px">📋 Mục tiêu hôm nay</h2>
@@ -24891,6 +25442,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin:0 0 8px">🧋 Phục vụ cafe <strong>${S.vienCafePhucVu|0}</strong> · ly gene <strong>${typeof vienLyGeneCount==='function'?vienLyGeneCount():Object.keys(S.vienLyGene||{}).filter(k=>S.vienLyGene[k]).length}</strong>/6 · tiệc bay <strong>${S.vienTiecBay?'✅':'⬜'}</strong>${S.chuCafeBay ? ' · flair Chủ Cafe Bay Viện' : (S.nguoiPhaGene ? ' · flair Người Pha Gene' : '')}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">🎏 Diễu hành <strong>${S.vienDieuHanh|0}</strong> · cờ gene <strong>${typeof vienCoGeneCount==='function'?vienCoGeneCount():Object.keys(S.vienCoGene||{}).filter(k=>S.vienCoGene[k]).length}</strong>/10 · Diễu Hoàng Kim <strong>${S.vienDieuHoangKim?'✅':'⬜'}</strong>${S.chuDieuHanh ? ' · flair Chủ Diễu Hành Viện' : (S.nguoiCamCoDieu ? ' · flair Người Cầm Cờ Diễu' : '')}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">🎈 Khinh khí <strong>${S.vienKhinhKhi|0}</strong> · tem bầu trời <strong>${typeof vienTemBauTroiCount==='function'?vienTemBauTroiCount():Object.keys(S.vienTemBauTroi||{}).filter(k=>S.vienTemBauTroi[k]).length}</strong>/10 · Safari Hoàng Hôn <strong>${S.vienSafariHoangHon?'✅':'⬜'}</strong>${S.chuSafariBauTroi ? ' · flair Chủ Safari Bầu Trời Viện' : (S.nguoiLaiKhinhKhi ? ' · flair Người Lái Khinh Khí' : '')}</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">🔬 Tour hướng dẫn <strong>${S.vienHuongDan|0}</strong> · thẻ ghi chú <strong>${typeof vienTheGhiChuCount==='function'?vienTheGhiChuCount():Object.keys(S.vienTheGhiChu||{}).filter(k=>S.vienTheGhiChu[k]).length}</strong>/10 · Tour Đèn Lồng <strong>${S.vienTourDenLong?'✅':'⬜'}</strong>${S.huongDanVienSanVien ? ' · flair Hướng Dẫn Viên Sân Viện' : (S.banDongHanhGene ? ' · flair Bạn Đồng Hành Gene' : '')}</p>
     <ul class="book-list">${vienChecks}</ul>
     ${vienRareChecks ? `<p class="tiny" style="text-align:center;margin:8px 0 4px">✨ Thú hiếm lồng bay</p><ul class="book-list">${vienRareChecks}</ul>` : ''}
     <p class="tiny" style="text-align:center;margin:8px 0 4px">📷 Stamp Album Ảnh Kỳ</p>
@@ -24903,6 +25455,8 @@ function openBook() {
     <ul class="book-list">${(typeof INSTITUTE_ANIMAL_SPECS!=='undefined'?INSTITUTE_ANIMAL_SPECS:[]).map((s)=>`<li>${(S.vienCoGene&&S.vienCoGene[s.id])?'✅':'⬜'} ${s.name}</li>`).join('')||'<li>Chưa có cờ</li>'}</ul>
     <p class="tiny" style="text-align:center;margin:8px 0 4px">🎈 Tem Bầu Trời</p>
     <ul class="book-list">${(typeof INSTITUTE_ANIMAL_SPECS!=='undefined'?INSTITUTE_ANIMAL_SPECS:[]).map((s)=>`<li>${(S.vienTemBauTroi&&S.vienTemBauTroi[s.id])?'✅':'⬜'} ${s.name}</li>`).join('')||'<li>Chưa có tem</li>'}</ul>
+    <p class="tiny" style="text-align:center;margin:8px 0 4px">📋 Thẻ Ghi Chú Tour</p>
+    <ul class="book-list">${(typeof INSTITUTE_ANIMAL_SPECS!=='undefined'?INSTITUTE_ANIMAL_SPECS:[]).map((s)=>`<li>${(S.vienTheGhiChu&&S.vienTheGhiChu[s.id])?'✅':'⬜'} ${s.name}</li>`).join('')||'<li>Chưa có thẻ</li>'}</ul>
     <h2 style="font-size:1rem;margin-top:8px">🪷 Sen Bay</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ngồi <strong>${S.senBayRides | 0}</strong> lần · tầng cao nhất: <strong>${senBest}</strong></p>
     <ul class="book-list">${senLogs}</ul>
@@ -26435,7 +26989,7 @@ function updatePlayer(dt) {
   // Viện — west isle; never steals temple/street east of ≈x−14 (parade NE edge)
   if (playerRoot && playerRoot.position.x < -14 && !S.busy) {
     S.nearInstituteAnimal = pickNearInstituteAnimal();
-    // Priority: animal > show > album > wheel > cafe > parade > balloon
+    // Priority: animal > show > album > wheel > cafe > parade > balloon > guide last
     if (S.nearInstituteAnimal) {
       S.nearInstituteShow = false;
       S.nearInstituteAlbum = false;
@@ -26443,6 +26997,7 @@ function updatePlayer(dt) {
       S.nearInstituteCafe = false;
       S.nearInstituteParade = false;
       S.nearInstituteBalloon = false;
+      S.nearInstituteGuide = false;
     } else {
       S.nearInstituteShow = pickNearInstituteShow();
       S.nearInstituteAlbum = !S.nearInstituteShow && pickNearInstituteAlbum();
@@ -26450,6 +27005,7 @@ function updatePlayer(dt) {
       S.nearInstituteCafe = !S.nearInstituteShow && !S.nearInstituteAlbum && !S.nearInstituteWheel && pickNearInstituteCafe();
       S.nearInstituteParade = !S.nearInstituteShow && !S.nearInstituteAlbum && !S.nearInstituteWheel && !S.nearInstituteCafe && pickNearInstituteParade();
       S.nearInstituteBalloon = !S.nearInstituteShow && !S.nearInstituteAlbum && !S.nearInstituteWheel && !S.nearInstituteCafe && !S.nearInstituteParade && pickNearInstituteBalloon();
+      S.nearInstituteGuide = !S.nearInstituteShow && !S.nearInstituteAlbum && !S.nearInstituteWheel && !S.nearInstituteCafe && !S.nearInstituteParade && !S.nearInstituteBalloon && pickNearInstituteGuide();
     }
   } else {
     S.nearInstituteAnimal = null;
@@ -26459,6 +27015,7 @@ function updatePlayer(dt) {
     S.nearInstituteCafe = false;
     S.nearInstituteParade = false;
     S.nearInstituteBalloon = false;
+    S.nearInstituteGuide = false;
   }
 
   // Soft tip near festival marker
@@ -26643,6 +27200,19 @@ function updatePlayer(dt) {
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
+  } else if (S.instituteGuideAct) {
+    const left = Math.max(0, (S.instituteGuideAct.dur - S.instituteGuideAct.t) | 0);
+    const gk = S.instituteGuideAct.kind;
+    btn.textContent = gk === 'tourDenLong'
+      ? `Hủy · thôi Tour Đèn Lồng (${left}s)`
+      : gk === 'ghiChu'
+        ? `Hủy · thôi ghi chú (${left}s)`
+        : gk === 'hoiDap'
+          ? `Hủy · thôi hỏi đáp (${left}s)`
+          : `Hủy · thôi tour (${left}s)`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
   } else if (S.instituteBalloonAct) {
     const left = Math.max(0, (S.instituteBalloonAct.dur - S.instituteBalloonAct.t) | 0);
     const bk = S.instituteBalloonAct.kind;
@@ -26763,6 +27333,14 @@ function updatePlayer(dt) {
     btn.textContent = (vienTemBauTroiCount() > 0 && S._vienBalloonTipOffer)
       ? '📋 Xem Tem Bầu Trời'
       : instituteBalloonVerbLabel(pickInstituteBalloonVerb());
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearInstituteGuide) {
+    btn.textContent = (vienTheGhiChuCount() > 0 && S._vienGuideTipOffer)
+      ? '📋 Xem Thẻ Ghi Chú'
+      : instituteGuideVerbLabel(pickInstituteGuideVerb());
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');

@@ -82,7 +82,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   color:rgba(243,235,224,.82);pointer-events:none;letter-spacing:.01em;
 }
 .chip strong{color:#fff;font-weight:600}
-#hud-btns{position:absolute;top:calc(12px + var(--st));right:12px;display:flex;flex-direction:column;gap:8px;pointer-events:auto;z-index:20}
+#hud-btns{position:absolute;top:calc(12px + var(--st));right:12px;display:flex;flex-direction:column;gap:8px;pointer-events:auto;z-index:50}
 .icon-btn{
   width:42px;height:42px;border-radius:50%;border:1px solid var(--line);
   background:rgba(12,8,6,.42);color:rgba(243,235,224,.88);font-size:.72rem;font-weight:500;
@@ -147,6 +147,44 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 #crosshair.zoom{width:28px;height:28px}
 #crosshair.zoom .ch-h,#crosshair.zoom .ch-v{background:#ff1744;height:3px}
 #crosshair.zoom .ch-v{width:3px;height:100%}
+/* Thanh máu bản thân */
+#hp-wrap{
+  position:absolute;left:50%;bottom:calc(92px + var(--sb));transform:translateX(-50%);
+  width:min(240px,56vw);pointer-events:none;z-index:45;display:none;
+}
+#hp-wrap.show{display:block}
+#hp-meta{display:flex;justify-content:space-between;font-size:.68rem;color:rgba(243,235,224,.75);margin-bottom:4px;letter-spacing:.02em}
+#hp-track{
+  height:12px;border-radius:999px;background:rgba(12,8,6,.55);border:1px solid rgba(255,80,80,.35);
+  overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.35);
+}
+#hp-fill{
+  height:100%;width:100%;border-radius:999px;
+  background:linear-gradient(90deg,#7a1010,#e0392f 55%,#ff6b5a);
+  transition:width .2s ease,background .2s;
+}
+#hp-fill.low{background:linear-gradient(90deg,#4a0505,#ff2222)}
+/* Máu mục tiêu vừa đánh */
+#target-hp{
+  position:absolute;left:50%;top:calc(18% + var(--st));transform:translateX(-50%);
+  width:min(200px,48vw);pointer-events:none;z-index:45;opacity:0;transition:opacity .2s;
+}
+#target-hp.on{opacity:1}
+#target-hp .th-name{font-size:.72rem;text-align:center;margin-bottom:4px;color:rgba(243,235,224,.88);text-shadow:0 1px 6px #000}
+#target-hp .th-track{height:8px;border-radius:999px;background:rgba(12,8,6,.55);border:1px solid rgba(255,120,100,.35);overflow:hidden}
+#target-hp .th-fill{height:100%;width:100%;background:linear-gradient(90deg,#8b1a1a,#ff4444);transition:width .15s}
+#dmg-floats{position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden}
+.dmg-float{
+  position:absolute;transform:translate(-50%,-50%);font-family:"Literata",Georgia,serif;
+  font-weight:700;font-size:1.35rem;color:#ff3b3b;text-shadow:0 0 4px #000,0 2px 8px rgba(0,0,0,.7);
+  animation:dmgRise .85s ease-out forwards;pointer-events:none;white-space:nowrap;
+}
+.dmg-float.crit{font-size:1.7rem;color:#ffee55;text-shadow:0 0 6px #a00,0 2px 10px #000}
+@keyframes dmgRise{
+  0%{opacity:0;transform:translate(-50%,-40%) scale(.7)}
+  15%{opacity:1;transform:translate(-50%,-55%) scale(1.15)}
+  100%{opacity:0;transform:translate(-50%,-120%) scale(1)}
+}
 #scope-vignette{
   position:absolute;inset:0;pointer-events:none;opacity:0;z-index:22;
   background:radial-gradient(circle at 50% 50%,transparent 34%,rgba(0,0,0,.35) 78%);
@@ -155,7 +193,8 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 #scope-vignette.on{opacity:1}
 /* Kiểu Free Fire / PUBG: trái = đi · phải = xoay nhìn */
 #look-zone{
-  position:absolute;right:0;top:0;width:58%;height:100%;
+  /* chừa góc phải trên cho nút FPS/Âm/Sổ — không che HUD */
+  position:absolute;right:0;top:calc(56px + var(--st));width:58%;height:calc(100% - 56px - var(--st));
   pointer-events:auto;touch-action:none;z-index:26;-webkit-user-select:none;user-select:none;
 }
 #look-hint{
@@ -301,6 +340,12 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button id="btn-fire" type="button">Bắn</button>
     </div>
     <div id="crosshair" aria-hidden="true"><span class="ch-v"></span><span class="ch-h"></span></div>
+    <div id="hp-wrap">
+      <div id="hp-meta"><span>Máu</span><span id="hp-num">100</span></div>
+      <div id="hp-track"><div id="hp-fill"></div></div>
+    </div>
+    <div id="target-hp"><div class="th-name" id="th-name">—</div><div class="th-track"><div class="th-fill" id="th-fill"></div></div></div>
+    <div id="dmg-floats"></div>
     <div id="scope-vignette"></div>
     <div id="hit-flash"></div>
     <div id="look-zone"><div id="look-hint">Kéo phải<br/>để xoay nhìn</div></div>
@@ -383,7 +428,11 @@ const S = {
   combatUntil: 0, flinchUntil: 0,
   gun: '', aiming: false, fireUntil: 0, baseFov: 55, projectiles: [], bursts: [],
   fpsMode: false, deadUntil: 0,
+  hp: 100, targetHpUntil: 0,
 };
+const MAX_HP = 100;
+const NPC_MAX_HP = 100;
+const DMG = { chao: 0, dam: 14, da: 18, tat: 12, ak: 28, bazooka: 55, knife: 42, kill: 100 };
 
 const SPOTS = [
   { id: 'incense', pos: new THREE.Vector3(0, 0, 2.2), r: 2.3, label: 'Thắp hương' },
@@ -1752,9 +1801,73 @@ function updateDestroyables(dt) {
 
 /* ========== KHÁCH AI (InstancedMesh — thân + đầu + tóc + chân) ========== */
 const AI_N = IS_MOBILE ? 18 : 42;
+const AI_NAMES = [
+  'Bà Tư','Chú Năm','Cô Lan','Anh Minh','Chị Hà','Bác Hùng','Em Bé','Thầy Tu',
+  'Cụ Già','Bạn Du','Cháu Út','Cô Hương','Anh Khoa','Chị Mai','Bác Tám','Cậu Vinh',
+  'Dì Năm','Ông Sáu','Cô Đào','Anh Phong','Chị Trang','Bạn Hiền','Khách Lạ','Người Lành',
+];
 let aiMesh, aiData = [], aiDummy = new THREE.Object3D();
 const bubbleEls = [];
 const bubbleRoot = document.getElementById('bubbles');
+
+function aiAlive(a) {
+  return a && !(a.deadUntil && performance.now() < a.deadUntil);
+}
+function hideAIInstance(i) {
+  aiDummy.position.set(0, -40, 0);
+  aiDummy.scale.set(0.001, 0.001, 0.001);
+  aiDummy.rotation.set(0, 0, 0);
+  aiDummy.updateMatrix();
+  aiMesh.setMatrixAt(i, aiDummy.matrix);
+  S.aiHead.setMatrixAt(i, aiDummy.matrix);
+  S.aiHair.setMatrixAt(i, aiDummy.matrix);
+  S.aiLegL.setMatrixAt(i, aiDummy.matrix);
+  S.aiLegR.setMatrixAt(i, aiDummy.matrix);
+}
+function killAI(i, big = false) {
+  const a = aiData[i];
+  if (!a || (a.deadUntil && performance.now() < a.deadUntil)) return false;
+  a.hp = 0;
+  a.deadUntil = performance.now() + 4500;
+  a.state = 'dead';
+  a.timer = 5;
+  if (a.bubble >= 0) {
+    bubbleEls[a.bubble].classList.remove('on');
+    delete bubbleEls[a.bubble].dataset.used;
+    a.bubble = -1;
+  }
+  spawnExplosionBurst(a.x, 1.0 * a.scale, a.z, !!big);
+  hideAIInstance(i);
+  aiMesh.instanceMatrix.needsUpdate = true;
+  S.aiHead.instanceMatrix.needsUpdate = true;
+  S.aiHair.instanceMatrix.needsUpdate = true;
+  S.aiLegL.instanceMatrix.needsUpdate = true;
+  S.aiLegR.instanceMatrix.needsUpdate = true;
+  return true;
+}
+function respawnAI(a) {
+  a.deadUntil = 0;
+  a.hp = NPC_MAX_HP;
+  a.state = 'walk';
+  a.x = (Math.random() - 0.5) * 12;
+  a.z = 10 + Math.random() * 4;
+  a.speed = 0.45 + Math.random() * 0.55;
+  pickAITarget(a);
+}
+/** Gây sát thương NPC — trả về true nếu còn sống / vừa hạ */
+function damageNPC(i, amount, big = false) {
+  const a = aiData[i];
+  if (!aiAlive(a)) return false;
+  const dmg = Math.max(1, amount | 0);
+  a.hp = Math.max(0, (a.hp ?? NPC_MAX_HP) - dmg);
+  spawnDamageNumber(a.x, 1.45 * a.scale, a.z, dmg, dmg >= 50);
+  showTargetHp(a.name || AI_NAMES[i % AI_NAMES.length], a.hp, NPC_MAX_HP);
+  if (a.hp <= 0) {
+    killAI(i, big);
+    return 'dead';
+  }
+  return 'hit';
+}
 
 function buildAI() {
   const colors = [0x3d5c8a, 0xc44536, 0xe8d5b5, 0x5c3a22, 0x4a7c59, 0x8b6914, 0x6b4c7a, 0xd4a574, 0x2f6f8f, 0xb85c38];
@@ -1793,6 +1906,7 @@ function buildAI() {
       yaw: Math.random() * 6.28, speed: 0.45 + Math.random() * 0.55,
       kind, age, scale, timer: Math.random() * 8, state: 'walk',
       tx: 0, tz: 0, bubble: -1, bubbleT: 0, walk: Math.random() * 10,
+      deadUntil: 0, hp: NPC_MAX_HP, name: AI_NAMES[i % AI_NAMES.length],
     });
     pickAITarget(aiData[i]);
   }
@@ -1815,6 +1929,13 @@ function pickAITarget(a) {
 function updateAI(dt) {
   for (let i = 0; i < AI_N; i++) {
     const a = aiData[i];
+    if (a.deadUntil) {
+      if (performance.now() < a.deadUntil) {
+        hideAIInstance(i);
+        continue;
+      }
+      respawnAI(a);
+    }
     a.timer -= dt;
     if (a.state === 'walk') {
       const dx = a.tx - a.x, dz = a.tz - a.z, dist = Math.hypot(dx, dz);
@@ -1992,6 +2113,9 @@ function toggleFpsMode() { setFpsMode(!S.fpsMode); }
 function startPlay() {
   S.playing = true; $('hud').style.display = 'block'; updateVisitorUI();
   $('weapon-bar').classList.add('show');
+  $('hp-wrap')?.classList.add('show');
+  S.hp = MAX_HP;
+  updateHpUI();
   updateViewBtn();
   // Trả focus khỏi ô tên / nút — không thì WASD trên máy tính bị nuốt
   try { document.activeElement && document.activeElement.blur(); } catch (_) {}
@@ -2568,7 +2692,7 @@ function makeRemoteAvatar(uid, name) {
   label.style.borderColor = 'rgba(109,207,109,.55)';
   label.textContent = name || 'Bạn';
   nameLabels.appendChild(label);
-  return { mesh: g, name: name || 'Bạn', label, tx: 0, tz: 8, tyaw: 0, emoteUntil: 0, gunType: '' };
+  return { mesh: g, name: name || 'Bạn', label, tx: 0, tz: 8, tyaw: 0, emoteUntil: 0, gunType: '', hp: MAX_HP };
 }
 
 async function connectMultiplayer() {
@@ -2743,29 +2867,24 @@ function flashHit() {
 function receiveFriendAction(msg) {
   const type = msg.type || 'chao';
   const name = msg.fromName || 'Ai đó';
+  const dmg = typeof msg.damage === 'number' ? msg.damage : (DMG[type] || 0);
   toast(ACT_RECV[type] ? ACT_RECV[type](name) : `${name} tương tác với bạn`);
-  if (type === 'kill' || type === 'knife') {
-    applyDeath(name);
-  } else if (type === 'ak' || type === 'bazooka') {
-    flashHit();
-    S.flinchUntil = performance.now() + (type === 'bazooka' ? 700 : 420);
-    if (player) player.rotation.z = (Math.random() > 0.5 ? 1 : -1) * (type === 'bazooka' ? 0.45 : 0.28);
-    setTimeout(() => { if (player) player.rotation.z = 0; }, type === 'bazooka' ? 650 : 380);
+  if (type === 'kill') {
+    applyDamageToSelf(MAX_HP, name, type);
+  } else if (dmg > 0) {
+    applyDamageToSelf(dmg, name, type);
+    S.flinchUntil = performance.now() + (type === 'bazooka' ? 700 : 380);
+    if (player) player.rotation.z = (Math.random() > 0.5 ? 1 : -1) * (type === 'bazooka' ? 0.45 : 0.25);
+    setTimeout(() => { if (player) player.rotation.z = 0; }, type === 'bazooka' ? 650 : 350);
     if (type === 'bazooka') {
       spawnExplosionBurst(playerRoot.position.x, 1.2, playerRoot.position.z, true);
-    } else {
+    } else if (type === 'ak') {
       playGunshot();
-      shakeScreen(0.14);
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 5; i++) {
         emitSmoke(playerRoot.position.x + (Math.random() - 0.5), 1.2 + Math.random(), playerRoot.position.z + (Math.random() - 0.5), 2);
       }
     }
-  } else if (type !== 'chao') {
-    flashHit();
-    S.flinchUntil = performance.now() + 380;
-    if (player) player.rotation.z = (Math.random() > 0.5 ? 1 : -1) * 0.25;
-    setTimeout(() => { if (player) player.rotation.z = 0; }, 350);
-  } else {
+  } else if (type === 'chao') {
     playWhoosh();
   }
   if (msg.from && remotePlayers.has(msg.from)) {
@@ -2778,6 +2897,8 @@ function receiveFriendAction(msg) {
 /** Bị hạ — ngã xuống, khóa điều khiển, hồi sinh sau 3s */
 function applyDeath(byName) {
   if (S.deadUntil && performance.now() < S.deadUntil) return;
+  S.hp = 0;
+  updateHpUI();
   S.deadUntil = performance.now() + 3200;
   S.busy = true;
   flashHit();
@@ -2796,10 +2917,12 @@ function applyDeath(byName) {
       player.rotation.x = 0;
       player.position.y = 0;
     }
-    // Hồi sinh gần cổng
+    // Hồi sinh gần cổng — đầy máu
     playerRoot.position.set(0, 0, 8.5);
     S.busy = false;
     S.deadUntil = 0;
+    S.hp = MAX_HP;
+    updateHpUI();
     toast('Bạn đã hồi sinh tại cổng chùa');
     publishPresence(true);
   }, 3200);
@@ -2809,11 +2932,18 @@ async function doFriendAction(type, target) {
   if (!target || S.busy) return;
   if (performance.now() < S.combatUntil) return;
   playCombatAnim(type);
-  toast(`Bạn ${ACT_LABEL[type] || type} ${target.name}`);
+  const dmg = DMG[type] || 0;
+  if (dmg > 0 && remotePlayers.has(target.id)) {
+    const rp = remotePlayers.get(target.id);
+    rp.hp = Math.max(0, (rp.hp ?? MAX_HP) - dmg);
+    spawnDamageNumber(rp.mesh.position.x, 1.55, rp.mesh.position.z, dmg);
+    showTargetHp(rp.name, rp.hp, MAX_HP);
+  }
+  toast(dmg ? `Bạn ${ACT_LABEL[type] || type} ${target.name} (−${dmg})` : `Bạn ${ACT_LABEL[type] || type} ${target.name}`);
   if (!fbDb || !S.uid) return;
   update(ref(fbDb, `players/${S.uid}`), { emote: type, emoteAt: Date.now(), t: Date.now() });
   push(ref(fbDb, `inbox/${target.id}`), {
-    type, fromName: S.name, from: S.uid, t: Date.now(),
+    type, damage: dmg, fromName: S.name, from: S.uid, t: Date.now(),
   });
 }
 
@@ -2825,14 +2955,58 @@ async function greetPlayer(target) {
 function updateCrosshair() {
   const ch = $('crosshair');
   if (!ch) return;
-  // Dao cận chiến không cần tâm ngắm đỏ
-  const armed = !!S.gun && S.gun !== 'knife';
+  // Giữ dấu cộng đỏ với mọi vũ khí (kể cả dao)
+  const armed = !!S.gun;
+  const canZoom = armed && S.gun !== 'knife';
   ch.classList.toggle('on', armed);
-  ch.classList.toggle('zoom', armed && S.aiming);
+  ch.classList.toggle('zoom', canZoom && S.aiming);
   ch.style.display = armed ? 'block' : 'none';
-  $('scope-vignette').classList.toggle('on', armed && S.aiming);
+  $('scope-vignette').classList.toggle('on', canZoom && S.aiming);
   $('btn-aim').classList.toggle('holding', S.aiming);
   $('btn-aim').innerHTML = S.aiming ? 'Tắt<br>zoom' : 'Ngắm<br>Zoom';
+}
+function updateHpUI() {
+  const wrap = $('hp-wrap');
+  const fill = $('hp-fill');
+  const num = $('hp-num');
+  if (!wrap || !fill || !num) return;
+  const pct = Math.max(0, Math.min(100, (S.hp / MAX_HP) * 100));
+  fill.style.width = pct + '%';
+  fill.classList.toggle('low', pct <= 30);
+  num.textContent = Math.max(0, Math.ceil(S.hp));
+}
+function spawnDamageNumber(wx, wy, wz, amount, crit = false) {
+  const root = $('dmg-floats');
+  if (!root || !amount) return;
+  _v.set(wx, wy, wz);
+  _v.project(camera);
+  if (_v.z > 1) return;
+  const el = document.createElement('div');
+  el.className = 'dmg-float' + (crit ? ' crit' : '');
+  el.textContent = '-' + amount;
+  el.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
+  el.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
+  root.appendChild(el);
+  setTimeout(() => { try { el.remove(); } catch (_) {} }, 900);
+}
+function showTargetHp(name, hp, maxHp = MAX_HP) {
+  const box = $('target-hp');
+  if (!box) return;
+  $('th-name').textContent = name || 'Mục tiêu';
+  $('th-fill').style.width = Math.max(0, Math.min(100, (hp / maxHp) * 100)) + '%';
+  box.classList.add('on');
+  S.targetHpUntil = performance.now() + 2200;
+}
+function applyDamageToSelf(amount, fromName, type) {
+  if (S.deadUntil && performance.now() < S.deadUntil) return;
+  const dmg = Math.max(0, amount | 0);
+  if (!dmg) return;
+  S.hp = Math.max(0, S.hp - dmg);
+  updateHpUI();
+  spawnDamageNumber(playerRoot.position.x, 1.55, playerRoot.position.z, dmg, dmg >= 50);
+  flashHit();
+  if (S.hp <= 0) applyDeath(fromName || 'Ai đó');
+  else if (type === 'bazooka') shakeScreen(0.14);
 }
 function setGun(type) {
   S.gun = type || '';
@@ -2842,17 +3016,17 @@ function setGun(type) {
   });
   const armed = !!S.gun;
   $('gun-actions').classList.toggle('show', armed);
-  if (!armed) S.aiming = false;
-  // Nút bắn đổi thành Chém khi cầm dao
+  if (!armed || S.gun === 'knife') S.aiming = false;
+  // Nút bắn đổi thành Chém khi cầm dao — vẫn giữ dấu cộng đỏ
   const fireBtn = $('btn-fire');
   if (fireBtn) fireBtn.innerHTML = S.gun === 'knife' ? 'Chém<br/>Kill' : 'Bắn';
   $('btn-aim').style.display = S.gun === 'knife' ? 'none' : '';
   updateCrosshair();
   publishPresence(true);
   const tips = {
-    ak: 'AK-47: ngắm + bắn',
-    bazooka: 'Bazooka: ngắm + bắn phá công trình',
-    knife: 'Dao khổng lồ (cao bằng người)! Lại gần rồi Chém để hạ bạn bè',
+    ak: 'AK-47: ngắm + bắn (−28 máu)',
+    bazooka: 'Bazooka: nổ mạnh (−55 máu)',
+    knife: 'Dao khổng lồ: dấu cộng đỏ vẫn hiện — chém (−42 máu)',
     '': 'Bỏ vũ khí',
   };
   toast(tips[S.gun] ?? 'Đổi vũ khí');
@@ -2918,7 +3092,26 @@ function findGunTarget(maxDist, hitRadius = 0.95) {
     if (along < 0.5) continue;
     if (lateral < hitRadius && dist < bestD) {
       bestD = dist;
-      best = { id, name: rp.name, dist, point: origin.clone().add(dir.clone().multiplyScalar(along)) };
+      best = { kind: 'player', id, name: rp.name, dist, point: origin.clone().add(dir.clone().multiplyScalar(along)) };
+    }
+  }
+  // NPC khách AI cũng bắn được
+  for (let i = 0; i < AI_N; i++) {
+    const a = aiData[i];
+    if (!aiAlive(a)) continue;
+    const target = new THREE.Vector3(a.x, 1.05 * a.scale, a.z);
+    const to = target.clone().sub(origin);
+    const dist = to.length();
+    if (dist < 0.8 || dist > maxDist) continue;
+    const lateral = new THREE.Vector3().crossVectors(dir, to).length();
+    const along = to.dot(dir);
+    if (along < 0.5) continue;
+    if (lateral < hitRadius * 1.15 && dist < bestD) {
+      bestD = dist;
+      best = {
+        kind: 'npc', id: 'ai_' + i, aiIndex: i, name: a.name || AI_NAMES[i % AI_NAMES.length],
+        dist, point: origin.clone().add(dir.clone().multiplyScalar(along)),
+      };
     }
   }
   return best;
@@ -2972,18 +3165,16 @@ function findWorldHit(origin, dir, maxDist) {
   return hit;
 }
 
-/** Ưu tiên mục tiêu gần hơn: người hoặc công trình */
+/** Ưu tiên mục tiêu gần hơn: người / NPC hoặc công trình */
 function findShotImpact(maxDist, hitRadius) {
   const { origin, dir } = getAimRay();
-  const playerHit = findGunTarget(maxDist, hitRadius);
+  const liveHit = findGunTarget(maxDist, hitRadius);
   const worldHit = findWorldHit(origin, dir, maxDist);
-  if (playerHit && worldHit) {
-    return playerHit.dist <= worldHit.dist
-      ? { kind: 'player', ...playerHit }
-      : { kind: 'world', ...worldHit };
+  if (liveHit && worldHit) {
+    return liveHit.dist <= worldHit.dist ? liveHit : { ...worldHit, kind: 'world' };
   }
-  if (playerHit) return { kind: 'player', ...playerHit };
-  if (worldHit) return { kind: 'world', ...worldHit };
+  if (liveHit) return liveHit;
+  if (worldHit) return { ...worldHit, kind: 'world' };
   return null;
 }
 function spawnMuzzleFlash() {
@@ -3134,12 +3325,12 @@ async function fireWeapon() {
   if (S.deadUntil && performance.now() < S.deadUntil) return;
   if (performance.now() < S.fireUntil) return;
 
-  // —— Dao khổng lồ: cận chiến hạ người ——
+  // —— Dao khổng lồ: cận chiến hạ người / NPC ——
   if (S.gun === 'knife') {
     S.fireUntil = performance.now() + 700;
     S.combatUntil = performance.now() + 550;
     playKnifeSwing();
-    // Tìm người trong tầm chém (~2.8m phía trước)
+    // Tìm mục tiêu trong tầm chém (~2.9m phía trước)
     let best = null, bestD = 2.9;
     const origin = playerRoot.position;
     const face = player.rotation.y;
@@ -3151,22 +3342,44 @@ async function fireWeapon() {
       const dist = Math.hypot(dx, dz);
       if (dist > bestD || dist < 0.3) continue;
       const along = dx * fx + dz * fz;
-      if (along < 0.2) continue; // phía trước
+      if (along < 0.2) continue;
       bestD = dist;
-      best = { id, name: rp.name, dist, point: rp.mesh.position.clone() };
+      best = { kind: 'player', id, name: rp.name, dist, point: rp.mesh.position.clone() };
+    }
+    for (let i = 0; i < AI_N; i++) {
+      const a = aiData[i];
+      if (!aiAlive(a)) continue;
+      const dx = a.x - origin.x, dz = a.z - origin.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > bestD || dist < 0.25) continue;
+      const along = dx * fx + dz * fz;
+      if (along < 0.15) continue;
+      bestD = dist;
+      best = {
+        kind: 'npc', aiIndex: i, name: a.name || AI_NAMES[i % AI_NAMES.length],
+        dist, point: new THREE.Vector3(a.x, 0, a.z),
+      };
     }
     if (best) {
-      sendGunHit('kill', best);
-      // Hiệu ứng chém tại chỗ nạn nhân
+      const dmg = DMG.knife;
       spawnExplosionBurst(best.point.x, 1.0, best.point.z, false);
-      if (remotePlayers.has(best.id)) {
-        const rp = remotePlayers.get(best.id);
-        rp.emoteUntil = Date.now() + 900;
-        rp.emoteType = 'kill';
+      if (best.kind === 'npc') {
+        const r = damageNPC(best.aiIndex, dmg, false);
+        toast(r === 'dead' ? `Hạ NPC ${best.name}! 🗡️` : `Chém ${best.name} −${dmg}`);
+      } else {
+        if (remotePlayers.has(best.id)) {
+          const rp = remotePlayers.get(best.id);
+          rp.hp = Math.max(0, (rp.hp ?? MAX_HP) - dmg);
+          rp.emoteUntil = Date.now() + 900;
+          rp.emoteType = rp.hp <= 0 ? 'kill' : 'knife';
+          spawnDamageNumber(best.point.x, 1.5, best.point.z, dmg, false);
+          showTargetHp(rp.name, rp.hp, MAX_HP);
+          sendGunHit(rp.hp <= 0 ? 'kill' : 'knife', best, dmg);
+          toast(rp.hp <= 0 ? `Hạ ${best.name}! 🗡️` : `Chém ${best.name} −${dmg}`);
+        }
       }
-      toast(`Hạ ${best.name} bằng dao khổng lồ! 🗡️`);
     } else {
-      toast('Chém vào không khí — lại gần hơn!');
+      toast('Chém vào không khí — lại gần NPC / bạn bè hơn!');
     }
     return;
   }
@@ -3185,18 +3398,32 @@ async function fireWeapon() {
     : origin.clone().add(dir.clone().multiplyScalar(Math.min(maxDist, 30)));
 
   if (isBaz) {
+    const dmg = DMG.bazooka;
     spawnRocketVisual(muzzle, dir, end, () => {
-      if (impact?.kind === 'player') sendGunHit('bazooka', impact);
+      if (impact?.kind === 'player') {
+        if (remotePlayers.has(impact.id)) {
+          const rp = remotePlayers.get(impact.id);
+          rp.hp = Math.max(0, (rp.hp ?? MAX_HP) - dmg);
+          spawnDamageNumber(impact.point.x, impact.point.y, impact.point.z, dmg, true);
+          showTargetHp(rp.name, rp.hp, MAX_HP);
+          sendGunHit(rp.hp <= 0 ? 'kill' : 'bazooka', impact, dmg);
+        }
+      }
+      if (impact?.kind === 'npc' && impact.aiIndex != null) {
+        damageNPC(impact.aiIndex, dmg, true);
+      }
       if (impact?.kind === 'world' && impact.col) {
         if (destroyStructure(impact.col)) toast('Công trình bị phá! Dựng lại sau 2 giây…');
       }
     });
-    if (impact?.kind === 'player') toast(`Bazooka → ${impact.name}!`);
-    else if (impact?.kind === 'world') toast(impact.kind === 'ground' ? 'Bazooka nổ xuống đất! 💥' : 'Bazooka nổ vào công trình! 💥');
+    if (impact?.kind === 'player') toast(`Bazooka → ${impact.name} (−${dmg})!`);
+    else if (impact?.kind === 'npc') toast(`Bazooka → NPC ${impact.name} (−${dmg})! 💥`);
+    else if (impact?.kind === 'world') toast(impact.col ? 'Bazooka nổ vào công trình! 💥' : 'Bazooka nổ xuống đất! 💥');
     else toast('Bazooka bay vào mây…');
   } else {
     playGunshot();
     spawnMuzzleFlash();
+    const dmg = DMG.ak;
     // Vệt đạn tới điểm trúng
     const hitDist = impact ? impact.dist : 8;
     const streak = new THREE.Mesh(
@@ -3208,14 +3435,23 @@ async function fireWeapon() {
     scene.add(streak);
     setTimeout(() => scene.remove(streak), 55);
     if (impact?.kind === 'player') {
-      sendGunHit('ak', impact);
+      if (remotePlayers.has(impact.id)) {
+        const rp = remotePlayers.get(impact.id);
+        rp.hp = Math.max(0, (rp.hp ?? MAX_HP) - dmg);
+        spawnDamageNumber(impact.point.x, impact.point.y, impact.point.z, dmg);
+        showTargetHp(rp.name, rp.hp, MAX_HP);
+        sendGunHit(rp.hp <= 0 ? 'kill' : 'ak', impact, dmg);
+      }
       spawnExplosionBurst(impact.point.x, impact.point.y, impact.point.z, false);
-      toast(`AK trúng ${impact.name}!`);
+      toast(`AK trúng ${impact.name} (−${dmg})!`);
+    } else if (impact?.kind === 'npc') {
+      const r = damageNPC(impact.aiIndex, dmg, false);
+      toast(r === 'dead' ? `AK hạ NPC ${impact.name}!` : `AK trúng ${impact.name} (−${dmg})`);
     } else if (impact?.kind === 'world') {
       spawnExplosionBurst(end.x, end.y, end.z, false);
-      toast(impact.kind === 'ground' ? 'AK trúng đất! 💥' : 'AK bắn trúng công trình! 💥');
+      toast(impact.col ? 'AK bắn trúng công trình! 💥' : 'AK trúng đất! 💥');
     } else {
-      toast('Trượt — ngắm vào người hoặc công trình');
+      toast('Trượt — ngắm NPC, bạn bè hoặc công trình');
     }
   }
   // Pose bắn
@@ -3223,11 +3459,12 @@ async function fireWeapon() {
     player.userData.armR.rotation.set(-1.35, 0.05, -0.25);
   }
 }
-async function sendGunHit(type, target) {
-  if (!fbDb || !S.uid || !target) return;
+async function sendGunHit(type, target, damage) {
+  if (!fbDb || !S.uid || !target || target.kind === 'npc') return;
+  const dmg = damage != null ? damage : (DMG[type] || 0);
   update(ref(fbDb, `players/${S.uid}`), { emote: type, emoteAt: Date.now(), gun: S.gun, t: Date.now() });
   push(ref(fbDb, `inbox/${target.id}`), {
-    type, fromName: S.name, from: S.uid, t: Date.now(),
+    type, damage: dmg, fromName: S.name, from: S.uid, t: Date.now(),
   });
 }
 
@@ -3463,6 +3700,10 @@ function updatePlayer(dt) {
 }
 
 function updateWorld(dt, t) {
+  if (S.targetHpUntil && performance.now() > S.targetHpUntil) {
+    $('target-hp')?.classList.remove('on');
+    S.targetHpUntil = 0;
+  }
   // Hoàng hôn → đêm trên thiên đường
   S.dusk = Math.min(1, S.dusk + dt * 0.012);
   const d = S.dusk;

@@ -1,12 +1,12 @@
 {
-  "updatedAt": "2026-11-02T20:23:18+07:00",
+  "updatedAt": "2026-11-02T20:24:19+07:00",
   "pipeline": {
     "agent1": {
       "id": "agent1",
       "name": "Agent 1 — Director",
       "role": "Assign · Review · Improve",
-      "status": "working",
-      "detail": "Review Sen Bay + next IRL-impossible pagoda wonder"
+      "status": "done",
+      "detail": "Task assigned to Agent 2: TASK-20261102-2023-pagoda-fantasy.md"
     },
     "agent2": {
       "id": "agent2",
@@ -18,69 +18,132 @@
     "pipelinePhase": "review"
   },
   "currentTask": {
-    "file": "agents/tasks/TASK-20261102-2008-pagoda-fantasy.md",
-    "name": "TASK-20261102-2008-pagoda-fantasy.md",
-    "title": "Sen Bay — Sen khổng lồ bay trên sân chùa",
-    "wish": "Ai lên chùa cũng từng ước ngồi trong đóa sen khổng lồ treo lơ lửng trên sân — nhìn xuống tháp, tượng Phật, hồ sen — thanh tịnh kiểu chỉ có trong mơ. Game cho họ làm điều đó: **Sen Bay**, một đài sen sống biết nâng người lên trời chùa.",
+    "file": "agents/tasks/TASK-20261102-2023-pagoda-fantasy.md",
+    "name": "TASK-20261102-2023-pagoda-fantasy.md",
+    "title": "Chuông Đảo Thời — chuông sân chùa đảo ngược thời gian",
+    "wish": "Ai cũng từng ước **quay lại vài nhịp** — chuông ngân xong đời vẫn trôi thẳng. Game cho họ điều không thể IRL: **Chuông Đảo Thời** tại gác chuông sân chùa — thỉnh một nhịp đặc biệt và **thời gian sân chùa chạy ngược** vài giây (ánh ngày/đêm, cánh hoa, hành hương), rồi khóa lại như một phép lành.",
     "phase": "review",
     "checklist": [
       {
-        "done": true,
-        "text": "**Hotspot Sen Bay** gần đài sen / tượng Phật giữa sân (`buildStandingBuddha` ~`0,-4.6`) hoặc sàn trước tháp — **không** đẩy sang phố / BTS. Prompt + `near` radius giống interact chuông/hương"
+        "done": false,
+        "text": "**Hotspot / mode Đảo Thời** tại gác chuông sân chùa — **không** phố / gate / shops / BTS. Có thể: (a) prompt thứ hai khi near bell + unlocked, hoặc (b) sau thỉnh thường có nút/chip **Đảo thời** trong ~8s. Prefer pattern interact hiện có (`S.busy`, Esc hủy)"
       },
       {
-        "done": true,
-        "text": "**Một mesh sen bay** (reuse geometry đài sen / petal nếu có; 1 group nhẹ): idle glow trên mặt đất → sit → lerp lên cao → hover → hạ xuống. Không physics nặng, không multi-lotus swarm"
+        "done": false,
+        "text": "**Cửa sổ rewind 6–10s**: visual rõ trong sân — ít nhất **2 trong 3**: (1) `timePhase`/sky tint lerp ngược hoặc day clock lùi tạm, (2) particle cánh hoa/smoke vận tốc đảo dấu, (3) 1–2 `PILGRIM` hoặc ambient props tween lùi nhẹ. Snap/restore state an toàn khi hết cửa sổ (không phá save day cycle dài hạn)"
       },
       {
-        "done": true,
-        "text": "**Cửa sổ ride** 12–20s với HUD/tiny chip hoặc toast countdown nhẹ; Hủy = hạ sen an toàn về chỗ cũ; `S.busy` / interact pattern hiện có"
+        "done": false,
+        "text": "**Tầng escalate** ≥3: `giay` / `khac` / `kiep` — persist `chuongDaoBestTier` (+ optional `chuongDaoUses`) trong `saveAll`; lần đầu mỗi tầng → toast + Sổ + `gainCongDuc` lớn hơn"
       },
       {
-        "done": true,
-        "text": "**Tầng escalate** tối thiểu 3: `van` / `nguyet` / `tinh` — persist `senBayBestTier` (và optionally `senBayRides`) trong `saveAll`; lần đầu mỗi tầng → toast + Sổ line + `gainCongDuc`"
+        "done": false,
+        "text": "**VFX rẻ**: chuông emissive xoáy / ring pulse tím-bạc; không post-process stack; mobile cắt particle"
       },
       {
-        "done": true,
-        "text": "**VFX rẻ**: particle cánh hoa / soft light (reuse particle helpers nếu có); không post-process stack; tắt/bớt trên mobile nếu FPS thấp (theo pattern particle rain hiện có)"
+        "done": false,
+        "text": "**Sổ cầu an** section ngắn **⏳ Chuông Đảo Thời** — số lần đảo, tầng cao nhất, 1–3 dòng nhật ký"
       },
       {
-        "done": true,
-        "text": "**Sổ cầu an** section ngắn **🪷 Sen Bay** — số lần ngồi, tầng cao nhất, 1–3 dòng nhật ký gần đây"
+        "done": false,
+        "text": "Soft hooks ≥1: thắp hương / Sen Bay vừa xong → `duyenDao` bump tier hoặc +1 công đức; night/`calm` → rewind đẹp hơn"
       },
       {
-        "done": true,
-        "text": "Soft hooks (optional nhưng nên có ≥1): thắp hương hoặc thỉnh chuông *trước* khi ngồi → lần đó dễ lên tầng kế / +1 công đức “duyên sen”; ban đêm hoặc weather `calm` → glow đẹp hơn"
+        "done": false,
+        "text": "UI copy **tiếng Việt** (prompt, toast, Sổ)"
       },
       {
-        "done": true,
-        "text": "UI copy **tiếng Việt** (prompt, toast, Sổ) nơi game đã dùng VN"
+        "done": false,
+        "text": "Mobile + desktop usable; FPS-safe; `S.busy` trong rewind; Esc/Hủy = cắt sớm + restore"
       },
       {
-        "done": true,
-        "text": "Mobile + desktop usable; FPS-safe (1 lotus + ≤1 particle burst)"
+        "done": false,
+        "text": "Reuse: bell hotspot, `toast`, `gainCongDuc`, Sổ/`openBook`, day/weather, petals/smoke, pilgrim roots nếu dễ"
       },
       {
-        "done": true,
-        "text": "Reuse: `toast`, `gainCongDuc`, Sổ/`openBook`, day cycle, weather mood, interact/`S.busy`, particles"
-      },
-      {
-        "done": true,
+        "done": false,
         "text": "**Do NOT** expand BTS / princess / idol romance"
       },
       {
-        "done": true,
-        "text": "**Do NOT** expand phố shops / gossip this pass"
+        "done": false,
+        "text": "**Do NOT** expand Phố An Lạc / street shops / gate / đánh ghen"
+      },
+      {
+        "done": false,
+        "text": "**Preserve** Sen Bay + tranh Ronaldo–Messi tường chính điện — không đụng trừ hook duyên nhẹ nếu cần"
       }
     ],
-    "done": 12,
+    "done": 0,
     "total": 12,
-    "progress": 100.0,
+    "progress": 0.0,
     "hasDoneReport": true,
-    "doneReport": "- Files changed: `index.html` only (courtyard Sen Bay; no street/gate/shop edits)\n- What the player can do now:\n  - After ~18–28s in sân (or sooner after thắp hương / thỉnh chuông), a glowing **Sen Bay** lotus appears in front of the standing Buddha (`0,-1.35`)\n  - Walk up → **「Ngồi Sen Bay」** → sit; lotus rises ~4.6–7.8m, hovers ~12–20s total, then descends\n  - **Hủy** / Esc mid-ride safely lowers the lotus\n  - Session rides escalate **Vân → Nguyệt → Tịnh**; incense/bell “duyên” bumps tier +1 and +1 công đức; night/`calm` warms the glow\n  - First visit each tier stamps Sổ + bigger công đức; flair **Khách Sen Bay** on title / Sổ section **🪷 Sen Bay**\n- How to test:\n  1. Open `index.html`, enter game, walk to center courtyard near Buddha/đài sen (south of statue toward lư hương)\n  2. Wait for toast *“Đóa sen đang chờ bạn…”* (~20s) **or** thắp hương / thỉnh chuông first to unlock early\n  3. Stand in pink glow → tap **Ngồi Sen Bay** → confirm lift-off + petal burst + toast\n  4. Tap **Hủy · hạ sen** or Esc to descend early; ride again for Nguyệt / Tịnh\n  5. Open **Sổ** → section **🪷 Sen Bay** shows rides, best tier, log lines\n- Known limits / next ideas for Agent 1:\n  - Presence does not yet sync a live “on lotus” pose to remotes (title flair only via `publishPresence`)\n  - No multiplayer shared lotus / co-op rise\n  - Next courtyard wonder candidates: cloud bridge, talking Buddha, time-rewind chuông (still no street)",
-    "mtime": "2026-11-02T20:18:25+07:00"
+    "doneReport": "_(Agent 2 fills)_",
+    "mtime": "2026-11-02T20:24:14+07:00"
   },
   "tasks": [
+    {
+      "file": "agents/tasks/TASK-20261102-2023-pagoda-fantasy.md",
+      "name": "TASK-20261102-2023-pagoda-fantasy.md",
+      "title": "Chuông Đảo Thời — chuông sân chùa đảo ngược thời gian",
+      "wish": "Ai cũng từng ước **quay lại vài nhịp** — chuông ngân xong đời vẫn trôi thẳng. Game cho họ điều không thể IRL: **Chuông Đảo Thời** tại gác chuông sân chùa — thỉnh một nhịp đặc biệt và **thời gian sân chùa chạy ngược** vài giây (ánh ngày/đêm, cánh hoa, hành hương), rồi khóa lại như một phép lành.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": false,
+          "text": "**Hotspot / mode Đảo Thời** tại gác chuông sân chùa — **không** phố / gate / shops / BTS. Có thể: (a) prompt thứ hai khi near bell + unlocked, hoặc (b) sau thỉnh thường có nút/chip **Đảo thời** trong ~8s. Prefer pattern interact hiện có (`S.busy`, Esc hủy)"
+        },
+        {
+          "done": false,
+          "text": "**Cửa sổ rewind 6–10s**: visual rõ trong sân — ít nhất **2 trong 3**: (1) `timePhase`/sky tint lerp ngược hoặc day clock lùi tạm, (2) particle cánh hoa/smoke vận tốc đảo dấu, (3) 1–2 `PILGRIM` hoặc ambient props tween lùi nhẹ. Snap/restore state an toàn khi hết cửa sổ (không phá save day cycle dài hạn)"
+        },
+        {
+          "done": false,
+          "text": "**Tầng escalate** ≥3: `giay` / `khac` / `kiep` — persist `chuongDaoBestTier` (+ optional `chuongDaoUses`) trong `saveAll`; lần đầu mỗi tầng → toast + Sổ + `gainCongDuc` lớn hơn"
+        },
+        {
+          "done": false,
+          "text": "**VFX rẻ**: chuông emissive xoáy / ring pulse tím-bạc; không post-process stack; mobile cắt particle"
+        },
+        {
+          "done": false,
+          "text": "**Sổ cầu an** section ngắn **⏳ Chuông Đảo Thời** — số lần đảo, tầng cao nhất, 1–3 dòng nhật ký"
+        },
+        {
+          "done": false,
+          "text": "Soft hooks ≥1: thắp hương / Sen Bay vừa xong → `duyenDao` bump tier hoặc +1 công đức; night/`calm` → rewind đẹp hơn"
+        },
+        {
+          "done": false,
+          "text": "UI copy **tiếng Việt** (prompt, toast, Sổ)"
+        },
+        {
+          "done": false,
+          "text": "Mobile + desktop usable; FPS-safe; `S.busy` trong rewind; Esc/Hủy = cắt sớm + restore"
+        },
+        {
+          "done": false,
+          "text": "Reuse: bell hotspot, `toast`, `gainCongDuc`, Sổ/`openBook`, day/weather, petals/smoke, pilgrim roots nếu dễ"
+        },
+        {
+          "done": false,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": false,
+          "text": "**Do NOT** expand Phố An Lạc / street shops / gate / đánh ghen"
+        },
+        {
+          "done": false,
+          "text": "**Preserve** Sen Bay + tranh Ronaldo–Messi tường chính điện — không đụng trừ hook duyên nhẹ nếu cần"
+        }
+      ],
+      "done": 0,
+      "total": 12,
+      "progress": 0.0,
+      "hasDoneReport": true,
+      "doneReport": "_(Agent 2 fills)_",
+      "mtime": "2026-11-02T20:24:14+07:00"
+    },
     {
       "file": "agents/tasks/TASK-20261102-2008-pagoda-fantasy.md",
       "name": "TASK-20261102-2008-pagoda-fantasy.md",
@@ -604,11 +667,23 @@
     }
   ],
   "git": {
-    "indexDirty": true,
-    "indexMtime": "2026-11-02T20:22:38+07:00",
-    "diffStat": "index.html | 4395 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++----\n 1 file changed, 4127 insertions(+), 268 deletions(-)"
+    "indexDirty": false,
+    "indexMtime": "2026-11-02T20:23:49+07:00",
+    "diffStat": ""
   },
   "activity": [
+    {
+      "ts": "2026-11-02T20:24:19+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: TASK-20261102-2023-pagoda-fantasy.md",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:24:19+07:00",
+      "agent": "agent1",
+      "message": "Reviewed Sen Bay (tiny wow toast); assigned Chuông Đảo Thời pagoda fantasy — no street",
+      "status": "working"
+    },
     {
       "ts": "2026-11-02T20:22:51+07:00",
       "agent": "agent1",
@@ -1075,18 +1150,6 @@
       "ts": "2026-11-02T18:53:21+07:00",
       "agent": "agent2",
       "message": "Switching focus: global temple systems (stop princess)",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T18:53:17+07:00",
-      "agent": "agent2",
-      "message": "Pivoting off BTS → global temple task",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T18:53:17+07:00",
-      "agent": "system",
-      "message": "Focus pivoted → GLOBAL temple (BTS deprioritized)",
       "status": "working"
     }
   ]

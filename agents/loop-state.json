@@ -2,10 +2,10 @@
   "active": true,
   "iteration": 2,
   "maxIterations": 10,
-  "next": "agent1",
-  "lastAgent": "agent2",
-  "lastTask": "agents/tasks/TASK-20261102-2008-pagoda-fantasy.md",
-  "goal": "Pagoda fantasy: Sen Bay — ride a giant floating lotus above sân chùa (IRL-impossible). No BTS. Max 10.",
-  "updatedAt": "2026-11-02T20:18:30+07:00",
+  "next": "agent2",
+  "lastAgent": "agent1",
+  "lastTask": "agents/tasks/TASK-20261102-2023-pagoda-fantasy.md",
+  "goal": "Pagoda fantasy: Chuông Đảo Thời — courtyard bell rewinds sân chùa time (IRL-impossible). No street/shops/gate. No BTS. Max 10.",
+  "updatedAt": "2026-11-02T20:24:19+07:00",
   "focus": "global"
 }

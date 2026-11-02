@@ -1847,14 +1847,41 @@ function killAI(i, big = false) {
   S.aiLegR.instanceMatrix.needsUpdate = true;
   return true;
 }
+function placeAINearPagoda(a, onBase) {
+  if (onBase) {
+    // Đứng trên nền đá tháp (trước mặt tháp)
+    a.x = (Math.random() - 0.5) * 12;
+    a.z = -18.5 + 4.2 + Math.random() * 2.2;
+    a.groundY = 0.78;
+    a.onPagoda = true;
+    a.tx = (Math.random() - 0.5) * 10;
+    a.tz = -18.5 + 4.5 + (Math.random() - 0.5) * 1.6;
+  } else {
+    // Sân trước tháp (ngoài collider)
+    a.x = (Math.random() - 0.5) * 14;
+    a.z = -11.5 - Math.random() * 2.5;
+    a.groundY = 0;
+    a.onPagoda = false;
+    a.tx = (Math.random() - 0.5) * 10;
+    a.tz = -9 - Math.random() * 2;
+  }
+  a.state = 'walk';
+  a.yaw = Math.atan2(-a.x, -18.5 - a.z); // hướng về tháp
+}
 function respawnAI(a) {
   a.deadUntil = 0;
   a.hp = NPC_MAX_HP;
   a.state = 'walk';
-  a.x = (Math.random() - 0.5) * 12;
-  a.z = 10 + Math.random() * 4;
   a.speed = 0.45 + Math.random() * 0.55;
-  pickAITarget(a);
+  // Một nửa hồi sinh quanh / trên tháp
+  if (Math.random() < 0.55) placeAINearPagoda(a, Math.random() < 0.4);
+  else {
+    a.x = (Math.random() - 0.5) * 12;
+    a.z = 10 + Math.random() * 4;
+    a.groundY = 0;
+    a.onPagoda = false;
+    pickAITarget(a);
+  }
 }
 /** Gây sát thương NPC — trả về true nếu còn sống / vừa hạ */
 function damageNPC(i, amount, big = false) {
@@ -1862,7 +1889,7 @@ function damageNPC(i, amount, big = false) {
   if (!aiAlive(a)) return false;
   const dmg = Math.max(1, amount | 0);
   a.hp = Math.max(0, (a.hp ?? NPC_MAX_HP) - dmg);
-  spawnDamageNumber(a.x, 1.45 * a.scale, a.z, dmg, dmg >= 50);
+  spawnDamageNumber(a.x, (a.groundY || 0) + 1.45 * a.scale, a.z, dmg, dmg >= 50);
   showTargetHp(a.name || AI_NAMES[i % AI_NAMES.length], a.hp, NPC_MAX_HP);
   if (a.hp <= 0) {
     killAI(i, big);
@@ -1896,6 +1923,10 @@ function buildAI() {
 
   scene.add(aiMesh, headMesh, hairMesh, legL, legR);
   S.aiHead = headMesh; S.aiHair = hairMesh; S.aiLegL = legL; S.aiLegR = legR;
+  // InstancedMesh mặc định cull theo gốc (0,0,0) → nhìn về tháp là NPC biến mất
+  [aiMesh, headMesh, hairMesh, legL, legR].forEach(m => {
+    m.frustumCulled = false;
+  });
 
   for (let i = 0; i < AI_N; i++) {
     const c = new THREE.Color(colors[i % colors.length]);
@@ -1903,16 +1934,23 @@ function buildAI() {
     const kind = i % 5;
     const age = i % 4; // 0 adult, 1 elder, 2 child, 3 adult
     const scale = age === 2 ? 0.68 : age === 1 ? 0.88 : 1;
-    aiData.push({
+    const a = {
       x: (Math.random() - 0.5) * 14, z: (Math.random() - 0.5) * 12 + 1,
       yaw: Math.random() * 6.28, speed: 0.45 + Math.random() * 0.55,
       kind, age, scale, timer: Math.random() * 8, state: 'walk',
       tx: 0, tz: 0, bubble: -1, bubbleT: 0, walk: Math.random() * 10,
       deadUntil: 0, hp: NPC_MAX_HP, name: AI_NAMES[i % AI_NAMES.length],
-    });
-    pickAITarget(aiData[i]);
+      groundY: 0, onPagoda: false,
+    };
+    // ~40% NPC quanh / trên nền tháp ngay từ đầu
+    if (i % 5 === 0) placeAINearPagoda(a, true);
+    else if (i % 3 === 0) placeAINearPagoda(a, false);
+    else pickAITarget(a);
+    aiData.push(a);
   }
   if (aiMesh.instanceColor) aiMesh.instanceColor.needsUpdate = true;
+  // Vẽ ngay frame đầu (tránh NPC tàng hình đến khi update)
+  updateAI(0);
 
   for (let i = 0; i < 8; i++) {
     const el = document.createElement('div'); el.className = 'bubble3d'; bubbleRoot.appendChild(el); bubbleEls.push(el);
@@ -1920,15 +1958,25 @@ function buildAI() {
 }
 
 function pickAITarget(a) {
+  if (a.onPagoda) {
+    a.tx = Math.max(-9, Math.min(9, (Math.random() - 0.5) * 12));
+    a.tz = -18.5 + 4.2 + Math.random() * 2.0;
+    a.state = 'walk';
+    return;
+  }
   const spots = [
     [0, -7], [0, 2.5], [8, 2], [7, -5], [-9, -2], [0, 10], [-4, 4], [3, -8], [5, 5], [-6, 6],
+    // Sân tháp / trước tháp
+    [0, -10], [5, -11], [-5, -11], [0, -9], [7, -10], [-7, -10], [3, -12], [-3, -12],
   ];
   const s = spots[(Math.random()*spots.length)|0];
   a.tx = s[0] + (Math.random()-0.5)*2; a.tz = s[1] + (Math.random()-0.5)*2;
+  a.groundY = 0;
   a.state = 'walk';
 }
 
 function updateAI(dt) {
+  if (!aiMesh || !aiData.length) return;
   for (let i = 0; i < AI_N; i++) {
     const a = aiData[i];
     if (a.deadUntil) {
@@ -1944,13 +1992,19 @@ function updateAI(dt) {
       if (dist < 0.4) {
         a.state = a.kind === 1 ? 'pray' : a.kind === 2 ? 'incense' : a.kind === 3 ? 'sit' : a.kind === 4 ? 'photo' : 'idle';
         a.timer = 3 + Math.random()*5;
-        if (a.state === 'pray' || a.state === 'incense') a.yaw = Math.atan2(-a.x, -10 - a.z);
+        if (a.state === 'pray' || a.state === 'incense' || a.onPagoda) a.yaw = Math.atan2(-a.x, -18.5 - a.z);
       } else {
         a.yaw = Math.atan2(dx, dz);
         const sp = a.speed * (a.age === 1 ? 0.6 : a.age === 2 ? 1.15 : 1) * dt;
         const nx = a.x + Math.sin(a.yaw) * sp, nz = a.z + Math.cos(a.yaw) * sp;
-        if (tryMove(nx, nz) || Math.random() < 0.02) { a.x = nx; a.z = nz; }
-        else pickAITarget(a);
+        if (a.onPagoda) {
+          // Đi trên nền tháp — không dùng collider sân
+          a.x = Math.max(-9.5, Math.min(9.5, nx));
+          a.z = Math.max(-18.5 + 3.6, Math.min(-18.5 + 6.6, nz));
+          a.groundY = 0.78;
+        } else if (tryMove(nx, nz) || Math.random() < 0.02) {
+          a.x = nx; a.z = nz;
+        } else pickAITarget(a);
       }
     } else {
       if (a.timer <= 0) pickAITarget(a);
@@ -1979,36 +2033,37 @@ function updateAI(dt) {
     const bob = moving ? Math.sin(a.walk) * 0.04 : 0;
     const legSwing = moving ? Math.sin(a.walk) * 0.55 : 0;
     const sc = a.scale;
+    const gy = a.groundY || 0;
 
     // thân
-    aiDummy.position.set(a.x, 0.85 * sc + bob, a.z);
+    aiDummy.position.set(a.x, gy + 0.85 * sc + bob, a.z);
     aiDummy.rotation.set(0, a.yaw, 0);
     aiDummy.scale.set(sc, sc, sc);
     aiDummy.updateMatrix();
     aiMesh.setMatrixAt(i, aiDummy.matrix);
     // đầu
-    aiDummy.position.set(a.x, 1.42 * sc + bob, a.z);
+    aiDummy.position.set(a.x, gy + 1.42 * sc + bob, a.z);
     aiDummy.scale.set(sc, sc, sc);
     aiDummy.updateMatrix();
     S.aiHead.setMatrixAt(i, aiDummy.matrix);
     // tóc
-    aiDummy.position.set(a.x, 1.52 * sc + bob, a.z);
+    aiDummy.position.set(a.x, gy + 1.52 * sc + bob, a.z);
     aiDummy.scale.set(sc * 1.05, sc * 0.7, sc * 1.05);
     aiDummy.updateMatrix();
     S.aiHair.setMatrixAt(i, aiDummy.matrix);
     // chân
-    aiDummy.position.set(a.x - 0.1 * sc, 0.28 * sc, a.z);
+    aiDummy.position.set(a.x - 0.1 * sc, gy + 0.28 * sc, a.z);
     aiDummy.rotation.set(legSwing, a.yaw, 0);
     aiDummy.scale.set(sc, sc, sc);
     aiDummy.updateMatrix();
     S.aiLegL.setMatrixAt(i, aiDummy.matrix);
-    aiDummy.position.set(a.x + 0.1 * sc, 0.28 * sc, a.z);
+    aiDummy.position.set(a.x + 0.1 * sc, gy + 0.28 * sc, a.z);
     aiDummy.rotation.set(-legSwing, a.yaw, 0);
     aiDummy.updateMatrix();
     S.aiLegR.setMatrixAt(i, aiDummy.matrix);
 
     if (a.bubble >= 0) {
-      _v.set(a.x, 1.85 * sc, a.z); _v.project(camera);
+      _v.set(a.x, gy + 1.85 * sc, a.z); _v.project(camera);
       const el = bubbleEls[a.bubble];
       if (_v.z < 1) {
         el.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
@@ -3133,7 +3188,7 @@ function findGunTarget(maxDist, hitRadius = 0.95) {
   for (let i = 0; i < AI_N; i++) {
     const a = aiData[i];
     if (!aiAlive(a)) continue;
-    const target = new THREE.Vector3(a.x, 1.05 * a.scale, a.z);
+    const target = new THREE.Vector3(a.x, (a.groundY || 0) + 1.05 * a.scale, a.z);
     const to = target.clone().sub(origin);
     const dist = to.length();
     if (dist < 0.8 || dist > maxDist) continue;

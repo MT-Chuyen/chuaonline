@@ -843,6 +843,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 <script type="module">
 /* Lên Chùa Cầu An — import URL đầy đủ (không phụ thuộc importmap — Cursor / WebView cũ vẫn chạy) */
 import * as THREE from './vendor/three.module.js';
+import { GLTFLoader } from './vendor/GLTFLoader.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
@@ -1048,10 +1049,11 @@ const S = {
   vienQuayGene: 0, vienVeGene: {}, tayQuayGene: false, chuQuayCarnival: false, vienSieuQuay: false,
   vienCafePhucVu: 0, vienLyGene: {}, nguoiPhaGene: false, chuCafeBay: false, vienTiecBay: false,
   vienDieuHanh: 0, vienCoGene: {}, nguoiCamCoDieu: false, chuDieuHanh: false, vienDieuHoangKim: false,
+  vienKhinhKhi: 0, vienTemBauTroi: {}, nguoiLaiKhinhKhi: false, chuSafariBauTroi: false, vienSafariHoangHon: false,
   nearInstituteAnimal: null, nearInstituteShow: false, nearInstituteAlbum: false, nearInstituteWheel: false,
-  nearInstituteCafe: false, nearInstituteParade: false,
+  nearInstituteCafe: false, nearInstituteParade: false, nearInstituteBalloon: false,
   instituteAnimals: null, instituteRareAnimals: null, instituteAct: null, instituteShowAct: null,
-  instituteWheelAct: null, instituteCafeAct: null, instituteParadeAct: null,
+  instituteWheelAct: null, instituteCafeAct: null, instituteParadeAct: null, instituteBalloonAct: null,
   instituteRoot: null, instituteRimAurora: null, instituteGateTip: null,
   instituteShowPad: null, instituteShowLabel: null, instituteAlbumWall: null,
   instituteAlbumSlots: null, instituteAlbumTip: null, instituteAlbumRim: null,
@@ -1066,6 +1068,10 @@ const S = {
   instituteParadeRim: null, instituteParadeBoard: null, instituteParadeBoardTip: null,
   instituteParadeCoSlots: null, instituteParadePathMarkers: null, instituteParadeZoneRing: null,
   instituteParadeHalo: null,
+  instituteBalloonRoot: null, instituteBalloonTip: null, instituteBalloonMesh: null,
+  instituteBalloonBasket: null, instituteBalloonRim: null, instituteBalloonBoard: null,
+  instituteBalloonBoardTip: null, instituteBalloonTemSlots: null, instituteBalloonZoneRing: null,
+  instituteBalloonTrail: null, instituteBalloonSpotLight: null, instituteBalloonConfetti: null,
   _instituteEntered: false, _instituteTipAt: 0, _instituteWarpTips: false,
   _instituteCourtyardTip: false, _instituteSoTip: false, _vienDuyenReady: false,
   _vienRareSpawned: false, _vienShowWarpTip: false, _vienAlbumFullTip: false,
@@ -1074,6 +1080,11 @@ const S = {
   _vienSieuQuaySession: false, _vienSieuYardWashUntil: 0,
   _vienCafeWarpTip: false, _vienCafeMenuTip: false, _vienCafeSteamBoost: false,
   _vienTiecBaySession: false, _vienCafeTipOffer: false, _vienCafeTipAt: 0,
+  _vienParadeWarpTip: false, _vienParadePathBoost: false, _vienParadeBoardTip: false,
+  _vienParadeTipOffer: false, _vienParadeTipAt: 0, _vienDieuHoangKimSession: false,
+  _vienBalloonWarpTip: false, _vienBalloonTrailBoost: false, _vienBalloonBoardTip: false,
+  _vienBalloonTipOffer: false, _vienBalloonTipAt: 0, _vienSafariHoangHonSession: false,
+  _vienBalloonLandGraceUntil: 0, _vienParadeLastKind: null, _vienBalloonLastKind: null,
 };
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
@@ -1511,6 +1522,16 @@ function loadSave() {
     if (typeof d.nguoiCamCoDieu === 'boolean') S.nguoiCamCoDieu = d.nguoiCamCoDieu;
     if (typeof d.chuDieuHanh === 'boolean') S.chuDieuHanh = d.chuDieuHanh;
     if (typeof d.vienDieuHoangKim === 'boolean') S.vienDieuHoangKim = d.vienDieuHoangKim;
+    if (typeof d.vienKhinhKhi === 'number') S.vienKhinhKhi = Math.max(0, d.vienKhinhKhi | 0);
+    if (d.vienTemBauTroi && typeof d.vienTemBauTroi === 'object') {
+      S.vienTemBauTroi = {};
+      Object.keys(d.vienTemBauTroi).forEach((k) => {
+        if (d.vienTemBauTroi[k]) S.vienTemBauTroi[String(k).slice(0, 28)] = true;
+      });
+    }
+    if (typeof d.nguoiLaiKhinhKhi === 'boolean') S.nguoiLaiKhinhKhi = d.nguoiLaiKhinhKhi;
+    if (typeof d.chuSafariBauTroi === 'boolean') S.chuSafariBauTroi = d.chuSafariBauTroi;
+    if (typeof d.vienSafariHoangHon === 'boolean') S.vienSafariHoangHon = d.vienSafariHoangHon;
   } catch (_) {}
 }
 function saveAll() {
@@ -1676,6 +1697,11 @@ function saveAll() {
       nguoiCamCoDieu: !!S.nguoiCamCoDieu,
       chuDieuHanh: !!S.chuDieuHanh,
       vienDieuHoangKim: !!S.vienDieuHoangKim,
+      vienKhinhKhi: S.vienKhinhKhi | 0,
+      vienTemBauTroi: S.vienTemBauTroi || {},
+      nguoiLaiKhinhKhi: !!S.nguoiLaiKhinhKhi,
+      chuSafariBauTroi: !!S.chuSafariBauTroi,
+      vienSafariHoangHon: !!S.vienSafariHoangHon,
     }));
   } catch (_) {}
 }
@@ -1737,6 +1763,8 @@ function templeFlairSuffix() {
   else if (S.nguoiPhaGene) parts.push('Người Pha Gene');
   if (S.chuDieuHanh) parts.push('Chủ Diễu Hành Viện');
   else if (S.nguoiCamCoDieu) parts.push('Người Cầm Cờ Diễu');
+  if (S.chuSafariBauTroi) parts.push('Chủ Safari Bầu Trời Viện');
+  else if (S.nguoiLaiKhinhKhi) parts.push('Người Lái Khinh Khí');
   if (S.streakFlair === 'nhatTu') parts.push('Nhật Tu');
   else if (S.streakFlair === 'chuyenCan') parts.push('Chuyên Cần');
   return parts.length ? ` · ${parts.join(' · ')}` : '';
@@ -4222,6 +4250,143 @@ function buildInstituteAnimalMesh(spec) {
   return g;
 }
 
+/** Landmark 3D — tải GLB T-Rex thật (polyfork) + tint đột biến, idle anim */
+const MUTATION_DINO_URL = './assets/models/mutation-dino.glb';
+function placeInstituteMutationDino(parent, ix, iz) {
+  const holder = new THREE.Group();
+  // Gần tường poster phía xa (−Z), mặt nhìn vào sân Viện
+  const wx = ix + 2.2, wz = iz - 7.5;
+  holder.position.set(wx, 0, wz);
+  parent.add(holder);
+
+  // Bệ đá
+  const rockMat = new THREE.MeshStandardMaterial({
+    color: 0x5a5548, roughness: 0.92, metalness: 0.08,
+    emissive: 0x1a1810, emissiveIntensity: 0.06,
+  });
+  const mossMat = new THREE.MeshStandardMaterial({
+    color: 0x3d5a38, roughness: 0.95, metalness: 0.04,
+    emissive: 0x0a2010, emissiveIntensity: 0.08,
+  });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.8, 0.55, 10), rockMat);
+  base.position.y = 0.28; base.receiveShadow = true; holder.add(base);
+  const slab = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 2.15, 0.35, 9), mossMat);
+  slab.position.y = 0.58; slab.receiveShadow = true; holder.add(slab);
+  for (let i = 0; i < 5; i++) {
+    const bit = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(0.28 + Math.random() * 0.2, 0),
+      i % 2 ? mossMat : rockMat
+    );
+    const a = (i / 5) * Math.PI * 2;
+    bit.position.set(Math.cos(a) * 1.7, 0.55, Math.sin(a) * 1.5);
+    bit.rotation.set(Math.random(), Math.random(), Math.random());
+    holder.add(bit);
+  }
+
+  const tip = textPlane('🧬 Khủng Long Đột Biến', 400, 52, '#fff4e8', '#4a2010', 18);
+  tip.position.set(0, 6.4, 0);
+  tip.scale.set(2.6, 0.42, 1);
+  holder.add(tip);
+
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(3.2, 28),
+    new THREE.MeshBasicMaterial({
+      color: 0xff8844, transparent: true, opacity: 0.16,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.y = 0.05;
+  holder.add(glow);
+
+  S.instituteDino = {
+    root: holder, model: null, mixer: null, tip, glow,
+    pos: new THREE.Vector3(wx, 0, wz),
+  };
+
+  const loader = new GLTFLoader();
+  loader.load(
+    MUTATION_DINO_URL,
+    (gltf) => {
+      const model = gltf.scene || gltf.scenes?.[0];
+      if (!model) return;
+      // Chuẩn hoá chiều cao ~5–6m trên bệ
+      const box = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const targetH = IS_MOBILE ? 4.0 : 5.2;
+      const sc = targetH / Math.max(0.05, size.y);
+      model.scale.setScalar(sc);
+      box.setFromObject(model);
+      model.position.y = 0.75 - box.min.y; // đứng trên slab
+      // Model +Z forward — hướng vào tâm sân Viện
+      model.rotation.y = 0;
+
+      model.traverse((o) => {
+        if (!o.isMesh) return;
+        o.castShadow = true;
+        o.receiveShadow = true;
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        const next = mats.map((m) => {
+          if (!m) return m;
+          const c = m.clone();
+          // Tint đột biến: bụng hồng-đỏ, lưng xám đậm, gai vàng nhẹ
+          if (c.color) {
+            const lum = (c.color.r + c.color.g + c.color.b) / 3;
+            if (lum > 0.45) c.color.lerp(new THREE.Color(0xc45a48), 0.55);
+            else c.color.lerp(new THREE.Color(0x3a4540), 0.4);
+          }
+          if (c.emissive) {
+            c.emissive.setHex(0x4a2208);
+            c.emissiveIntensity = Math.max(c.emissiveIntensity || 0, 0.12);
+          }
+          c.roughness = Math.min(0.95, (c.roughness ?? 0.7) + 0.1);
+          return c;
+        });
+        o.material = Array.isArray(o.material) ? next : next[0];
+      });
+
+      // Gai tinh thể vàng dọc lưng (phụ kiện đột biến — toạ độ local mesh gốc)
+      const spikeMat = new THREE.MeshStandardMaterial({
+        color: 0xe8b84a, metalness: 0.55, roughness: 0.35,
+        emissive: 0xaa6600, emissiveIntensity: 0.45,
+      });
+      const spikeRoot = new THREE.Group();
+      spikeRoot.position.set(0, 3.15, 1.1);
+      for (let i = 0; i < 9; i++) {
+        const sp = new THREE.Mesh(new THREE.ConeGeometry(0.14 + (i % 3) * 0.05, 0.55 + i * 0.07, 5), spikeMat);
+        sp.position.set((i % 2 ? 0.1 : -0.1), 0.05 * i, -0.35 * i);
+        sp.rotation.x = 0.4 + i * 0.03;
+        spikeRoot.add(sp);
+      }
+      model.add(spikeRoot);
+
+      holder.add(model);
+
+      let mixer = null;
+      if (gltf.animations?.length) {
+        mixer = new THREE.AnimationMixer(model);
+        const idle = THREE.AnimationClip.findByName(gltf.animations, 'Idle')
+          || gltf.animations.find((a) => /idle/i.test(a.name))
+          || gltf.animations[0];
+        const act = mixer.clipAction(idle);
+        act.play();
+      }
+      if (S.instituteDino) {
+        S.instituteDino.model = model;
+        S.instituteDino.mixer = mixer;
+        S.instituteDino.spikeRoot = spikeRoot;
+      }
+    },
+    undefined,
+    (err) => {
+      console.warn('Không tải được mutation-dino.glb', err);
+      toast?.('⚠️ Thiếu model assets/models/mutation-dino.glb');
+    }
+  );
+  return holder;
+}
+
 /** Poster khủng long đột biến — tường Viện (mặt hướng về sân chùa / lối vào) */
 function hangInstituteDinoPoster(parent, ix, iz) {
   const root = new THREE.Group();
@@ -4413,10 +4578,13 @@ function buildInstituteDistrict() {
     });
   });
   S.instituteAnimals = animals;
+  // Landmark GLB khủng long (mesh thật, không ghép box/sphere)
+  try { placeInstituteMutationDino(root, ix, iz); } catch (err) { console.warn('institute dino glb', err); }
   buildInstituteShowAlbum(root, ix, iz);
   buildInstituteGeneWheel(root, ix, iz);
   buildInstituteCafeBay(root, ix, iz);
   buildInstituteParade(root, ix, iz);
+  buildInstituteBalloonSafari(root, ix, iz);
   // Restore rare habitats if already unlocked in save
   if (S.daoDienSanVien || ((S.vienShowDem | 0) >= 5 && vienAlbumStampCount() >= 8)) {
     try { spawnInstituteRareHabitats(true); } catch (_) {}
@@ -4425,10 +4593,12 @@ function buildInstituteDistrict() {
   if ((S.vienQuayGene | 0) >= 1) S._vienWheelDense = true;
   if ((S.vienCafePhucVu | 0) >= 1) S._vienCafeSteamBoost = true;
   if ((S.vienDieuHanh | 0) >= 1) S._vienParadePathBoost = true;
+  if ((S.vienKhinhKhi | 0) >= 1) S._vienBalloonTrailBoost = true;
   refreshInstituteAlbumSlots();
   refreshInstituteVeSlots();
   refreshInstituteCafeLySlots();
   refreshInstituteParadeCoSlots();
+  refreshInstituteBalloonTemSlots();
 }
 
 function buildInstituteShowAlbum(root, ix, iz) {
@@ -5043,7 +5213,7 @@ function refreshInstituteCafeLySlots() {
 }
 
 function pickNearInstituteCafe() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
   if (playerRoot.position.x >= -16) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   const cx = INSTITUTE_X - 10, cz = INSTITUTE_Z + 6;
@@ -5221,7 +5391,7 @@ function escalateInstituteCafeRewards() {
 }
 
 function startInstituteCafeAct(opts = {}) {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -5734,7 +5904,7 @@ function refreshInstituteParadeCoSlots() {
 }
 
 function pickNearInstituteParade() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
   if (playerRoot.position.x >= -14) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   const cx = INSTITUTE_X + 9.5, cz = INSTITUTE_Z + 9.0;
@@ -5866,7 +6036,7 @@ function escalateInstituteParadeRewards() {
 }
 
 function startInstituteParadeAct(opts = {}) {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -6105,8 +6275,698 @@ function cancelInstituteParadeAct() {
   finishInstituteParadeAct(true);
 }
 
+/* ========== Viện · Tour Khinh Khí Cầu Habitat + Tem Bầu Trời ========== */
+function vienTemBauTroiCount() {
+  const m = S.vienTemBauTroi || {};
+  return Object.keys(m).filter((k) => m[k]).length;
+}
+function vienSafariHoangHonUnlocked() {
+  return !!S.chuSafariBauTroi || ((S.vienKhinhKhi | 0) >= 12 && vienTemBauTroiCount() >= 8);
+}
+function balloonPathXZ(t) {
+  return {
+    x: INSTITUTE_X + 7 * Math.cos(t),
+    z: INSTITUTE_Z + 8 * Math.sin(t),
+  };
+}
+function balloonFreeSpotAnimals() {
+  const now = performance.now();
+  return (S.instituteAnimals || []).filter((a) => {
+    if (!a || !a.mesh || a.landmark || a.rare) return false;
+    if (a.cafeSeat != null) return false;
+    if (a.paradePhase) return false;
+    if (a.geneBuff && (a.geneBuff.until || 0) > now) return false;
+    if (S.instituteShowAct) return false;
+    return true;
+  });
+}
+function pickInstituteBalloonVerb() {
+  if (vienSafariHoangHonUnlocked() && !S._vienSafariHoangHonSession) return 'safariHoangHon';
+  const n = S.vienKhinhKhi | 0;
+  if (n < 1) return 'lenCau';
+  const last = S._vienBalloonLastKind;
+  if (last === 'lenCau' || last === 'safariHoangHon') return 'ngamHabitat';
+  if (last === 'ngamHabitat') return 'thaBongBong';
+  return 'lenCau';
+}
+function instituteBalloonVerbLabel(v) {
+  if (v === 'ngamHabitat') return '🔭 Ngắm Habitat';
+  if (v === 'thaBongBong') return '🎈 Thả Bong Bóng';
+  if (v === 'safariHoangHon') return '🌅 Safari Hoàng Hôn';
+  return '🎈 Lên Khinh Khí';
+}
+const INSTITUTE_BALLOON_JOKES = [
+  (n) => `Từ khinh khí: ${n} nhìn nhỏ như hạt đậu lấp lánh!`,
+  (n) => `Trên mây nhìn ${n} — “Ê, sao em bé vậy?”`,
+  (n) => `${n} ngoác miệng lên trời: “Chào phi công ảo!”`,
+  (n) => `Tem bầu trời gắn ${n}: spot từ độ cao fantasy!`,
+  (n) => `${n} vẫy đuôi xuống đất: “Đừng rơi bánh bao!”`,
+  (n) => `Khinh khí lướt qua ${n} — gene carnival cười khà.`,
+  (n) => `${n} thầm thì: “Nhìn từ trên cũng… cute đột biến.”`,
+  (n) => `Pilot note: ${n} đang diễn show bệ — không bay theo!`,
+  (n) => `${n} phản chiếu lên bóng bay như tem sống.`,
+  (n) => `Safari êm: ${n} vẫn ngồi bệ — chỉ spotlight mềm.`,
+];
+function instituteBalloonJoke(name, salt) {
+  const fn = INSTITUTE_BALLOON_JOKES[(Math.abs(salt | 0) + (name?.length || 0)) % INSTITUTE_BALLOON_JOKES.length];
+  return fn(name || 'thú viện');
+}
+
+function buildInstituteBalloonSafari(root, ix, iz) {
+  const bx = ix + 11.0, bz = iz - 10.5;
+  const dock = new THREE.Group();
+  dock.position.set(bx, 0, bz);
+  S.instituteBalloonRoot = dock;
+
+  const zone = new THREE.Mesh(
+    new THREE.TorusGeometry(1.7, 0.03, 6, 24),
+    new THREE.MeshStandardMaterial({
+      color: 0xffd0c8, metalness: 0.35, roughness: 0.45,
+      emissive: 0xffaa88, emissiveIntensity: 0.22,
+    })
+  );
+  zone.rotation.x = Math.PI / 2;
+  zone.position.y = 0.04;
+  dock.add(zone);
+  markIndestructible(zone);
+  S.instituteBalloonZoneRing = zone;
+
+  // Soft marker slightly NW of dock (local +10.2,−9.8 → relative −0.8,+0.7)
+  const softMark = new THREE.Mesh(
+    new THREE.TorusGeometry(0.55, 0.02, 5, 16),
+    new THREE.MeshStandardMaterial({
+      color: 0xffe0c8, metalness: 0.3, roughness: 0.5,
+      emissive: 0xffbb88, emissiveIntensity: 0.18,
+    })
+  );
+  softMark.rotation.x = Math.PI / 2;
+  softMark.position.set(-0.8, 0.035, 0.7);
+  dock.add(softMark);
+  markIndestructible(softMark);
+
+  const pad = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.55, 1.65, 0.18, 24),
+    new THREE.MeshStandardMaterial({
+      color: 0xf0e0d8, metalness: 0.28, roughness: 0.5,
+      emissive: 0xffaa88, emissiveIntensity: 0.14,
+    })
+  );
+  pad.position.y = 0.1;
+  dock.add(pad);
+  markIndestructible(pad);
+
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(1.58, 0.04, 6, 28),
+    new THREE.MeshStandardMaterial({
+      color: 0xffe8c8, metalness: 0.55, roughness: 0.35,
+      emissive: 0xffaa66, emissiveIntensity: S.nguoiLaiKhinhKhi || S.chuSafariBauTroi ? 0.55 : 0.18,
+    })
+  );
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.2;
+  dock.add(rim);
+  S.instituteBalloonRim = rim;
+
+  // Soft tether pole
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.05, 2.2, 8),
+    new THREE.MeshStandardMaterial({ color: 0xc8d0d8, metalness: 0.55, roughness: 0.4, emissive: 0x668888, emissiveIntensity: 0.12 })
+  );
+  pole.position.set(0.85, 1.1, 0.2);
+  dock.add(pole);
+  markIndestructible(pole);
+
+  // Idle pastel balloon + basket (parked at y≈2.4)
+  const balloonG = new THREE.Group();
+  balloonG.position.set(0, 2.4, 0);
+  const envelope = new THREE.Mesh(
+    new THREE.SphereGeometry(0.72, 16, 12),
+    new THREE.MeshStandardMaterial({
+      color: 0xffb0c8, roughness: 0.45, metalness: 0.2,
+      emissive: 0xff88aa, emissiveIntensity: 0.35,
+    })
+  );
+  envelope.position.y = 0.55;
+  balloonG.add(envelope);
+  const stripe = new THREE.Mesh(
+    new THREE.TorusGeometry(0.55, 0.04, 6, 20),
+    new THREE.MeshStandardMaterial({ color: 0xffe8aa, metalness: 0.4, roughness: 0.4, emissive: 0xffcc66, emissiveIntensity: 0.3 })
+  );
+  stripe.position.y = 0.55;
+  balloonG.add(stripe);
+  const basket = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.32, 0.36, 0.28, 10),
+    new THREE.MeshStandardMaterial({ color: 0xc89060, metalness: 0.15, roughness: 0.7, emissive: 0x884422, emissiveIntensity: 0.12 })
+  );
+  basket.position.y = -0.15;
+  balloonG.add(basket);
+  // Soft tether lines
+  for (let i = 0; i < 4; i++) {
+    const ang = (i / 4) * Math.PI * 2 + 0.2;
+    const line = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.012, 0.012, 0.7, 4),
+      new THREE.MeshBasicMaterial({ color: 0xffe8d0 })
+    );
+    line.position.set(Math.cos(ang) * 0.22, 0.2, Math.sin(ang) * 0.22);
+    line.rotation.z = Math.cos(ang) * 0.25;
+    line.rotation.x = Math.sin(ang) * 0.25;
+    balloonG.add(line);
+  }
+  dock.add(balloonG);
+  S.instituteBalloonMesh = balloonG;
+  S.instituteBalloonBasket = basket;
+
+  const tip = textPlane('🎈 Khinh Khí Cầu Viện', 360, 48, '#fff6f0', '#5a3040', 14);
+  tip.position.set(0, 1.85, 0.2);
+  tip.scale.set(2.0, 0.34, 1);
+  dock.add(tip);
+  S.instituteBalloonTip = tip;
+
+  // Tem bầu trời board — local (+12.2,−9.6) relative dock (+11.0,−10.5) → (+1.2, +0.9)
+  const boardG = new THREE.Group();
+  boardG.position.set(1.2, 0, 0.9);
+  const board = new THREE.Mesh(
+    new THREE.BoxGeometry(1.5, 1.2, 0.1),
+    new THREE.MeshStandardMaterial({
+      color: 0x302830, roughness: 0.55, metalness: 0.2,
+      emissive: 0x382028, emissiveIntensity: 0.18,
+    })
+  );
+  board.position.y = 1.55;
+  boardG.add(board);
+  S.instituteBalloonBoard = board;
+  const boardTip = textPlane('📋 Tem Bầu Trời', 300, 48, '#fff6f0', '#503040', 14);
+  boardTip.position.set(0, 2.3, 0.08);
+  boardTip.scale.set(1.55, 0.3, 1);
+  boardG.add(boardTip);
+  S.instituteBalloonBoardTip = boardTip;
+
+  const temSlots = [];
+  for (let i = 0; i < 10; i++) {
+    const col = i % 5;
+    const row = (i / 5) | 0;
+    const sx = -0.55 + col * 0.28;
+    const sy = 1.78 - row * 0.38;
+    const spec = INSTITUTE_ANIMAL_SPECS[i];
+    const slot = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.24, 0.3),
+      new THREE.MeshStandardMaterial({
+        color: 0x302830, roughness: 0.7, metalness: 0.1,
+        emissive: spec?.color || 0x281820, emissiveIntensity: 0.08,
+        side: THREE.DoubleSide,
+      })
+    );
+    slot.position.set(sx, sy, 0.07);
+    boardG.add(slot);
+    const label = textPlane('·', 80, 40, '#aa8899', '#281820', 12);
+    label.position.set(sx, sy, 0.09);
+    label.scale.set(0.22, 0.18, 1);
+    boardG.add(label);
+    temSlots.push({ id: spec.id, mesh: slot, label, filled: false });
+  }
+  S.instituteBalloonTemSlots = temSlots;
+  // Face −X/−Z into yard
+  boardG.rotation.y = Math.PI * 0.65;
+  dock.add(boardG);
+
+  // Soft spotlight cone (hidden until Ngắm)
+  const spot = new THREE.Mesh(
+    new THREE.ConeGeometry(0.55, 2.2, 12, 1, true),
+    new THREE.MeshBasicMaterial({
+      color: 0xffe8aa, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  spot.rotation.x = Math.PI;
+  spot.visible = false;
+  root.add(spot);
+  S.instituteBalloonSpotLight = spot;
+
+  root.add(dock);
+
+  if ((S.vienKhinhKhi | 0) >= 1) S._vienBalloonTrailBoost = true;
+  refreshInstituteBalloonTemSlots();
+}
+
+function refreshInstituteBalloonTemSlots() {
+  const stamps = S.vienTemBauTroi || {};
+  const slots = S.instituteBalloonTemSlots;
+  if (!slots) return;
+  slots.forEach((slot) => {
+    const filled = !!stamps[slot.id];
+    slot.filled = filled;
+    const spec = INSTITUTE_ANIMAL_SPECS.find((s) => s.id === slot.id);
+    if (slot.mesh?.material) {
+      slot.mesh.material.emissiveIntensity = filled ? 0.7 : 0.08;
+      slot.mesh.material.emissive?.setHex?.(spec?.color || 0x281820);
+      slot.mesh.material.color?.setHex?.(filled ? 0x5a3a48 : 0x302830);
+    }
+    if (slot.label) {
+      try {
+        const short = filled ? (spec?.name || '').replace(/^(Cá|Trâu|Mây|Mèo|Gà|Heo|Rùa|Cua|Ngỗng|Sóc)\s*/, '').slice(0, 6) : '·';
+        const cv = document.createElement('canvas');
+        cv.width = 80; cv.height = 40;
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = filled ? '#403028' : '#281820';
+        ctx.fillRect(0, 0, 80, 40);
+        ctx.fillStyle = filled ? '#fff6f0' : '#aa8899';
+        ctx.font = '700 11px "Be Vietnam Pro","Noto Sans",sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(short || '·', 40, 21);
+        if (slot.label.material?.map) {
+          slot.label.material.map.image = cv;
+          slot.label.material.map.needsUpdate = true;
+        } else if (slot.label.userData?.tex) {
+          slot.label.userData.tex.image = cv;
+          slot.label.userData.tex.needsUpdate = true;
+        }
+      } catch (_) {}
+    }
+  });
+  if (S.instituteBalloonRim?.material) {
+    const neon = S.chuSafariBauTroi || S.nguoiLaiKhinhKhi;
+    S.instituteBalloonRim.material.emissiveIntensity = neon ? 0.55 : 0.18;
+    if (neon) S.instituteBalloonRim.material.emissive?.setHex?.(0xffaa66);
+  }
+  if (S.instituteBalloonBoard?.material) {
+    S.instituteBalloonBoard.material.emissiveIntensity = vienTemBauTroiCount() > 0 ? 0.35 : 0.18;
+  }
+}
+
+function pickNearInstituteBalloon() {
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
+  if (playerRoot.position.x >= -14) return false;
+  const px = playerRoot.position.x, pz = playerRoot.position.z;
+  const cx = INSTITUTE_X + 11.0, cz = INSTITUTE_Z - 10.5;
+  const bx = INSTITUTE_X + 12.2, bz = INSTITUTE_Z - 9.6;
+  return Math.hypot(px - cx, pz - cz) < 2.5 || Math.hypot(px - bx, pz - bz) < 2.0;
+}
+
+function openInstituteBalloonTemBoard() {
+  if (S.busy || S.instituteBalloonAct) return;
+  const stamps = S.vienTemBauTroi || {};
+  const n = vienTemBauTroiCount();
+  const rows = INSTITUTE_ANIMAL_SPECS.map((s) => {
+    const ok = !!stamps[s.id];
+    return `<li>${ok ? '✅' : '⬜'} ${s.name}</li>`;
+  }).join('');
+  refreshInstituteBalloonTemSlots();
+  if (S.instituteBalloonBoard?.material) {
+    S.instituteBalloonBoard.material.emissiveIntensity = 0.75;
+    setTimeout(() => {
+      if (S.instituteBalloonBoard?.material) {
+        S.instituteBalloonBoard.material.emissiveIntensity = S.nguoiLaiKhinhKhi ? 0.4 : 0.18;
+      }
+    }, 900);
+  }
+  openModal(`
+    <h2>📋 Tem Bầu Trời</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ghim <strong>${n}</strong>/10 tem · chuyến <strong>${S.vienKhinhKhi | 0}</strong>${S.vienSafariHoangHon ? ' · đã Safari Hoàng Hôn' : ''}</p>
+    <ul class="book-list">${rows}</ul>
+    <button class="btn" id="m-balloon-ok">Đóng</button>
+  `);
+  $('m-balloon-ok').onclick = () => closeModal();
+  toast(n > 0 ? `📋 Tem bầu trời · ${n}/10 đang sáng` : '📋 Bảng còn trống — Ngắm Habitat từ khinh khí');
+}
+
+function spawnBalloonJokeBubble(animal, text) {
+  if (!animal?.mesh || !text) return null;
+  try {
+    const bubble = textPlane(String(text).slice(0, 48), 380, 56, '#402830', '#fff6f0', 13);
+    bubble.position.set(0, animal.rare ? 1.55 : 2.05, 0);
+    bubble.scale.set(IS_MOBILE ? 1.35 : 1.7, IS_MOBILE ? 0.26 : 0.32, 1);
+    animal.mesh.add(bubble);
+    animal.balloonBubble = bubble;
+    animal.balloonBubbleUntil = performance.now() + (IS_MOBILE ? 2600 : 3400);
+    return bubble;
+  } catch (_) { return null; }
+}
+function clearBalloonJokeBubble(animal) {
+  if (!animal?.balloonBubble) return;
+  try {
+    animal.mesh?.remove(animal.balloonBubble);
+    animal.balloonBubble.geometry?.dispose?.();
+    animal.balloonBubble.material?.map?.dispose?.();
+    animal.balloonBubble.material?.dispose?.();
+  } catch (_) {}
+  animal.balloonBubble = null;
+  animal.balloonBubbleUntil = 0;
+}
+function clearBalloonSpotHighlight() {
+  const spot = S.instituteBalloonSpotLight;
+  if (spot) {
+    spot.visible = false;
+    if (spot.material) spot.material.opacity = 0;
+  }
+  (S.instituteAnimals || []).forEach((a) => {
+    if (a?.balloonSpotUntil) a.balloonSpotUntil = 0;
+    if (a?.glow?.material && a._balloonGlowPrev != null) {
+      a.glow.material.opacity = a._balloonGlowPrev;
+      a._balloonGlowPrev = null;
+    }
+  });
+}
+function highlightBalloonSpot(animal, ms) {
+  if (!animal?.mesh) return;
+  const dur = ms || (IS_MOBILE ? 5000 : 6500);
+  animal.balloonSpotUntil = performance.now() + dur;
+  if (animal.glow?.material) {
+    if (animal._balloonGlowPrev == null) animal._balloonGlowPrev = animal.glow.material.opacity;
+    animal.glow.material.opacity = 0.55;
+  }
+  const spot = S.instituteBalloonSpotLight;
+  if (spot) {
+    spot.visible = true;
+    spot.position.set(animal.x, 2.4, animal.z);
+    if (spot.material) spot.material.opacity = 0.35;
+  }
+}
+function spawnBalloonConfetti(count) {
+  const n = IS_MOBILE ? Math.min(4, count || 4) : (count || 6);
+  const root = S.instituteRoot || scene;
+  const confetti = [];
+  const colors = [0xffb0c8, 0xffe8aa, 0xa8e8ff, 0xd0ffc8, 0xffcc88];
+  const base = playerRoot ? playerRoot.position : { x: INSTITUTE_X + 11, y: 4.5, z: INSTITUTE_Z - 10.5 };
+  for (let i = 0; i < n; i++) {
+    const ball = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12 + Math.random() * 0.08, 8, 6),
+      new THREE.MeshStandardMaterial({
+        color: colors[i % colors.length], roughness: 0.4, metalness: 0.15,
+        emissive: colors[i % colors.length], emissiveIntensity: 0.4,
+        transparent: true, opacity: 0.9,
+      })
+    );
+    ball.position.set(
+      base.x + (Math.random() - 0.5) * 2.2,
+      (base.y || 4) + 0.4 + Math.random() * 0.8,
+      base.z + (Math.random() - 0.5) * 2.2
+    );
+    ball.userData.vy = 0.35 + Math.random() * 0.45;
+    ball.userData.life = 5 + Math.random() * 1.5;
+    root.add(ball);
+    confetti.push(ball);
+  }
+  S.instituteBalloonConfetti = (S.instituteBalloonConfetti || []).concat(confetti);
+}
+function clearBalloonConfetti() {
+  const list = S.instituteBalloonConfetti || [];
+  list.forEach((m) => {
+    try {
+      m.parent?.remove(m);
+      m.geometry?.dispose?.();
+      m.material?.dispose?.();
+    } catch (_) {}
+  });
+  S.instituteBalloonConfetti = [];
+}
+
+function escalateInstituteBalloonRewards() {
+  if ((S.vienKhinhKhi | 0) >= 1 && !S._vienBalloonTrailBoost) {
+    S._vienBalloonTrailBoost = true;
+    if (S.instituteBalloonBasket?.material) {
+      S.instituteBalloonBasket.material.emissiveIntensity = 0.35;
+    }
+    setTimeout(() => toast('🔭 Mở · Ngắm Habitat từ khinh khí'), 700);
+  }
+  if (((S.vienKhinhKhi | 0) >= 5 || vienTemBauTroiCount() >= 4) && !S.nguoiLaiKhinhKhi) {
+    S.nguoiLaiKhinhKhi = true;
+    if (S.instituteBalloonRim?.material) {
+      S.instituteBalloonRim.material.emissiveIntensity = 0.55;
+      S.instituteBalloonRim.material.emissive?.setHex?.(0xffaa66);
+    }
+    setTimeout(() => {
+      toast('🎈 Flair · Người Lái Khinh Khí · neon dock mềm');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 900);
+  }
+  if ((S.vienKhinhKhi | 0) >= 12 && vienTemBauTroiCount() >= 8 && !S.chuSafariBauTroi) {
+    S.chuSafariBauTroi = true;
+    setTimeout(() => {
+      toast('🌅 Flair · Chủ Safari Bầu Trời Viện · Safari Hoàng Hôn mở!');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 1100);
+  }
+  if (vienTemBauTroiCount() >= 3 && !S._vienBalloonBoardTip) {
+    S._vienBalloonBoardTip = true;
+    setTimeout(() => toast('📋 Bảng tem bầu trời đang sáng'), 1200);
+  }
+}
+
+function stampBalloonTem(animalId, quiet) {
+  if (!animalId) return false;
+  if (!S.vienTemBauTroi) S.vienTemBauTroi = {};
+  if (S.vienTemBauTroi[animalId]) return false;
+  S.vienTemBauTroi[animalId] = true;
+  refreshInstituteBalloonTemSlots();
+  if (!quiet) {
+    const spec = INSTITUTE_ANIMAL_SPECS.find((s) => s.id === animalId);
+    toast(`📋 Tem bầu trời · ${spec?.name || animalId}`);
+  }
+  return true;
+}
+
+function startInstituteBalloonAct(opts = {}) {
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) {
+    toast('🎈 Khinh khí đang bay — đợi một nhịp');
+    return;
+  }
+  if (instituteBusyBlocked()) {
+    toast('🧬 Viện chờ hết lượt khác đã');
+    return;
+  }
+  const kind = opts.kind || pickInstituteBalloonVerb();
+  const cx = INSTITUTE_X + 11.0, cz = INSTITUTE_Z - 10.5;
+  const storePose = () => ({
+    x: playerRoot ? playerRoot.position.x : cx,
+    z: playerRoot ? playerRoot.position.z : cz,
+    y: playerRoot ? playerRoot.position.y : 0,
+  });
+
+  if (kind === 'lenCau' || kind === 'safariHoangHon') {
+    const golden = kind === 'safariHoangHon';
+    if (golden) {
+      if (!vienSafariHoangHonUnlocked() || S._vienSafariHoangHonSession) {
+        toast(S._vienSafariHoangHonSession ? '🌅 Safari Hoàng Hôn đã mở phiên này' : '🌅 Cần ≥12 chuyến và ≥8 tem bầu trời');
+        return;
+      }
+    }
+    const dur = golden ? (IS_MOBILE ? 12 : 14) : (IS_MOBILE ? 10 : 12.5);
+    const pose = storePose();
+    S.busy = true;
+    if (playerRoot) playerRoot.position.set(cx, 0.2, cz);
+    S.yaw = -Math.PI * 0.35;
+    if (player) player.rotation.y = S.yaw;
+    const free = balloonFreeSpotAnimals().slice().sort(() => Math.random() - 0.5);
+    const autoSpot = golden ? free.slice(0, Math.min(3, free.length)).map((a) => a.id) : [];
+    S.instituteBalloonAct = {
+      kind: golden ? 'safariHoangHon' : 'lenCau',
+      t: 0, dur, rewarded: false, faceYaw: S.yaw,
+      dockX: cx, dockZ: cz,
+      restoreX: pose.x, restoreZ: pose.z, restoreY: pose.y || 0,
+      orbitT: Math.random() * Math.PI * 2,
+      golden,
+      autoSpotIds: autoSpot,
+      autoSpotDone: false,
+      spottedIds: [],
+      trail: !IS_MOBILE && ((S.vienKhinhKhi | 0) >= 1 || golden),
+      cruiseY: golden ? 5.0 : 4.5,
+    };
+    S._vienBalloonLastKind = golden ? 'safariHoangHon' : 'lenCau';
+    try { playWhoosh(); } catch (_) {}
+    toast(golden
+      ? '🌅 Safari Hoàng Hôn · quỹ đạo vàng trên sân thú!'
+      : '🎈 Lên Khinh Khí · bay êm trên habitat fantasy…');
+    return;
+  }
+
+  if (kind === 'ngamHabitat') {
+    if ((S.vienKhinhKhi | 0) < 1) {
+      toast('🎈 Lên Khinh Khí một chuyến trước đã');
+      return;
+    }
+    const riding = !!S.instituteBalloonAct; // shouldn't happen — busy check above
+    const grace = performance.now() < (S._vienBalloonLandGraceUntil || 0);
+    if (!riding && !grace && (S.vienKhinhKhi | 0) < 1) {
+      toast('🔭 Ngắm Habitat khi đang bay hoặc vừa hạ cánh');
+      return;
+    }
+    // Allow Ngắm as short standalone act near dock after rides, or mid-air via interact during ride
+    // Standalone: soft mini-rise + spot 1–2
+    const free = balloonFreeSpotAnimals().filter((a) => !(S.vienTemBauTroi && S.vienTemBauTroi[a.id]));
+    const pool = free.length ? free : balloonFreeSpotAnimals();
+    if (!pool.length) {
+      toast('Thú đang bận show/gene/cafe/diễu — đợi một nhịp');
+      return;
+    }
+    const picks = pool.slice().sort((a, b) => {
+      const da = Math.hypot((playerRoot?.position.x || cx) - a.x, (playerRoot?.position.z || cz) - a.z);
+      const db = Math.hypot((playerRoot?.position.x || cx) - b.x, (playerRoot?.position.z || cz) - b.z);
+      return da - db;
+    }).slice(0, IS_MOBILE ? 1 : 2);
+    const pose = storePose();
+    const dur = IS_MOBILE ? 5.5 : 7.0;
+    S.busy = true;
+    S.instituteBalloonAct = {
+      kind: 'ngamHabitat', t: 0, dur, rewarded: false, faceYaw: S.yaw,
+      dockX: cx, dockZ: cz,
+      restoreX: pose.x, restoreZ: pose.z, restoreY: pose.y || 0,
+      spotIds: picks.map((p) => p.id),
+      spotIdx: 0, nextSpotAt: 0.6,
+      orbitT: 0, hover: true,
+      cruiseY: 3.2,
+    };
+    S._vienBalloonLastKind = 'ngamHabitat';
+    if (playerRoot) playerRoot.position.set(cx, 0.15, cz);
+    toast(`🔭 Ngắm Habitat · ${picks.map((p) => p.name).join(' · ')}`);
+    return;
+  }
+
+  if (kind === 'thaBongBong') {
+    if ((S.vienKhinhKhi | 0) < 1) {
+      toast('🎈 Lên Khinh Khí một chuyến trước đã');
+      return;
+    }
+    const stamps = S.vienTemBauTroi || {};
+    const stamped = INSTITUTE_ANIMAL_SPECS.filter((s) => stamps[s.id]);
+    const focusSpec = stamped.length
+      ? stamped[(S.vienKhinhKhi | 0) % stamped.length]
+      : INSTITUTE_ANIMAL_SPECS[(S.vienKhinhKhi | 0) % INSTITUTE_ANIMAL_SPECS.length];
+    const focus = (S.instituteAnimals || []).find((a) => a.id === focusSpec.id) || balloonFreeSpotAnimals()[0];
+    const pose = storePose();
+    const dur = IS_MOBILE ? 5.0 : 6.0;
+    S.busy = true;
+    if (playerRoot) playerRoot.position.set(cx - 0.2, 0, cz + 0.4);
+    S.yaw = Math.PI * 0.2;
+    if (player) player.rotation.y = S.yaw;
+    S.instituteBalloonAct = {
+      kind: 'thaBongBong', t: 0, dur, rewarded: false, faceYaw: S.yaw,
+      dockX: cx, dockZ: cz,
+      restoreX: pose.x, restoreZ: pose.z, restoreY: pose.y || 0,
+      focusId: focus?.id,
+      joked: false, jokeAt: 1.2,
+    };
+    S._vienBalloonLastKind = 'thaBongBong';
+    spawnBalloonConfetti(IS_MOBILE ? 4 : 7);
+    toast('🎈 Thả Bong Bóng · pastel bay lên trời viện!');
+    return;
+  }
+}
+
+function finishInstituteBalloonAct(early) {
+  const act = S.instituteBalloonAct;
+  if (!act) return;
+  const elapsed = act.t;
+  const counts = !early || elapsed >= 1.2;
+  const cx = act.dockX != null ? act.dockX : INSTITUTE_X + 11.0;
+  const cz = act.dockZ != null ? act.dockZ : INSTITUTE_Z - 10.5;
+  const allAnimals = S.instituteAnimals || [];
+
+  clearBalloonSpotHighlight();
+
+  if (counts && !act.rewarded) {
+    act.rewarded = true;
+    if (act.kind === 'lenCau' || act.kind === 'safariHoangHon') {
+      const first = (S.vienKhinhKhi | 0) === 0;
+      S.vienKhinhKhi = (S.vienKhinhKhi | 0) + 1;
+      let newTem = 0;
+      if (act.kind === 'safariHoangHon') {
+        (act.autoSpotIds || []).forEach((id) => {
+          if (stampBalloonTem(id, true)) newTem += 1;
+        });
+        S.vienSafariHoangHon = true;
+        S._vienSafariHoangHonSession = true;
+        if (!S.chuSafariBauTroi) S.chuSafariBauTroi = true;
+      } else if (act.spottedIds?.length) {
+        act.spottedIds.forEach((id) => {
+          if (stampBalloonTem(id, true)) newTem += 1;
+        });
+      }
+      refreshInstituteBalloonTemSlots();
+      let gain = act.kind === 'safariHoangHon' ? 10 : (first ? 6 : (newTem ? 4 : 2));
+      if (first && (S.chuDieuHanh || S.chuCafeBay || S.chuQuayCarnival || S.daoDienSanVien || S.nhaNghienCuuSan)) {
+        gain += 1;
+        setTimeout(() => toast('🧬 Duyên Carnival / Viện · +1 công đức khinh khí'), 800);
+      }
+      if (early) gain = Math.max(1, (gain / 2) | 0);
+      if (act.kind === 'safariHoangHon') {
+        gainCongDuc(gain, '🧬 Viện · Safari Hoàng Hôn', true);
+        toast(`🌅 Safari Hoàng Hôn · ${newTem ? `+${newTem} tem · ` : ''}+${gain}`);
+        setTimeout(() => toast('📒 Sổ ghi · 🧬 Viện · Safari Hoàng Hôn'), 1100);
+      } else {
+        gainCongDuc(gain, first ? '🧬 Viện · Tour Khinh Khí Cầu' : 'Viện · Lên Khinh Khí', true);
+        toast(first
+          ? `🎈 Tour lần đầu · hạ cánh êm · +${gain}`
+          : `🎈 Lên Khinh Khí · ${newTem ? `+${newTem} tem · ` : ''}+${gain}`);
+        if (first) setTimeout(() => toast('📒 Sổ ghi · 🧬 Viện · Tour Khinh Khí Cầu'), 1100);
+      }
+      if (newTem && (vienTemBauTroiCount() === 1 || vienTemBauTroiCount() === 3 || vienTemBauTroiCount() === 10)) {
+        setTimeout(() => { try { openInstituteBalloonTemBoard(); } catch (_) {} }, 1600);
+      }
+      escalateInstituteBalloonRewards();
+      S._vienBalloonLandGraceUntil = performance.now() + 2200;
+    } else if (act.kind === 'ngamHabitat') {
+      let newTem = 0;
+      (act.spotIds || []).forEach((id) => {
+        if (stampBalloonTem(id, true)) newTem += 1;
+        const a = allAnimals.find((x) => x.id === id);
+        if (a) {
+          const line = instituteBalloonJoke(a.name, (S.vienKhinhKhi | 0) + newTem);
+          spawnBalloonJokeBubble(a, line);
+        }
+      });
+      refreshInstituteBalloonTemSlots();
+      const gain = early ? 1 : (newTem ? 3 : 2);
+      gainCongDuc(gain, 'Viện · Ngắm Habitat', true);
+      toast(newTem
+        ? `🔭 Ngắm Habitat · +${newTem} tem bầu trời · +${gain}`
+        : `🔭 Ngắm Habitat · đã có tem · +${gain}`);
+      escalateInstituteBalloonRewards();
+      if (newTem && vienTemBauTroiCount() >= 3 && !S._vienBalloonBoardTip) {
+        // escalate handles tip
+      }
+      S._vienBalloonLandGraceUntil = performance.now() + 2000;
+    } else if (act.kind === 'thaBongBong') {
+      const focus = allAnimals.find((x) => x.id === act.focusId);
+      if (focus && !act.joked) {
+        const line = instituteBalloonJoke(focus.name, S.vienKhinhKhi | 0);
+        spawnBalloonJokeBubble(focus, line);
+      }
+      gainCongDuc(2, 'Viện · Thả Bong Bóng', true);
+      toast('🎈 Bong bóng pastel tan trên sân thú');
+    }
+    saveAll();
+    try { updateMeritHud(); } catch (_) {}
+  } else if (early && elapsed < 1.2) {
+    toast('🎈 Hủy quá sớm — chưa ghi sổ');
+  }
+
+  // Restore player on dock / institute — never leave stuck at cruise height
+  if (playerRoot) {
+    playerRoot.position.set(cx - 0.15, 0, cz + 0.35);
+    playerRoot.position.y = 0;
+  }
+  // Park balloon back at dock idle height
+  if (S.instituteBalloonMesh && S.instituteBalloonRoot) {
+    S.instituteBalloonMesh.position.set(0, 2.4, 0);
+    S.instituteBalloonMesh.rotation.set(0, 0, 0);
+  }
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+  } catch (_) {}
+
+  S.instituteBalloonAct = null;
+  S.busy = false;
+}
+
+function cancelInstituteBalloonAct() {
+  if (!S.instituteBalloonAct) return;
+  finishInstituteBalloonAct(true);
+}
+
 function pickNearInstituteAnimal() {
-  if (!playerRoot || S.instituteAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || !S.instituteAnimals) return null;
+  if (!playerRoot || S.instituteAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || !S.instituteAnimals) return null;
   if (playerRoot.position.x >= -16) return null;
   let best = null, bestD = 99;
   for (const a of S.instituteAnimals) {
@@ -6132,14 +6992,20 @@ function goToInstituteGate() {
   S._instituteEntered = true;
   S._instituteEnteredAt = performance.now();
   toast('🧬 Giữa Sân Thú Biến Đổi — đi vòng xem các em đang… biến!');
-  // Soft tip cycle: dusk→show; else prefer unplayed: parade / cafe / wheel / album
-  if (!S._vienShowWarpTip && !S._vienWheelWarpTip && !S._vienCafeWarpTip && !S._vienParadeWarpTip) {
+  // Soft tip cycle: dusk→show; else prefer unplayed: balloon / parade / cafe / wheel / album
+  if (!S._vienShowWarpTip && !S._vienWheelWarpTip && !S._vienCafeWarpTip && !S._vienParadeWarpTip && !S._vienBalloonWarpTip) {
     const nightish = S.timePhase === 'dusk' || S.timePhase === 'night';
     if (nightish) {
       S._vienShowWarpTip = true;
       setTimeout(() => {
         if (!S.playing) return;
         toast('🌙 Show Đột Biến Đêm sắp mở trên sân giữa…');
+      }, 4500);
+    } else if ((S.vienKhinhKhi | 0) < 1 && ((S.vienDieuHanh | 0) >= 1 || (S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
+      S._vienBalloonWarpTip = true;
+      setTimeout(() => {
+        if (!S.playing) return;
+        toast('🎈 Tour Khinh Khí Cầu mở góc đông-nam sân…');
       }, 4500);
     } else if ((S.vienDieuHanh | 0) < 1 && ((S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
       S._vienParadeWarpTip = true;
@@ -6165,6 +7031,12 @@ function goToInstituteGate() {
         if (!S.playing) return;
         toast('🎏 Diễu Hành Thú Bay mở góc đông-bắc sân…');
       }, 4500);
+    } else if ((S.vienKhinhKhi | 0) < 1) {
+      S._vienBalloonWarpTip = true;
+      setTimeout(() => {
+        if (!S.playing) return;
+        toast('🎈 Tour Khinh Khí Cầu mở góc đông-nam sân…');
+      }, 4500);
     } else {
       S._vienShowWarpTip = true;
       setTimeout(() => {
@@ -6172,6 +7044,12 @@ function goToInstituteGate() {
         toast('📷 Tường Album Ảnh Kỳ gần cổng — đứng xem ảnh viện');
       }, 4500);
     }
+  } else if (!S._vienBalloonWarpTip && (S.vienKhinhKhi | 0) < 1) {
+    S._vienBalloonWarpTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast('🎈 Tour Khinh Khí Cầu mở góc đông-nam sân…');
+    }, 8000);
   } else if (!S._vienParadeWarpTip && (S.vienDieuHanh | 0) < 1) {
     S._vienParadeWarpTip = true;
     setTimeout(() => {
@@ -6213,19 +7091,19 @@ function goToInstituteGate() {
 }
 
 function pickNearInstituteShow() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
   if (playerRoot.position.x >= -16) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   return Math.hypot(px - INSTITUTE_X, pz - (INSTITUTE_Z - 1)) < 2.2;
 }
 function pickNearInstituteAlbum() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
   if (playerRoot.position.x >= -16) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   return Math.hypot(px - INSTITUTE_X, pz - (INSTITUTE_Z + 7)) < 2.0;
 }
 function pickNearInstituteWheel() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
   if (playerRoot.position.x >= -16) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   // Shared hotspot: wheel (0,-12) + booth (−3.2,-11) → r≈2.4 from wheel center
@@ -6235,7 +7113,7 @@ function pickNearInstituteWheel() {
 }
 
 function openInstituteAlbum() {
-  if (S.busy || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return;
+  if (S.busy || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
   const stamps = S.vienAlbumStamps || {};
   const n = vienAlbumStampCount();
   const rows = INSTITUTE_ALBUM_SLOT_IDS.map((id) => {
@@ -6552,7 +7430,7 @@ function escalateInstituteGeneRewards() {
 }
 
 function startInstituteGeneSpin(opts = {}) {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -6735,7 +7613,7 @@ function cancelInstituteGeneSpin() {
 }
 
 function startInstituteNightShow(opts = {}) {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -6906,7 +7784,7 @@ function cancelInstituteShow() {
 }
 
 function startInstituteAct() {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || !S.nearInstituteAnimal) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || !S.nearInstituteAnimal) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -7120,11 +7998,24 @@ function cancelInstituteAct() {
 }
 
 function updateInstitute(dt, t) {
+  // GLB khủng long đột biến — idle + tip billboard
+  if (S.instituteDino) {
+    if (S.instituteDino.mixer) S.instituteDino.mixer.update(dt);
+    if (S.instituteDino.tip && camera) S.instituteDino.tip.quaternion.copy(camera.quaternion);
+    if (S.instituteDino.glow?.material) {
+      S.instituteDino.glow.material.opacity = 0.12 + 0.08 * Math.abs(Math.sin(t * 1.3));
+    }
+    if (S.instituteDino.spikeRoot) {
+      S.instituteDino.spikeRoot.rotation.y = Math.sin(t * 0.6) * 0.04;
+    }
+  }
+
   const animals = S.instituteAnimals;
   const showAct = S.instituteShowAct;
   const wheelAct = S.instituteWheelAct;
   const cafeAct = S.instituteCafeAct;
   const paradeAct = S.instituteParadeAct;
+  const balloonAct = S.instituteBalloonAct;
   const nowMs = performance.now();
   const tickParadeAnimal = (a) => {
     if (!a?.mesh || !a.paradePhase) return false;
@@ -7371,6 +8262,54 @@ function updateInstitute(dt, t) {
   if (S.instituteCafeMenuTip && camera) S.instituteCafeMenuTip.quaternion.copy(camera.quaternion);
   if (S.instituteParadeTip && camera) S.instituteParadeTip.quaternion.copy(camera.quaternion);
   if (S.instituteParadeBoardTip && camera) S.instituteParadeBoardTip.quaternion.copy(camera.quaternion);
+  if (S.instituteBalloonTip && camera) S.instituteBalloonTip.quaternion.copy(camera.quaternion);
+  if (S.instituteBalloonBoardTip && camera) S.instituteBalloonBoardTip.quaternion.copy(camera.quaternion);
+  // Idle pastel balloon bob at dock (when not mid-ride)
+  if (S.instituteBalloonMesh && !balloonAct) {
+    S.instituteBalloonMesh.position.y = 2.4 + Math.sin(t * 1.3) * 0.08;
+    S.instituteBalloonMesh.rotation.y = Math.sin(t * 0.7) * 0.12;
+  }
+  if (S.instituteBalloonRim?.material && (S.nguoiLaiKhinhKhi || S.chuSafariBauTroi)) {
+    S.instituteBalloonRim.material.emissiveIntensity = 0.4 + 0.28 * Math.abs(Math.sin(t * 1.5));
+  }
+  if (S.instituteBalloonZoneRing?.material) {
+    S.instituteBalloonZoneRing.material.emissiveIntensity = 0.16 + 0.12 * Math.abs(Math.sin(t * 1.2));
+  }
+  // Balloon confetti float
+  if (S.instituteBalloonConfetti?.length) {
+    const keep = [];
+    S.instituteBalloonConfetti.forEach((m) => {
+      if (!m) return;
+      m.userData.life = (m.userData.life || 0) - dt;
+      m.position.y += (m.userData.vy || 0.4) * dt;
+      m.position.x += Math.sin(t * 2 + m.position.z) * 0.15 * dt;
+      if (m.material) m.material.opacity = Math.max(0, Math.min(0.9, (m.userData.life || 0) / 2));
+      if (m.userData.life > 0) keep.push(m);
+      else {
+        try { m.parent?.remove(m); m.geometry?.dispose?.(); m.material?.dispose?.(); } catch (_) {}
+      }
+    });
+    S.instituteBalloonConfetti = keep;
+  }
+  // Spot highlight fade
+  if (S.instituteBalloonSpotLight?.visible) {
+    const anySpot = (S.instituteAnimals || []).some((a) => a.balloonSpotUntil && nowMs < a.balloonSpotUntil);
+    if (!anySpot) clearBalloonSpotHighlight();
+    else if (S.instituteBalloonSpotLight.material) {
+      S.instituteBalloonSpotLight.material.opacity = 0.22 + 0.18 * Math.abs(Math.sin(t * 3));
+    }
+  }
+  (S.instituteAnimals || []).forEach((a) => {
+    if (a.balloonBubble && camera) a.balloonBubble.quaternion.copy(camera.quaternion);
+    if (a.balloonBubbleUntil && nowMs > a.balloonBubbleUntil) clearBalloonJokeBubble(a);
+    if (a.balloonSpotUntil && nowMs > a.balloonSpotUntil) {
+      a.balloonSpotUntil = 0;
+      if (a.glow?.material && a._balloonGlowPrev != null) {
+        a.glow.material.opacity = a._balloonGlowPrev;
+        a._balloonGlowPrev = null;
+      }
+    }
+  });
   if (S.instituteParadeFlag) {
     S.instituteParadeFlag.rotation.y = Math.sin(t * 2.2) * 0.35;
     S.instituteParadeFlag.rotation.z = Math.sin(t * 3.1) * 0.08;
@@ -7461,8 +8400,8 @@ function updateInstitute(dt, t) {
     });
   }
 
-  // Soft tip near animal / show / album / wheel / cafe / parade
-  if (!S.instituteAct && !S.instituteShowAct && !S.instituteWheelAct && !S.instituteCafeAct && !S.instituteParadeAct) {
+  // Soft tip near animal / show / album / wheel / cafe / parade / balloon
+  if (!S.instituteAct && !S.instituteShowAct && !S.instituteWheelAct && !S.instituteCafeAct && !S.instituteParadeAct && !S.instituteBalloonAct) {
     const now = performance.now();
     if (S.nearInstituteAnimal && now - (S._instituteTipAt || 0) > 15000) {
       S._instituteTipAt = now;
@@ -7512,15 +8451,29 @@ function updateInstitute(dt, t) {
         S._vienParadeTipOffer = false;
         toast(`${instituteParadeVerbLabel(pickInstituteParadeVerb())} · Diễu Hành Thú Bay?`);
       }
+    } else if (S.nearInstituteBalloon && now - (S._instituteTipAt || 0) > 16000) {
+      S._instituteTipAt = now;
+      if (vienTemBauTroiCount() > 0 && (now / 16000 | 0) % 2 === 1) {
+        S._vienBalloonTipOffer = true;
+        S._vienBalloonTipAt = now;
+        const filled = INSTITUTE_ANIMAL_SPECS.filter((s) => S.vienTemBauTroi && S.vienTemBauTroi[s.id]).map((s) => s.name.split(' ').slice(0, 2).join(' ')).slice(0, 2);
+        toast(`📋 Xem Tem Bầu Trời · ${filled.join(' · ') || 'đang sáng'} — bấm tương tác`);
+      } else {
+        S._vienBalloonTipOffer = false;
+        toast(`${instituteBalloonVerbLabel(pickInstituteBalloonVerb())} · Khinh Khí Cầu Viện?`);
+      }
     }
   }
 
-  // Soft tip if on isle ~8s (parade / cafe / wheel) without spam
+  // Soft tip if on isle ~8s (balloon / parade / cafe / wheel) without spam
   if (S.playing && playerRoot && playerRoot.position.x < -14) {
     if (!S._vienIsleSince) S._vienIsleSince = nowMs;
     const enteredAt = S._instituteEnteredAt || S._vienIsleSince;
     if (nowMs - enteredAt > 8000) {
-      if (!S._vienParadeWarpTip && (S.vienDieuHanh | 0) < 1 && ((S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
+      if (!S._vienBalloonWarpTip && (S.vienKhinhKhi | 0) < 1 && ((S.vienDieuHanh | 0) >= 1 || (S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
+        S._vienBalloonWarpTip = true;
+        toast('🎈 Tour Khinh Khí Cầu mở góc đông-nam sân…');
+      } else if (!S._vienParadeWarpTip && (S.vienDieuHanh | 0) < 1 && ((S.vienCafePhucVu | 0) >= 1 || (S.vienQuayGene | 0) >= 1)) {
         S._vienParadeWarpTip = true;
         toast('🎏 Diễu Hành Thú Bay mở góc đông-bắc sân…');
       } else if (!S._vienCafeWarpTip && (S.vienCafePhucVu | 0) < 1) {
@@ -7529,6 +8482,9 @@ function updateInstitute(dt, t) {
       } else if (!S._vienWheelWarpTip && (S.vienQuayGene | 0) < 1) {
         S._vienWheelWarpTip = true;
         toast('🎡 Vòng Quay Đột Biến mở phía nam sân…');
+      } else if (!S._vienBalloonWarpTip && (S.vienKhinhKhi | 0) < 1) {
+        S._vienBalloonWarpTip = true;
+        toast('🎈 Tour Khinh Khí Cầu mở góc đông-nam sân…');
       } else if (!S._vienParadeWarpTip && (S.vienDieuHanh | 0) < 1) {
         S._vienParadeWarpTip = true;
         toast('🎏 Diễu Hành Thú Bay mở góc đông-bắc sân…');
@@ -21806,6 +22762,7 @@ $('action-btn').onclick = () => {
   if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
   if (S.bongDaAct) { cancelBongDaAct(); return; }
   if (S.phoVangCall) { cancelGioVangCall(); return; }
+  if (S.instituteBalloonAct) { cancelInstituteBalloonAct(); return; }
   if (S.instituteParadeAct) { cancelInstituteParadeAct(); return; }
   if (S.instituteCafeAct) { cancelInstituteCafeAct(); return; }
   if (S.instituteWheelAct) { cancelInstituteGeneSpin(); return; }
@@ -21861,6 +22818,15 @@ $('action-btn').onclick = () => {
       return;
     }
     startInstituteParadeAct({});
+    return;
+  }
+  if (S.nearInstituteBalloon) {
+    if (S._vienBalloonTipOffer && vienTemBauTroiCount() > 0 && performance.now() - (S._vienBalloonTipAt || 0) < 4000) {
+      S._vienBalloonTipOffer = false;
+      openInstituteBalloonTemBoard();
+      return;
+    }
+    startInstituteBalloonAct({});
     return;
   }
   if (S.nearThapMo) {
@@ -22115,6 +23081,7 @@ addEventListener('keydown', e => {
     if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
     if (S.bongDaAct) { cancelBongDaAct(); return; }
     if (S.phoVangCall) { cancelGioVangCall(); return; }
+    if (S.instituteBalloonAct) { cancelInstituteBalloonAct(); return; }
     if (S.instituteParadeAct) { cancelInstituteParadeAct(); return; }
     if (S.instituteCafeAct) { cancelInstituteCafeAct(); return; }
     if (S.instituteWheelAct) { cancelInstituteGeneSpin(); return; }
@@ -23009,7 +23976,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin-top:6px">${nextLine}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🔥 Chuỗi ngày: <strong>${dailyBook.streak}</strong>${dailyBook.flair}${dailyBook.clearNote}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">Ấn khám phá: ${stamps}</p>
-    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}${S.nhaNghienCuuSan ? ' · 🧬 Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · 🧬 Thực Tập Sinh Viện' : '')}${S.daoDienSanVien ? ' · 🎬 Đạo Diễn Sân Viện' : (S.khanGiaDotBien ? ' · 🌙 Khán Giả Đột Biến' : '')}${S.chuQuayCarnival ? ' · 🌈 Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · 🎡 Tay Quay Gene' : '')}${S.chuCafeBay ? ' · 🧋 Chủ Cafe Bay Viện' : (S.nguoiPhaGene ? ' · 🧋 Người Pha Gene' : '')}${S.chuDieuHanh ? ' · 🎏 Chủ Diễu Hành Viện' : (S.nguoiCamCoDieu ? ' · 🎏 Người Cầm Cờ Diễu' : '')}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}${S.nhaNghienCuuSan ? ' · 🧬 Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · 🧬 Thực Tập Sinh Viện' : '')}${S.daoDienSanVien ? ' · 🎬 Đạo Diễn Sân Viện' : (S.khanGiaDotBien ? ' · 🌙 Khán Giả Đột Biến' : '')}${S.chuQuayCarnival ? ' · 🌈 Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · 🎡 Tay Quay Gene' : '')}${S.chuCafeBay ? ' · 🧋 Chủ Cafe Bay Viện' : (S.nguoiPhaGene ? ' · 🧋 Người Pha Gene' : '')}${S.chuDieuHanh ? ' · 🎏 Chủ Diễu Hành Viện' : (S.nguoiCamCoDieu ? ' · 🎏 Người Cầm Cờ Diễu' : '')}${S.chuSafariBauTroi ? ' · 🎈 Chủ Safari Bầu Trời Viện' : (S.nguoiLaiKhinhKhi ? ' · 🎈 Người Lái Khinh Khí' : '')}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🌦️ Đang: <strong>${weatherNow}</strong></p>
     <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm · ${S.btsSigs} chữ ký BTS${S.btsPrincessMode ? ' · 👑 Công Chúa' : ''}${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
     <h2 style="font-size:1rem;margin-top:8px">📋 Mục tiêu hôm nay</h2>
@@ -23025,6 +23992,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin:0 0 8px">🎡 Quay gene <strong>${S.vienQuayGene|0}</strong> · vé gene <strong>${typeof vienVeGeneCount==='function'?vienVeGeneCount():Object.keys(S.vienVeGene||{}).filter(k=>S.vienVeGene[k]).length}</strong>/8 · siêu quay <strong>${S.vienSieuQuay?'✅':'⬜'}</strong>${S.chuQuayCarnival ? ' · flair Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · flair Tay Quay Gene' : '')}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">🧋 Phục vụ cafe <strong>${S.vienCafePhucVu|0}</strong> · ly gene <strong>${typeof vienLyGeneCount==='function'?vienLyGeneCount():Object.keys(S.vienLyGene||{}).filter(k=>S.vienLyGene[k]).length}</strong>/6 · tiệc bay <strong>${S.vienTiecBay?'✅':'⬜'}</strong>${S.chuCafeBay ? ' · flair Chủ Cafe Bay Viện' : (S.nguoiPhaGene ? ' · flair Người Pha Gene' : '')}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">🎏 Diễu hành <strong>${S.vienDieuHanh|0}</strong> · cờ gene <strong>${typeof vienCoGeneCount==='function'?vienCoGeneCount():Object.keys(S.vienCoGene||{}).filter(k=>S.vienCoGene[k]).length}</strong>/10 · Diễu Hoàng Kim <strong>${S.vienDieuHoangKim?'✅':'⬜'}</strong>${S.chuDieuHanh ? ' · flair Chủ Diễu Hành Viện' : (S.nguoiCamCoDieu ? ' · flair Người Cầm Cờ Diễu' : '')}</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">🎈 Khinh khí <strong>${S.vienKhinhKhi|0}</strong> · tem bầu trời <strong>${typeof vienTemBauTroiCount==='function'?vienTemBauTroiCount():Object.keys(S.vienTemBauTroi||{}).filter(k=>S.vienTemBauTroi[k]).length}</strong>/10 · Safari Hoàng Hôn <strong>${S.vienSafariHoangHon?'✅':'⬜'}</strong>${S.chuSafariBauTroi ? ' · flair Chủ Safari Bầu Trời Viện' : (S.nguoiLaiKhinhKhi ? ' · flair Người Lái Khinh Khí' : '')}</p>
     <ul class="book-list">${vienChecks}</ul>
     ${vienRareChecks ? `<p class="tiny" style="text-align:center;margin:8px 0 4px">✨ Thú hiếm lồng bay</p><ul class="book-list">${vienRareChecks}</ul>` : ''}
     <p class="tiny" style="text-align:center;margin:8px 0 4px">📷 Stamp Album Ảnh Kỳ</p>
@@ -23035,6 +24003,8 @@ function openBook() {
     <ul class="book-list">${(typeof INSTITUTE_CAFE_DRINKS!=='undefined'?INSTITUTE_CAFE_DRINKS:[]).map((d)=>`<li>${(S.vienLyGene&&S.vienLyGene[d.id])?'✅':'⬜'} ${d.name}</li>`).join('')||'<li>Chưa có ly</li>'}</ul>
     <p class="tiny" style="text-align:center;margin:8px 0 4px">🎏 Cờ Gene Diễu Hành</p>
     <ul class="book-list">${(typeof INSTITUTE_ANIMAL_SPECS!=='undefined'?INSTITUTE_ANIMAL_SPECS:[]).map((s)=>`<li>${(S.vienCoGene&&S.vienCoGene[s.id])?'✅':'⬜'} ${s.name}</li>`).join('')||'<li>Chưa có cờ</li>'}</ul>
+    <p class="tiny" style="text-align:center;margin:8px 0 4px">🎈 Tem Bầu Trời</p>
+    <ul class="book-list">${(typeof INSTITUTE_ANIMAL_SPECS!=='undefined'?INSTITUTE_ANIMAL_SPECS:[]).map((s)=>`<li>${(S.vienTemBauTroi&&S.vienTemBauTroi[s.id])?'✅':'⬜'} ${s.name}</li>`).join('')||'<li>Chưa có tem</li>'}</ul>
     <h2 style="font-size:1rem;margin-top:8px">🪷 Sen Bay</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ngồi <strong>${S.senBayRides | 0}</strong> lần · tầng cao nhất: <strong>${senBest}</strong></p>
     <ul class="book-list">${senLogs}</ul>
@@ -24567,19 +25537,21 @@ function updatePlayer(dt) {
   // Viện — west isle; never steals temple/street east of ≈x−14 (parade NE edge)
   if (playerRoot && playerRoot.position.x < -14 && !S.busy) {
     S.nearInstituteAnimal = pickNearInstituteAnimal();
-    // Priority: animal > show > album > wheel > cafe > parade
+    // Priority: animal > show > album > wheel > cafe > parade > balloon
     if (S.nearInstituteAnimal) {
       S.nearInstituteShow = false;
       S.nearInstituteAlbum = false;
       S.nearInstituteWheel = false;
       S.nearInstituteCafe = false;
       S.nearInstituteParade = false;
+      S.nearInstituteBalloon = false;
     } else {
       S.nearInstituteShow = pickNearInstituteShow();
       S.nearInstituteAlbum = !S.nearInstituteShow && pickNearInstituteAlbum();
       S.nearInstituteWheel = !S.nearInstituteShow && !S.nearInstituteAlbum && pickNearInstituteWheel();
       S.nearInstituteCafe = !S.nearInstituteShow && !S.nearInstituteAlbum && !S.nearInstituteWheel && pickNearInstituteCafe();
       S.nearInstituteParade = !S.nearInstituteShow && !S.nearInstituteAlbum && !S.nearInstituteWheel && !S.nearInstituteCafe && pickNearInstituteParade();
+      S.nearInstituteBalloon = !S.nearInstituteShow && !S.nearInstituteAlbum && !S.nearInstituteWheel && !S.nearInstituteCafe && !S.nearInstituteParade && pickNearInstituteBalloon();
     }
   } else {
     S.nearInstituteAnimal = null;
@@ -24588,6 +25560,7 @@ function updatePlayer(dt) {
     S.nearInstituteWheel = false;
     S.nearInstituteCafe = false;
     S.nearInstituteParade = false;
+    S.nearInstituteBalloon = false;
   }
 
   // Soft tip near festival marker
@@ -24772,6 +25745,19 @@ function updatePlayer(dt) {
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
+  } else if (S.instituteBalloonAct) {
+    const left = Math.max(0, (S.instituteBalloonAct.dur - S.instituteBalloonAct.t) | 0);
+    const bk = S.instituteBalloonAct.kind;
+    btn.textContent = bk === 'safariHoangHon'
+      ? `Hủy · thôi Safari Hoàng Hôn (${left}s)`
+      : bk === 'ngamHabitat'
+        ? `Hủy · thôi ngắm (${left}s)`
+        : bk === 'thaBongBong'
+          ? `Hủy · thôi thả bóng (${left}s)`
+          : `Hủy · hạ khinh khí (${left}s)`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
   } else if (S.instituteParadeAct) {
     const left = Math.max(0, (S.instituteParadeAct.dur - S.instituteParadeAct.t) | 0);
     const pk = S.instituteParadeAct.kind;
@@ -24871,6 +25857,14 @@ function updatePlayer(dt) {
     btn.textContent = (vienCoGeneCount() > 0 && S._vienParadeTipOffer)
       ? '📋 Xem Bảng Cờ'
       : instituteParadeVerbLabel(pickInstituteParadeVerb());
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearInstituteBalloon) {
+    btn.textContent = (vienTemBauTroiCount() > 0 && S._vienBalloonTipOffer)
+      ? '📋 Xem Tem Bầu Trời'
+      : instituteBalloonVerbLabel(pickInstituteBalloonVerb());
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');

@@ -1,0 +1,1 @@
+mutation-dino.glb — base T-Rex mesh from polyfork.dev (tyrannosaurus-rex-adf79f). Used for Viện Khủng Long Đột Biến landmark.

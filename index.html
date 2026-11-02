@@ -616,13 +616,30 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   border:1px solid #3f3f3f;background:#272727;color:#fff;
   border-radius:18px;padding:7px 12px;font-size:.72rem;font-family:inherit;cursor:pointer;
 }
-/* Nguồn nhạc ẩn — tiếng phát từ loa 3D cạnh màn (không UI player) */
+/* Loa 2D (amp) — trình duyệt chỉ cho tiếng khi iframe đủ lớn/nhìn thấy được.
+   Trông như loa gỗ, không phải khung YouTube. Tiếng gắn loa 3D cạnh màn. */
 #yt-dock{
-  position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;
-  overflow:hidden;z-index:1;pointer-events:none;border:0;
+  display:none;position:fixed;right:10px;bottom:max(12px, calc(10px + var(--sb)));
+  width:132px;height:132px;z-index:55;border-radius:14px;overflow:hidden;
+  border:3px solid #6b4428;background:#120c08;
+  box-shadow:0 10px 28px rgba(0,0,0,.55), inset 0 0 0 2px #3a2416;
+  pointer-events:auto;cursor:pointer;
 }
-#yt-dock-frame,#yt-dock-bar{display:none}
-#yt-dock iframe{width:2px;height:2px;border:0;opacity:0.01}
+#yt-dock.on{display:block}
+#yt-dock iframe{
+  position:absolute;inset:0;width:100%;height:100%;border:0;opacity:.3;pointer-events:none;
+}
+#yt-dock-face{
+  position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
+  align-items:center;justify-content:flex-end;gap:4px;padding:0 8px 10px;
+  background:
+    radial-gradient(circle at 50% 42%, transparent 26%, rgba(14,9,6,.88) 31%, rgba(14,9,6,.94) 100%),
+    repeating-radial-gradient(circle at 50% 42%, #2a1a10 0 2px, #15100c 3px 6px);
+  color:#f0e4d0;font:600 .68rem "Be Vietnam Pro",sans-serif;letter-spacing:.04em;
+  pointer-events:none;text-shadow:0 1px 2px #000;
+}
+#yt-dock-face b{font-size:.62rem;font-weight:500;opacity:.85}
+#yt-dock-bar,#yt-dock-frame{display:none!important}
 </style>
 </head>
 <body>
@@ -792,14 +809,15 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
     </div>
   </div>
 </div>
-<!-- Nguồn YouTube ẩn — âm thanh gắn loa 3D cạnh màn phố -->
-<div id="yt-dock" aria-hidden="true">
+<!-- Amp loa phố (cần iframe đủ lớn để trình duyệt cho tiếng) — gắn loa 3D cạnh màn -->
+<div id="yt-dock" aria-hidden="true" title="Bật loa phố">
   <div id="yt-dock-bar" hidden></div>
   <div id="yt-dock-frame" hidden></div>
   <iframe id="yt-audio" title="Loa phố"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
     referrerpolicy="strict-origin-when-cross-origin"
     allowfullscreen></iframe>
+  <div id="yt-dock-face">LOA PHỐ<b>chạm để bật tiếng</b></div>
 </div>
 <div id="bubbles"></div>
 
@@ -907,6 +925,12 @@ const S = {
   nearMuaTra: null, muaTraStand: null, muaTraHen: null,
   muaTraHens: 0, muaTraLog: [], muaAm: false, banTraMua: false,
   _muaTraTipAt: 0, _muaTraStreetTip: false,
+  // Phở Bay · Bát Hơi Thăng (Phở Bà Tư south curb)
+  nearPhoBay: null, phoBayStand: null, phoBayAct: null,
+  phoBayGois: 0, phoBayHits: 0, phoBayAns: 0, phoBayLog: [],
+  khachPhoBay: false, thucThanPho: false,
+  _phoBayTipAt: 0, _phoBayStreetTip: false, _phoBayAnTip: false,
+  _phoBayDuyenReady: false, _phoBayDuyenTip: false,
   // Giờ Vàng · Đèn Bay (mid-street Phố An Lạc)
   nearGioVang: null, gioVangStand: null, phoVangCall: null,
   phoVangUses: 0, phoVangBestTier: '', phoVangLog: [],
@@ -1216,6 +1240,18 @@ function loadSave() {
         at: w.at | 0,
       })).filter(w => w.text);
     }
+    if (typeof d.phoBayGois === 'number') S.phoBayGois = Math.max(0, d.phoBayGois | 0);
+    if (typeof d.phoBayHits === 'number') S.phoBayHits = Math.max(0, d.phoBayHits | 0);
+    if (typeof d.phoBayAns === 'number') S.phoBayAns = Math.max(0, d.phoBayAns | 0);
+    if (typeof d.khachPhoBay === 'boolean') S.khachPhoBay = d.khachPhoBay;
+    if (typeof d.thucThanPho === 'boolean') S.thucThanPho = d.thucThanPho;
+    if (Array.isArray(d.phoBayLog)) {
+      S.phoBayLog = d.phoBayLog.slice(-12).map(w => ({
+        text: String(w.text || '').slice(0, 80),
+        kind: String(w.kind || '').slice(0, 12),
+        at: w.at | 0,
+      })).filter(w => w.text);
+    }
     if (typeof d.phoVangUses === 'number') S.phoVangUses = Math.max(0, d.phoVangUses | 0);
     if (typeof d.phoVangBestTier === 'string' && ['lap', 'ruc', 'rang'].includes(d.phoVangBestTier)) {
       S.phoVangBestTier = d.phoVangBestTier;
@@ -1404,6 +1440,12 @@ function saveAll() {
       muaAm: !!S.muaAm,
       banTraMua: !!S.banTraMua,
       muaTraLog: (S.muaTraLog || []).slice(-12),
+      phoBayGois: S.phoBayGois | 0,
+      phoBayHits: S.phoBayHits | 0,
+      phoBayAns: S.phoBayAns | 0,
+      khachPhoBay: !!S.khachPhoBay,
+      thucThanPho: !!S.thucThanPho,
+      phoBayLog: (S.phoBayLog || []).slice(-12),
       phoVangUses: S.phoVangUses | 0,
       phoVangBestTier: S.phoVangBestTier || '',
       khachGioVang: !!S.khachGioVang,
@@ -1488,6 +1530,8 @@ function templeFlairSuffix() {
   if (S.caSiViaHe) parts.push('Ca Sĩ Vỉa Hè');
   if (S.chuHo) parts.push('Chủ Họ');
   if (S.banTraMua) parts.push('Bạn Trà Mưa');
+  if (S.thucThanPho) parts.push('Thực Thần Phố');
+  else if (S.khachPhoBay) parts.push('Khách Phở Bay');
   if (S.khachGioVang) parts.push('Khách Giờ Vàng');
   if (S.anhEmPho) parts.push('Anh Em Phố');
   else if (S.banPho) parts.push('Bạn Phố');
@@ -2893,32 +2937,41 @@ function buildSupermanStatue(x, z) {
   return g;
 }
 
-/** Tranh khung gỗ — đặt tường phải bên trong chính điện */
-function hangWallPoster(hallRoot, hz) {
+/** Tranh khung gỗ Ronaldo–Messi — tường trái sân (nhìn vào sân) */
+function hangWallPoster() {
+  const root = new THREE.Group();
+  // Tấm tường cao hơn hàng rào để treo tranh rõ
+  box(0.28, 4.2, 3.6, M.plaster, 0, 2.2, 0, root);
+  box(0.08, 4.35, 3.75, M.wood, -0.12, 2.2, 0, root, false);
+
   const frame = new THREE.Group();
-  box(2.55, 3.35, 0.14, M.woodD, 0, 0, 0, frame, false);
-  box(2.35, 3.15, 0.06, M.gold, 0, 0, 0.04, frame, false);
-  box(2.2, 3.0, 0.05, M.wood, 0, 0, 0.05, frame, false);
+  box(0.14, 3.35, 2.55, M.woodD, 0, 0, 0, frame, false);
+  box(0.06, 3.15, 2.35, M.gold, 0.04, 0, 0, frame, false);
+  box(0.05, 3.0, 2.2, M.wood, 0.05, 0, 0, frame, false);
 
   const picMat = new THREE.MeshBasicMaterial({
     color: 0x886655,
     transparent: false,
     side: THREE.DoubleSide,
   });
+  // Plane facing +X (vào sân) — local: width along Z, height Y
   const pic = new THREE.Mesh(new THREE.PlaneGeometry(2.05, 2.75), picMat);
-  pic.position.z = 0.1;
+  pic.rotation.y = Math.PI / 2;
+  pic.position.x = 0.1;
   frame.add(pic);
 
-  // Tường phải bên trong (nhìn vào điện từ cửa)
-  frame.position.set(4.85, 2.55, hz + 0.4);
-  frame.rotation.y = -Math.PI / 2;
-  hallRoot.add(frame);
+  frame.position.set(0.2, 2.45, 0);
+  root.add(frame);
 
   const caption = textPlane('Ronaldo ♡ Messi', 360, 56, '#fff8e0', '#5a2010', 26);
-  caption.position.set(4.72, 0.72, hz + 0.4);
-  caption.rotation.y = -Math.PI / 2;
+  caption.position.set(0.35, 0.55, 0);
+  caption.rotation.y = Math.PI / 2;
   caption.scale.set(2.1, 0.38, 1);
-  hallRoot.add(caption);
+  root.add(caption);
+
+  // Tường trái sân, đoạn giữa cổng ↔ hồ (phía chuông)
+  root.position.set(-10.35, 0, 5.2);
+  scene.add(root);
 
   const loader = new THREE.TextureLoader();
   loader.load(
@@ -2936,7 +2989,7 @@ function hangWallPoster(hallRoot, hz) {
       toast?.('⚠️ Thiếu ảnh assets/ronaldo-messi-hug.jpg');
     }
   );
-  return frame;
+  return root;
 }
 
 /** Đệm đỏ–vàng kiểu chánh điện (low-poly) */
@@ -3210,7 +3263,6 @@ function buildChinhDienInterior(hz, hallRoot) {
   });
 
   S.hallFx = fx;
-  hangWallPoster(hallRoot, hz);
   return fx;
 }
 
@@ -3303,6 +3355,8 @@ function buildScene() {
   box(0.35, 1.6, 10, M.plaster, -10.5, 0.85, 6);
   addCol(-10.5, 6, 0.55, 10.2, null);
   for (let z = 2; z <= 10; z += 2) box(0.45, 1.9, 0.45, M.stone, -10.5, 0.95, z);
+  // Tranh Ronaldo–Messi trên tường trái sân
+  hangWallPoster();
   // Phải x=+10.5 — chỉ đoạn thấp gần hồ; z≈5…11 để trống đi ra phố
   box(0.35, 1.6, 3.0, M.plaster, 10.5, 0.85, 2.0);
   addCol(10.5, 2.0, 0.55, 3.2, null);
@@ -3722,6 +3776,7 @@ function buildStreetDistrict() {
   buildKaraokeStand();
   buildHotHoStand();
   buildMuaTraStand();
+  buildPhoBayStand();
   buildBoyPhoStand();
   buildBongDaStand();
   buildGioVangStand();
@@ -4915,11 +4970,11 @@ function updateGossipCircle(dt, t) {
     }
   }
 
-  // Vào / trở lại Phố An Lạc → tự phát nhạc phố đang chạy (cùng nhịp online)
+  // Vào / trở lại Phố An Lạc → tự phát nhạc phố (mặc định jltUiDjM8Fk)
   if (playerRoot) {
     const onStreet = isOnAnLacStreet();
     if (onStreet && !S._wasOnAnLacStreet) {
-      try { tryJoinStreetMusic({ unmute: true, toast: true }); } catch (_) {}
+      try { ensureStreetMusicPlaying({ unmute: true, toast: true }); } catch (_) {}
     }
     S._wasOnAnLacStreet = onStreet;
   }
@@ -4927,7 +4982,7 @@ function updateGossipCircle(dt, t) {
   if (playerRoot && playerRoot.position.x > 14.5 && !S._streetEntered) {
     S._streetEntered = true;
     toast('🛤️ Phố An Lạc — quán đầu là Nem Chua · biển hiệu + ảnh món');
-    try { tryJoinStreetMusic({ unmute: true, toast: true }); } catch (_) {}
+    try { ensureStreetMusicPlaying({ unmute: true, toast: true }); } catch (_) {}
     // Soft tip: ghé 1 quán (không đụng daily goal hard)
     if (shopVisitCount() < 4) {
       setTimeout(() => toast('☕ Thử đứng gần biển hiệu quán — nút Ghé quán sẽ hiện'), 4200);
@@ -5588,6 +5643,8 @@ function pickNearShop() {
   for (const s of shops) {
     // Trà đá deepened by Mưa Trà Đá · Hẹn Vỉa Hè — skip plain door
     if (s.id === 'tea') continue;
+    // Phở Bà Tư deepened by Phở Bay · Bát Hơi Thăng — skip plain door
+    if (s.id === 'pho') continue;
     const d = playerRoot.position.distanceTo(s.pos);
     if (d < s.r && d < bestD) { bestD = d; best = s; }
   }
@@ -7604,6 +7661,716 @@ function updateMuaTra(dt, t) {
   }
 
   if (u >= 1) finishMuaTraHen(false);
+}
+
+/* ========== Phở Bay · Bát Hơi Thăng · Phở Bà Tư south curb ========== */
+/** South lip of Phở Bà Tư — clear of hốt họ / mưa trà / paper-mail / karaoke */
+const PHO_BAY_SPOT = { x: 19.55, z: STREET_Z - 6.55, r: 1.4 };
+const PHO_BAY_GOI_LINES = [
+  '🍜 “Bà Tư ơi tô bay!”',
+  '🛤️ Hai phở tái? Hay tái chín bay luôn?',
+];
+const PHO_BAY_HIT_LINES = [
+  '💨 Hít hơi · khói phở thành sân khấu mini',
+  '🍜 Bát hơi thăng · phố chậm lại một nhịp',
+  '✨ Mũi nhớ nước dùng hơn lời chào',
+];
+const PHO_BAY_AN_LINES = [
+  '🍜 Ăn bát bay · tô loft lên mặt!',
+  '🥢 Húp một cái · phố reo “nghiện luôn rồi!”',
+  '✨ Hơi nóng nâng tô · chỉ có trên Phố An Lạc',
+];
+
+function phoBayHitUnlocked() {
+  return (S.phoBayGois | 0) >= 1;
+}
+function phoBayAnUnlocked() {
+  return (S.phoBayHits | 0) >= 1 || (S.phoBayGois | 0) >= 2;
+}
+function pickPhoBayVerb() {
+  if (!phoBayHitUnlocked()) return 'goi';
+  if (!phoBayAnUnlocked()) return 'hit';
+  return 'an';
+}
+function phoBayVerbLabel(v) {
+  if (v === 'hit') return 'Hít hơi';
+  if (v === 'an') return 'Ăn bát bay';
+  return 'Gọi phở';
+}
+function streetPhoBayBlocked() {
+  if (S.xichLoRide) return 'xích lô';
+  if (S.karaokePerf) return 'karaoke';
+  if (S.phoVangCall) return 'giờ vàng';
+  if (S.hotHoDraw) return 'hốt họ';
+  if (S.muaTraHen) return 'mưa trà';
+  if (S.boyPhoAct) return 'boy phố';
+  if (S.bongDaAct) return 'bóng đá';
+  return null;
+}
+function markPhoBayDuyen() {
+  if (S._phoBayDuyenReady) return;
+  S._phoBayDuyenReady = true;
+  if (!S._phoBayDuyenTip) {
+    S._phoBayDuyenTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast('🍜 Khách phố / quán nhớ mình — tô kế tiếp thêm duyên');
+    }, 900);
+  }
+}
+function markPhoShopVisitedSoft(kind) {
+  if (!S.shopVisited) S.shopVisited = {};
+  if (S.shopVisited.pho) return;
+  S.shopVisited.pho = true;
+  const note = kind === 'an' ? 'Ghé Phở Bà Tư · ăn bát bay' : 'Ghé Phở Bà Tư · gọi tô bay';
+  S.shopLog = (S.shopLog || []).concat([{ id: 'pho', text: note, at: Date.now() }]).slice(-12);
+}
+function phoBayOrbitBoost() {
+  return S.thucThanPho ? 1.35 : (S.khachPhoBay ? 1.15 : 1);
+}
+
+function buildPhoBayStand() {
+  const sx = PHO_BAY_SPOT.x, sz = PHO_BAY_SPOT.z;
+  const stand = new THREE.Group();
+
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(1.15, 24),
+    new THREE.MeshBasicMaterial({
+      color: 0xc47848, transparent: true, opacity: 0.15,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.set(0, 0.035, 0);
+  stand.add(glow);
+
+  const tip = textPlane('🍜 Phở Bay', 300, 48, '#fff5e8', '#4a2010', 15);
+  tip.position.set(0, 2.35, 0);
+  tip.scale.set(2.0, 0.38, 1);
+  stand.add(tip);
+
+  const bowls = [];
+  const bowlSpecs = [
+    { ox: -0.28, oz: 0.08, ph: 0.0, baseY: 1.35 },
+    { ox: 0.32, oz: -0.12, ph: 2.1, baseY: 1.55 },
+  ];
+  if (IS_MOBILE) bowlSpecs.length = 1;
+  bowlSpecs.forEach((spec, i) => {
+    const g = new THREE.Group();
+    // Rim / bowl body
+    const rim = new THREE.Mesh(
+      new THREE.TorusGeometry(0.16, 0.028, 8, 16),
+      new THREE.MeshStandardMaterial({ color: 0xe8e0d0, roughness: 0.45, metalness: 0.08 })
+    );
+    rim.rotation.x = Math.PI / 2;
+    rim.position.y = 0.08;
+    g.add(rim);
+    const body = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.15, 0.11, 0.14, 12),
+      new THREE.MeshStandardMaterial({ color: 0xf0ebe0, roughness: 0.5, metalness: 0.05 })
+    );
+    body.position.y = 0.02;
+    g.add(body);
+    // Broth surface
+    const broth = new THREE.Mesh(
+      new THREE.CircleGeometry(0.13, 12),
+      new THREE.MeshBasicMaterial({ color: 0xd4a060, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide })
+    );
+    broth.rotation.x = -Math.PI / 2;
+    broth.position.y = 0.08;
+    g.add(broth);
+    // Chopstick hint
+    const stick = new THREE.Mesh(
+      new THREE.BoxGeometry(0.02, 0.02, 0.28),
+      new THREE.MeshStandardMaterial({ color: 0x5c4030, roughness: 0.7 })
+    );
+    stick.position.set(0.12, 0.12, 0.02);
+    stick.rotation.y = 0.4;
+    stick.rotation.z = -0.35;
+    g.add(stick);
+    g.position.set(spec.ox, spec.baseY, spec.oz);
+    stand.add(g);
+    bowls.push({ mesh: g, ox: spec.ox, oz: spec.oz, ph: spec.ph, baseY: spec.baseY, stick, broth });
+  });
+
+  const steam = [];
+  const nSteam = IS_MOBILE ? 4 : 8;
+  for (let i = 0; i < nSteam; i++) {
+    const st = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05 + (i % 3) * 0.015, 5, 4),
+      new THREE.MeshBasicMaterial({ color: 0xfff5e8, transparent: true, opacity: 0.28, depthWrite: false })
+    );
+    st.position.set((Math.random() - 0.5) * 0.6, 1.5, (Math.random() - 0.5) * 0.5);
+    stand.add(st);
+    steam.push({ mesh: st, ph: Math.random() * 6.28, spd: 0.55 + Math.random() * 0.7 });
+  }
+
+  // Soft noodle trail (used during ăn)
+  const noodle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.018, 0.012, 0.55, 6),
+    new THREE.MeshBasicMaterial({ color: 0xe8d8a8, transparent: true, opacity: 0.0, depthWrite: false })
+  );
+  noodle.position.set(0, 1.4, 0);
+  stand.add(noodle);
+
+  const pl = new THREE.PointLight(0xffcc88, 0.22, 4.8, 2);
+  pl.position.set(0, 1.8, 0);
+  stand.add(pl);
+
+  stand.position.set(sx, 0, sz);
+  scene.add(stand);
+
+  S.phoBayStand = {
+    mesh: stand, glow, tip, light: pl, bowls, steam, noodle,
+    pos: new THREE.Vector3(sx, 0, sz),
+  };
+}
+
+function pickNearPhoBay() {
+  if (!playerRoot || S.phoBayAct || !S.phoBayStand) return null;
+  const d = Math.hypot(
+    playerRoot.position.x - PHO_BAY_SPOT.x,
+    playerRoot.position.z - PHO_BAY_SPOT.z
+  );
+  if (d > PHO_BAY_SPOT.r) return null;
+  const verb = pickPhoBayVerb();
+  return { id: 'phobay', label: phoBayVerbLabel(verb), verb, pos: PHO_BAY_SPOT };
+}
+
+function startPhoBayAct() {
+  if (S.busy || S.phoBayAct || !S.phoBayStand) return;
+  const blocked = streetPhoBayBlocked();
+  if (blocked) {
+    toast('🍜 Đợi hết lượt phố đã');
+    return;
+  }
+  if (S.khachPho || shopVisitCount() > 0 || S.shopVisited?.pho) {
+    try { markPhoBayDuyen(); } catch (_) {}
+  }
+  const verb = pickPhoBayVerb();
+  if (verb === 'goi') startPhoBayGoi();
+  else if (verb === 'hit') startPhoBayHit();
+  else startPhoBayAn();
+}
+
+function startPhoBayGoi() {
+  const first = (S.phoBayGois | 0) === 0;
+  const dur = IS_MOBILE ? 2.2 : 2.8;
+  S.busy = true;
+  S.phoBayAct = {
+    kind: 'goi', t: 0, dur, first, rewarded: false,
+    lineIdx: 0, nextLineAt: 0.4,
+    lines: PHO_BAY_GOI_LINES.slice(),
+    faceYaw: 0,
+  };
+  const dx = PHO_BAY_SPOT.x - playerRoot.position.x;
+  const dz = PHO_BAY_SPOT.z - playerRoot.position.z;
+  const yaw = Math.atan2(dx, dz);
+  S.yaw = yaw;
+  S.phoBayAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armR.rotation.set(-0.85, 0, -0.25);
+    ud.armL.rotation.set(-0.3, 0, 0.2);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+  toast(first ? '🍜 Gọi phở · Bà Tư ơi tô bay!' : '🍜 Gọi thêm tô bay trên hè');
+  if (S.phoBayStand?.glow?.material) S.phoBayStand.glow.material.opacity = 0.28;
+  try {
+    emitSmoke(PHO_BAY_SPOT.x, 1.5, PHO_BAY_SPOT.z, 1);
+  } catch (_) {}
+}
+
+function startPhoBayHit() {
+  if (!phoBayHitUnlocked()) {
+    toast('🍜 Gọi phở trước đã');
+    return;
+  }
+  if (streetPhoBayBlocked()) {
+    toast('🍜 Đợi hết lượt phố đã');
+    return;
+  }
+  const first = (S.phoBayHits | 0) === 0;
+  const dur = IS_MOBILE ? 6.2 : 8.0;
+  S.busy = true;
+  playerRoot.position.set(PHO_BAY_SPOT.x, 0, PHO_BAY_SPOT.z + 0.85);
+  S.phoBayAct = {
+    kind: 'hit', t: 0, dur, first, rewarded: false,
+    lineIdx: 0, nextLineAt: 0.55,
+    lines: PHO_BAY_HIT_LINES.slice(),
+    faceYaw: 0,
+  };
+  const yaw = Math.atan2(0, -1);
+  S.yaw = yaw;
+  S.phoBayAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(-0.55, 0, 0.35);
+    ud.armR.rotation.set(-0.55, 0, -0.35);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+  toast(first ? '💨 Hít hơi · khói phở lên sân khấu' : '💨 Hít hơi lại trước Bà Tư');
+  if (S.phoBayStand?.glow?.material) S.phoBayStand.glow.material.opacity = 0.32;
+}
+
+function startPhoBayAn() {
+  if (!phoBayAnUnlocked()) {
+    toast(phoBayHitUnlocked()
+      ? '🍜 Hít hơi thêm hoặc gọi lần nữa để mở Ăn bát bay'
+      : '🍜 Gọi / hít trước đã');
+    return;
+  }
+  if (streetPhoBayBlocked()) {
+    toast('🍜 Đợi hết lượt phố đã');
+    return;
+  }
+  const first = (S.phoBayAns | 0) === 0;
+  const dur = IS_MOBILE ? 10.2 : 13.0;
+  const nightish = S.timePhase === 'night' || S.timePhase === 'dusk';
+  S.busy = true;
+  playerRoot.position.set(PHO_BAY_SPOT.x + 0.15, 0, PHO_BAY_SPOT.z + 0.95);
+  S.phoBayAct = {
+    kind: 'an', t: 0, dur, first, rewarded: false, nightish,
+    lineIdx: 0, nextLineAt: 0.5,
+    lines: PHO_BAY_AN_LINES.slice(),
+    faceYaw: 0,
+    duyen: !!S._phoBayDuyenReady,
+  };
+  const yaw = Math.atan2(-0.15, -0.95);
+  S.yaw = yaw;
+  S.phoBayAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armR.rotation.set(-1.05, 0, -0.2);
+    ud.armL.rotation.set(-0.7, 0, 0.35);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+  toast(first
+    ? (nightish ? '🍜 Ăn bát bay đêm · hơi ấm hơn!' : '🍜 Ăn bát bay · tô loft lên mặt!')
+    : '🍜 Ăn bát bay lại trên hè');
+  if (S.phoBayStand?.glow?.material) S.phoBayStand.glow.material.opacity = 0.36;
+}
+
+function finishPhoBayAct(early) {
+  const act = S.phoBayAct;
+  if (!act) return;
+  const elapsed = act.t;
+  const counts = !early || elapsed >= 1.2;
+
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+  } catch (_) {}
+  if (player) { player.rotation.z = 0; player.rotation.x = 0; }
+  playerRoot.position.y = 0;
+  playerRoot.position.set(
+    PHO_BAY_SPOT.x - Math.sin(act.faceYaw || 0) * 1.05,
+    0,
+    PHO_BAY_SPOT.z - Math.cos(act.faceYaw || 0) * 1.05
+  );
+
+  const stand = S.phoBayStand;
+  if (stand?.bowls) {
+    stand.bowls.forEach((b) => {
+      if (!b.mesh) return;
+      b.mesh.position.set(b.ox, b.baseY, b.oz);
+      b.mesh.rotation.set(0, 0, 0);
+      b.mesh.scale.set(1, 1, 1);
+    });
+  }
+  if (stand?.noodle?.material) stand.noodle.material.opacity = 0;
+
+  if (counts && !act.rewarded) {
+    act.rewarded = true;
+    let gain = 2;
+
+    if (act.kind === 'goi') {
+      S.phoBayGois = (S.phoBayGois | 0) + 1;
+      const n = S.phoBayGois | 0;
+      gain = act.first ? 7 : (early ? 2 : 3);
+      markPhoShopVisitedSoft('goi');
+      S.phoBayLog = (S.phoBayLog || []).concat([{
+        text: `${early ? 'Gọi sớm' : 'Gọi phở'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'goi', at: Date.now(),
+      }]).slice(-12);
+      if (n === 1) {
+        setTimeout(() => toast('🍜 Mở · Hít hơi trước Bà Tư'), 800);
+      }
+      if (n >= 2 && !S.khachPhoBay) {
+        S.khachPhoBay = true;
+        setTimeout(() => {
+          toast('🍜 Flair · Khách Phở Bay');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 1100);
+      }
+      if (phoBayAnUnlocked() && n === 2) {
+        setTimeout(() => toast('🍜 Mở · Ăn bát bay'), 1500);
+      }
+      saveAll();
+      gainCongDuc(gain, act.first ? '🍜 Phở Bay · gọi tô' : 'Phở Bay · gọi phở', true);
+      toast(early
+        ? `🍜 Gọi sớm · +${gain}`
+        : `🍜 Phở Bay · gọi tô · +${gain}${act.first ? ' · lần đầu' : ` · ${n} lần`}`);
+      try {
+        emitSmoke(PHO_BAY_SPOT.x, 1.6, PHO_BAY_SPOT.z, 1);
+      } catch (_) {}
+    } else if (act.kind === 'hit') {
+      S.phoBayHits = (S.phoBayHits | 0) + 1;
+      const n = S.phoBayHits | 0;
+      gain = act.first ? 5 : (early ? 2 : 3);
+      S.phoBayLog = (S.phoBayLog || []).concat([{
+        text: `${early ? 'Hít sớm' : 'Hít hơi'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'hit', at: Date.now(),
+      }]).slice(-12);
+      if (!S.khachPhoBay && phoBayAnUnlocked()) {
+        S.khachPhoBay = true;
+        setTimeout(() => {
+          toast('🍜 Flair · Khách Phở Bay');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 900);
+      }
+      if (n === 1 && phoBayAnUnlocked()) {
+        setTimeout(() => toast('🍜 Mở · Ăn bát bay'), 1200);
+      }
+      saveAll();
+      gainCongDuc(gain, act.first ? '🍜 Phở Bay · hít hơi' : 'Phở Bay · hít hơi', true);
+      toast(early
+        ? `💨 Hít sớm · +${gain}`
+        : `💨 Phở Bay · hít hơi · +${gain}${act.first ? ' · lần đầu' : ` · ${n} lần`}`);
+      try {
+        const nSpark = IS_MOBILE ? 1 : 3;
+        for (let i = 0; i < nSpark; i++) {
+          emitSmoke(
+            PHO_BAY_SPOT.x + (Math.random() - 0.5) * 0.4,
+            1.5 + Math.random() * 0.5,
+            PHO_BAY_SPOT.z + (Math.random() - 0.5) * 0.3,
+            1
+          );
+        }
+      } catch (_) {}
+    } else if (act.kind === 'an') {
+      S.phoBayAns = (S.phoBayAns | 0) + 1;
+      const n = S.phoBayAns | 0;
+      gain = act.first ? 10 : (early ? 3 : 6);
+      if (act.duyen && S._phoBayDuyenReady) {
+        S._phoBayDuyenReady = false;
+        gain += 1;
+        setTimeout(() => toast('🍜 Duyên phố · +1 công đức tô bay'), 1200);
+      }
+      markPhoShopVisitedSoft('an');
+      S.phoBayLog = (S.phoBayLog || []).concat([{
+        text: `${early ? 'Ăn sớm' : 'Ăn bát bay'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'an', at: Date.now(),
+      }]).slice(-12);
+
+      if (!S.khachPhoBay) {
+        S.khachPhoBay = true;
+        setTimeout(() => {
+          toast('🍜 Flair · Khách Phở Bay');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 800);
+      }
+      if (n === 1 && !S._phoBayAnTip) {
+        S._phoBayAnTip = true;
+        setTimeout(() => toast('🍜 Bà Tư nhớ tô của mình — quay lại hè nhé'), 1400);
+      }
+      if (n >= 3 && !S.thucThanPho) {
+        S.thucThanPho = true;
+        setTimeout(() => {
+          toast('✨ Flair · Thực Thần Phố · bát bay cao hơn!');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 1100);
+      } else if (S.thucThanPho && !early) {
+        setTimeout(() => toast('✨ Thực Thần Phố · phố reo tô bay!'), 700);
+      }
+
+      saveAll();
+      gainCongDuc(gain, act.first ? '🍜 Phở Bay · ăn bát bay' : 'Phở Bay · ăn bát bay', true);
+      toast(early
+        ? `🍜 Ăn sớm · +${gain}`
+        : `🍜 Ăn bát bay · +${gain}${act.first ? ' · lần đầu' : ` · lần ${n}`}`);
+      try {
+        const nSpark = IS_MOBILE ? 2 : (act.nightish || S.thucThanPho ? 7 : 5);
+        for (let i = 0; i < nSpark; i++) {
+          emitSmoke(
+            PHO_BAY_SPOT.x + (Math.random() - 0.5) * 0.8,
+            1.4 + Math.random() * 0.9,
+            PHO_BAY_SPOT.z + (Math.random() - 0.5) * 0.5,
+            1
+          );
+        }
+      } catch (_) {}
+      try { playWhoosh(); } catch (_) {}
+    }
+    updateMeritHud();
+    pulseMeritHud();
+    tryUnlockKhachPho();
+  } else if (!counts) {
+    toast('🍜 Chưa kịp — đứng gần tô bay thử lại');
+  }
+
+  if (stand?.steam) stand.steam.forEach(s => { if (s.mesh?.material) s.mesh.material.opacity = Math.min(0.3, s.mesh.material.opacity || 0.2); });
+  if (stand?.glow?.material) {
+    stand.glow.material.opacity = 0.15;
+    stand.glow.scale.set(1, 1, 1);
+  }
+  if (stand?.light) stand.light.intensity = 0.22;
+
+  S.phoBayAct = null;
+  S.busy = false;
+}
+
+function cancelPhoBayAct() {
+  if (!S.phoBayAct) return;
+  finishPhoBayAct(true);
+}
+
+function updatePhoBay(dt, t) {
+  const stand = S.phoBayStand;
+  if (stand?.tip && camera) stand.tip.quaternion.copy(camera.quaternion);
+
+  const boost = phoBayOrbitBoost();
+  const nightish = S.timePhase === 'night' || S.timePhase === 'dusk';
+
+  // Idle float + steam
+  if (stand?.mesh && !S.phoBayAct) {
+    stand.mesh.position.y = Math.sin(t * 1.4) * 0.015;
+    if (stand.glow?.material) {
+      stand.glow.material.opacity = 0.12 + 0.08 * Math.abs(Math.sin(t * 1.6));
+      stand.glow.material.color.setHex(S.thucThanPho ? 0xffaa55 : (S.khachPhoBay ? 0xd48848 : 0xc47848));
+    }
+    if (stand.light) {
+      stand.light.intensity = (nightish ? 0.38 : 0.2) + 0.1 * Math.abs(Math.sin(t * 1.8));
+      stand.light.color.setHex(nightish || S.thucThanPho ? 0xffcc88 : 0xffe0b0);
+    }
+    if (stand.bowls) {
+      stand.bowls.forEach((b) => {
+        if (!b.mesh) return;
+        const bob = 1.15 + (b.baseY - 1.15) * boost;
+        b.mesh.position.y = bob + Math.sin(t * 1.7 + b.ph) * 0.12 * boost;
+        b.mesh.position.x = b.ox + Math.cos(t * 0.9 + b.ph) * 0.04;
+        b.mesh.position.z = b.oz + Math.sin(t * 0.85 + b.ph) * 0.03;
+        b.mesh.rotation.y = Math.sin(t * 0.7 + b.ph) * 0.15;
+      });
+    }
+    if (stand.steam) {
+      const near = !!S.nearPhoBay;
+      stand.steam.forEach((s, i) => {
+        if (!s.mesh) return;
+        if (IS_MOBILE && i > 3) { s.mesh.visible = false; return; }
+        s.mesh.visible = true;
+        const dens = near ? 1.25 * boost : 1;
+        s.mesh.position.y = 1.4 + ((t * s.spd + s.ph) % 1.2) * 0.7 * dens;
+        s.mesh.position.x = Math.cos(s.ph + t * 1.2) * (near ? 0.55 : 0.35) * boost;
+        s.mesh.position.z = Math.sin(s.ph * 1.3 + t) * (near ? 0.45 : 0.28);
+        s.mesh.material.opacity = (near ? 0.4 : 0.22) * dens * (1 - (((t * s.spd + s.ph) % 1.2) / 1.2));
+        if (nightish) s.mesh.material.color.setHex(0xffe8c8);
+        else s.mesh.material.color.setHex(0xfff5e8);
+      });
+    }
+  }
+
+  if (S.nearPhoBay && !S.phoBayAct) {
+    const now = performance.now();
+    if (now - (S._phoBayTipAt || 0) > 16000) {
+      S._phoBayTipAt = now;
+      const v = pickPhoBayVerb();
+      toast(v === 'an'
+        ? (S.thucThanPho ? '✨ Thực Thần Phố · tô bay còn nóng' : '🍜 Ăn bát bay — tô loft sẵn sàng')
+        : v === 'hit'
+          ? '💨 Hít hơi · khói phở đang chờ'
+          : '🍜 Phở Bay — gọi tô trước Bà Tư');
+    }
+  }
+
+  const act = S.phoBayAct;
+  if (!act) return;
+
+  if ($('modal')?.classList.contains('open')) {
+    cancelPhoBayAct();
+    return;
+  }
+
+  act.t += dt;
+  const u = Math.min(1, act.t / act.dur);
+
+  if (playerRoot) {
+    if (player) player.rotation.y = act.faceYaw;
+    S.yaw = act.faceYaw;
+  }
+
+  if (act.kind === 'goi') {
+    if (playerRoot) playerRoot.position.y = Math.sin(act.t * 4) * 0.02;
+    try {
+      const ud = player.userData;
+      if (ud.armR) ud.armR.rotation.x = -0.85 + Math.sin(act.t * 5) * 0.15;
+    } catch (_) {}
+    if (stand?.bowls) {
+      stand.bowls.forEach((b) => {
+        if (!b.mesh) return;
+        b.mesh.position.y = b.baseY + Math.sin(act.t * 3 + b.ph) * 0.18;
+        b.mesh.scale.setScalar(1 + Math.sin(act.t * 4 + b.ph) * 0.06);
+      });
+    }
+    if (stand?.steam) {
+      stand.steam.forEach((s, i) => {
+        if (!s.mesh) return;
+        if (IS_MOBILE && i > 3) return;
+        s.mesh.material.opacity = 0.45;
+        s.mesh.position.y = 1.5 + ((act.t * s.spd + s.ph) % 1) * 0.8;
+      });
+    }
+    if (act.t > 0.3 && act.t < 0.9 && Math.random() < 0.35) {
+      try { emitSmoke(PHO_BAY_SPOT.x, 1.55, PHO_BAY_SPOT.z, 1); } catch (_) {}
+    }
+  } else if (act.kind === 'hit') {
+    // Lean inhale pose + steam cone + bowls orbit closer
+    if (playerRoot) {
+      playerRoot.position.set(
+        PHO_BAY_SPOT.x,
+        Math.sin(act.t * 2.8) * 0.025,
+        PHO_BAY_SPOT.z + 0.85
+      );
+      if (player) player.rotation.x = -0.12 - Math.sin(act.t * 2) * 0.04;
+    }
+    try {
+      const ud = player.userData;
+      if (ud.armL) ud.armL.rotation.x = -0.55 + Math.sin(act.t * 2.5) * 0.08;
+      if (ud.armR) ud.armR.rotation.x = -0.55 + Math.sin(act.t * 2.5 + 1) * 0.08;
+    } catch (_) {}
+    if (stand?.bowls) {
+      stand.bowls.forEach((b, i) => {
+        if (!b.mesh) return;
+        const ang = act.t * 1.4 + b.ph;
+        const rad = 0.55 - u * 0.22;
+        b.mesh.position.set(
+          Math.cos(ang) * rad,
+          b.baseY + 0.15 + Math.sin(act.t * 2 + b.ph) * 0.1,
+          Math.sin(ang) * rad * 0.7
+        );
+      });
+    }
+    if (stand?.steam) {
+      stand.steam.forEach((s, i) => {
+        if (!s.mesh) return;
+        if (IS_MOBILE && i > 2) { s.mesh.visible = false; return; }
+        s.mesh.visible = true;
+        const rise = ((act.t * s.spd * 1.4 + s.ph) % 1.4);
+        s.mesh.position.y = 1.3 + rise * 1.1;
+        s.mesh.position.x = Math.cos(s.ph + act.t) * (0.15 + rise * 0.35);
+        s.mesh.position.z = 0.2 + Math.sin(s.ph) * 0.1;
+        s.mesh.material.opacity = 0.55 * (1 - rise / 1.4);
+        s.mesh.scale.setScalar(1 + rise * 1.2);
+      });
+    }
+    if (stand?.glow?.material) {
+      stand.glow.material.opacity = 0.28 + 0.2 * Math.abs(Math.sin(act.t * 3));
+      const sc = 1 + 0.15 * Math.abs(Math.sin(act.t * 2.5));
+      stand.glow.scale.set(sc, sc, sc);
+    }
+    if (stand?.light) stand.light.intensity = 0.35 + 0.4 * Math.abs(Math.sin(act.t * 3));
+  } else if (act.kind === 'an') {
+    const loftAt = 0.18;
+    const slurpAt = 0.55;
+    if (playerRoot) {
+      playerRoot.position.set(
+        PHO_BAY_SPOT.x + 0.15,
+        Math.sin(act.t * 3) * 0.02,
+        PHO_BAY_SPOT.z + 0.95
+      );
+      if (player && u > slurpAt && u < slurpAt + 0.2) {
+        player.rotation.x = -0.18;
+      } else if (player) {
+        player.rotation.x = -0.06;
+      }
+    }
+    try {
+      const ud = player.userData;
+      if (u > slurpAt) {
+        if (ud.armR) ud.armR.rotation.x = -1.15 + Math.sin(act.t * 8) * 0.12;
+      }
+    } catch (_) {}
+    if (stand?.bowls?.[0]) {
+      const b = stand.bowls[0];
+      if (u < loftAt) {
+        b.mesh.position.set(b.ox, b.baseY + u / loftAt * 0.2, b.oz);
+      } else if (u < slurpAt) {
+        const lu = (u - loftAt) / (slurpAt - loftAt);
+        b.mesh.position.set(
+          b.ox * (1 - lu) + 0.05,
+          b.baseY + 0.2 + lu * (IS_MOBILE ? 0.55 : 0.85),
+          b.oz * (1 - lu) + 0.55
+        );
+        b.mesh.rotation.x = -lu * 0.35;
+      } else {
+        const su = (u - slurpAt) / (1 - slurpAt);
+        const orbit = Math.sin(su * Math.PI * 2) * 0.2;
+        b.mesh.position.set(
+          0.05 + orbit,
+          (IS_MOBILE ? 1.85 : 2.15) + Math.sin(su * Math.PI) * 0.12,
+          0.55 + Math.cos(su * Math.PI * 2) * 0.12
+        );
+        b.mesh.rotation.y = su * 4;
+        b.mesh.scale.setScalar(1 - su * 0.15);
+      }
+    }
+    if (stand?.bowls?.[1] && !IS_MOBILE) {
+      const b = stand.bowls[1];
+      const ang = act.t * 1.8 + b.ph;
+      b.mesh.position.set(
+        Math.cos(ang) * 0.7 * boost,
+        b.baseY + 0.3 + Math.sin(act.t * 2) * 0.15,
+        Math.sin(ang) * 0.5
+      );
+    }
+    if (stand?.noodle) {
+      const show = u > loftAt && u < 0.92;
+      stand.noodle.material.opacity = show ? 0.55 : 0;
+      if (show && stand.bowls?.[0]) {
+        const bm = stand.bowls[0].mesh.position;
+        stand.noodle.position.set(bm.x * 0.5, bm.y - 0.25, bm.z * 0.5 + 0.2);
+        stand.noodle.rotation.z = 0.4 + Math.sin(act.t * 6) * 0.2;
+        stand.noodle.rotation.x = 0.5;
+      }
+    }
+    if (stand?.steam) {
+      stand.steam.forEach((s, i) => {
+        if (!s.mesh) return;
+        if (IS_MOBILE && i > 3) { s.mesh.visible = false; return; }
+        s.mesh.visible = true;
+        s.mesh.material.opacity = 0.5 + 0.3 * Math.abs(Math.sin(act.t * 5 + s.ph));
+        s.mesh.position.y = 1.6 + ((act.t * s.spd + s.ph) % 1) * (S.thucThanPho ? 1.4 : 1.0);
+        s.mesh.position.x = Math.cos(s.ph + act.t * 2) * (S.thucThanPho ? 0.7 : 0.5);
+        s.mesh.position.z = Math.sin(s.ph + act.t) * 0.4;
+      });
+    }
+    if (u > 0.75 && Math.random() < (IS_MOBILE ? 0.12 : 0.25)) {
+      try {
+        emitSmoke(
+          PHO_BAY_SPOT.x + (Math.random() - 0.5) * 0.5,
+          1.8 + Math.random() * 0.6,
+          PHO_BAY_SPOT.z + 0.4,
+          1
+        );
+      } catch (_) {}
+    }
+    if (stand?.glow?.material) {
+      stand.glow.material.opacity = 0.32 + 0.25 * Math.abs(Math.sin(act.t * 4));
+      stand.glow.material.color.setHex(act.nightish || S.thucThanPho ? 0xffaa55 : 0xd48848);
+    }
+    if (stand?.light) stand.light.intensity = 0.4 + 0.55 * Math.abs(Math.sin(act.t * 4));
+  }
+
+  if (act.lineIdx < act.lines.length && act.t >= act.nextLineAt) {
+    toast(act.lines[act.lineIdx]);
+    act.lineIdx += 1;
+    act.nextLineAt = act.t + (act.kind === 'goi' ? 1.1 : 2.4);
+  }
+
+  if (u >= 1) finishPhoBayAct(false);
 }
 
 /* ========== Giờ Vàng · Đèn Bay · giữa Phố An Lạc ========== */
@@ -9863,8 +10630,8 @@ function goToStreetGate() {
   if (player) player.rotation.y = 0;
   S._streetEntered = true;
   toast('🛤️ Giữa Phố An Lạc — tìm 5 điều kỳ quanh đây');
-  // Cử chỉ bấm nút/phím P → tự vào nhạc phố đang phát (có tiếng, cùng mốc thời gian)
-  try { tryJoinStreetMusic({ unmute: true, toast: true }); } catch (_) {}
+  // Cử chỉ bấm nút/phím P → tự phát nhạc phố (có tiếng)
+  try { ensureStreetMusicPlaying({ unmute: true, toast: true }); } catch (_) {}
   if (!S._phoKyAoTip) {
     S._phoKyAoTip = true;
     setTimeout(() => {
@@ -9914,6 +10681,15 @@ function goToStreetGate() {
           : '🧊 Hẹn trà dưới mưa — ghế đôi trước Trà đá vỉa hè')
         : '🧊 Ghế đôi trà mưa · ngồi thêm một hẹn');
     }, 8800);
+  }
+  if (!S._phoBayStreetTip) {
+    S._phoBayStreetTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast((S.phoBayGois | 0) === 0
+        ? '🍜 Khói phở đang bay trước Bà Tư…'
+        : '🍜 Phở Bay trước Bà Tư · gọi / hít / ăn tiếp');
+    }, 7800);
   }
   if (!S._gioVangStreetTip) {
     S._gioVangStreetTip = true;
@@ -12401,7 +13177,14 @@ const MUSIC_CHIPS = [
   { q: 'lofi chill piano', label: 'Lofi chill' },
   { q: 'nhạc không lời thư giãn', label: 'Thư giãn' },
 ];
+/** Bài mặc định phát tự động trên Phố An Lạc */
+const DEFAULT_STREET_TRACK = {
+  id: 'jltUiDjM8Fk',
+  title: 'Nhạc phố An Lạc',
+  author: 'YouTube',
+};
 const MUSIC_CURATED = [
+  { id: DEFAULT_STREET_TRACK.id, title: DEFAULT_STREET_TRACK.title, author: DEFAULT_STREET_TRACK.author },
   { id: 'jfKfPfyJRdk', title: 'lofi hip hop radio · beats to relax', author: 'Lofi Girl' },
   { id: '4xDzrJKXOOY', title: 'synthwave radio · beats to chill', author: 'Lofi Girl' },
   { id: '7NOSDKb7JPQ', title: 'Peaceful piano · study & calm', author: 'Gợi ý phố' },
@@ -13174,17 +13957,30 @@ function hideStreetVideoOverlay() {
 
 function showMusicDock(_title) {
   const dock = $('yt-dock');
-  if (dock) dock.setAttribute('aria-hidden', 'false');
+  if (dock) {
+    dock.classList.add('on');
+    dock.setAttribute('aria-hidden', 'false');
+  }
+  const face = $('yt-dock-face');
+  if (face) {
+    face.innerHTML = S.musicMuted
+      ? 'LOA PHỐ<b>chạm để bật tiếng</b>'
+      : 'LOA PHỐ<b>đang phát</b>';
+  }
 }
 
 function hideMusicDock() {
   const dock = $('yt-dock');
   const audio = $('yt-audio');
-  if (dock) dock.setAttribute('aria-hidden', 'true');
+  if (dock) {
+    dock.classList.remove('on');
+    dock.setAttribute('aria-hidden', 'true');
+  }
   if (audio) {
     try { audio.src = 'about:blank'; } catch (_) {}
   }
   S._musicYtVol = -1;
+  S._musicEmbedId = '';
   setStreetSpeakersLive(false);
 }
 
@@ -13222,11 +14018,13 @@ function updateStreetMusicSpatialVolume() {
   try { audio.contentWindow.postMessage('pho-volume:' + vol, '*'); } catch (_) {}
 }
 
-function kickStreetAudio() {
+function kickStreetAudio(opts = {}) {
   const audio = $('yt-audio');
   if (!audio?.contentWindow) return;
   try { audio.contentWindow.postMessage('pho-play', '*'); } catch (_) {}
-  try { audio.contentWindow.postMessage('pho-unmute', '*'); } catch (_) {}
+  if (opts.unmute || !S.musicMuted) {
+    try { audio.contentWindow.postMessage('pho-unmute', '*'); } catch (_) {}
+  }
   updateStreetMusicSpatialVolume();
 }
 
@@ -13235,17 +14033,27 @@ function mountStreetVideo(videoId, title, muted, startSec = 0) {
   const audio = $('yt-audio');
   if (!id || !audio) return;
 
-  // Poster trên bảng + tiếng từ loa 3D — không mở player nổi
+  // Poster trên bảng + amp loa (đủ lớn để trình duyệt cho tiếng)
   hideStreetVideoOverlay();
+  S.musicMuted = !!muted;
+  if (muted) S._musicAwaitGesture = true;
   showMusicDock(title || 'Nhạc phố');
   setStreetSpeakersLive(true);
   S._musicYtVol = -1;
 
-  S.musicMuted = !!muted;
-  audio.src = streetEmbedUrl(id, !!muted, startSec);
+  const wantUrl = streetEmbedUrl(id, !!muted, startSec);
+  const cur = audio.getAttribute('src') || '';
+  // Đổi bài / đổi mute → load lại; cùng URL thì chỉ kick
+  if (S._musicEmbedId !== id || !cur || (muted && cur.indexOf('mute=0') >= 0) || (!muted && cur.indexOf('mute=1') >= 0)) {
+    audio.src = wantUrl;
+    S._musicEmbedId = id;
+  } else if (!muted) {
+    kickStreetAudio({ unmute: true });
+  }
 
-  setTimeout(() => { if (S.musicVideoId === id) kickStreetAudio(); }, 500);
-  setTimeout(() => { if (S.musicVideoId === id) kickStreetAudio(); }, 1600);
+  setTimeout(() => { if (S.musicVideoId === id) kickStreetAudio({ unmute: !muted }); }, 500);
+  setTimeout(() => { if (S.musicVideoId === id) kickStreetAudio({ unmute: !muted }); }, 1600);
+  setTimeout(() => { if (S.musicVideoId === id) kickStreetAudio({ unmute: !muted }); }, 3200);
 }
 
 function publishStreetMusic(id, title) {
@@ -13278,8 +14086,7 @@ function tryJoinStreetMusic(opts = {}) {
   const startedAt = data.startedAt || data.at || Date.now();
   if (S.musicPlaying && S.musicVideoId === id) {
     if (opts.unmute && S.musicMuted) {
-      S.musicMuted = false;
-      mountStreetVideo(id, data.title || S.musicTitle || 'YouTube', false, streetMusicElapsedSec(startedAt));
+      unmuteStreetMusic();
       if (opts.toast) toast('🔊 Nhạc phố — nghe cùng mọi người');
     }
     return true;
@@ -13290,8 +14097,30 @@ function tryJoinStreetMusic(opts = {}) {
     byName: data.byName || '',
     startedAt,
     silent: !opts.toast,
-    wantSound: true,
+    skipGoto: true,
+    forceMute: !opts.unmute,
   });
+  return true;
+}
+
+/** Không có bài sync → phát mặc định jltUiDjM8Fk */
+function ensureStreetMusicPlaying(opts = {}) {
+  if (S.musicPlaying && S.musicVideoId) {
+    if (opts.unmute) unmuteStreetMusic();
+    return true;
+  }
+  // Luôn load mute trước (autoplay ổn định), rồi unmute ngay trong cùng cử chỉ
+  if (tryJoinStreetMusic({ ...opts, unmute: false })) {
+    if (opts.unmute) unmuteStreetMusic();
+    return true;
+  }
+  playMusicOnYard(DEFAULT_STREET_TRACK.id, DEFAULT_STREET_TRACK.title, {
+    silent: !opts.toast,
+    skipGoto: true,
+    forceMute: true,
+  });
+  if (opts.unmute) unmuteStreetMusic();
+  if (opts.toast) toast('🎵 Nhạc phố tự phát · ' + DEFAULT_STREET_TRACK.title);
   return true;
 }
 
@@ -13302,8 +14131,20 @@ function bindStreetMusicSync() {
     const data = snap.val();
     S.streetMusicShared = data || null;
     if (!data || !data.id) {
+      // Seed bài mặc định cho cả phố thay vì tắt nhạc
+      if (S.musicPlaying && S.musicVideoId === DEFAULT_STREET_TRACK.id) {
+        if (S.uid) publishStreetMusic(S.musicVideoId, S.musicTitle || DEFAULT_STREET_TRACK.title);
+        return;
+      }
       if (S.musicPlaying) stopMusicOnYard({ skipNet: true, silent: true });
       S.musicStartedAt = 0;
+      if (isOnAnLacStreet() || S._streetEntered || S.playing) {
+        playMusicOnYard(DEFAULT_STREET_TRACK.id, DEFAULT_STREET_TRACK.title, {
+          silent: true,
+          skipGoto: true,
+          forceMute: true,
+        });
+      }
       return;
     }
     const id = parseYoutubeId(data.id) || String(data.id || '');
@@ -13315,14 +14156,15 @@ function bindStreetMusicSync() {
       return;
     }
     // Chỉ auto phát khi đang đứng trên Phố An Lạc — mọi người nghe cùng lúc
-    if (isOnAnLacStreet() || S._streetEntered) {
+    if (isOnAnLacStreet() || S._streetEntered || S.playing) {
       playMusicOnYard(id, data.title || 'YouTube', {
         skipNet: true,
         remote: data.by !== S.uid,
         byName: data.byName || '',
         startedAt: data.startedAt || data.at,
         silent: true,
-        wantSound: true,
+        skipGoto: true,
+        forceMute: true,
       });
       if (isOnAnLacStreet()) {
         toast(`🎵 Nhạc phố · ${String(data.title || 'YouTube').slice(0, 40)}`);
@@ -13374,8 +14216,8 @@ function playMusicOnYard(videoId, title, opts = {}) {
   if (remote) S.musicHost = false;
   else if (!opts.skipNet) S.musicHost = true;
   S.musicByName = opts.byName || (remote ? '' : (S.name || ''));
-  // Chọn bài (cử chỉ) → loa có tiếng; nhạc sync từ người khác → tắt tiếng đến khi bật loa
-  const startMuted = !!remote || opts.forceMute === true;
+  // forceMute / remote → bắt đầu mute; cử chỉ chọn bài hoặc Vào chùa → có tiếng
+  const startMuted = opts.forceMute === true || (!!remote && opts.forceMute !== false && !opts.fromGesture);
   S.musicMuted = startMuted;
   S.musicStartedAt = opts.startedAt || (!opts.skipNet ? Date.now() : (S.musicStartedAt || Date.now()));
   S.musicBeatT = 0;
@@ -13400,12 +14242,12 @@ function playMusicOnYard(videoId, title, opts = {}) {
   if (now) {
     now.textContent = S.musicByName ? `${niceTitle} · ${S.musicByName}` : niceTitle;
   }
-  if (startMuted && (isOnAnLacStreet() || opts.wantSound)) {
+  if (startMuted) {
     setTimeout(() => {
       if (S.musicPlaying && S.musicMuted) {
-        toast('🔊 Đứng gần loa cạnh màn · bấm Bật loa phố');
+        toast('🔊 Chạm amp LOA PHỐ (góc phải) hoặc đứng gần loa 3D · Bật loa');
       }
-    }, 1400);
+    }, 1600);
   }
 
   if (S.musicSkyRoot) {
@@ -13419,7 +14261,7 @@ function playMusicOnYard(videoId, title, opts = {}) {
   for (let i = 0; i < 4; i++) setTimeout(() => spawnMusicNote(), 200 + i * 120);
 
   closeMusicPanel();
-  if (!remote) goToMusicScreen();
+  if (!remote && !opts.skipGoto) goToMusicScreen();
   updateMusicBtn();
   const stopBtn = $('music-stop');
   if (stopBtn) stopBtn.style.display = '';
@@ -13439,18 +14281,23 @@ function playMusicOnYard(videoId, title, opts = {}) {
 
 function unmuteStreetMusic() {
   if (!S.musicPlaying || !S.musicVideoId) return;
+  const wasMuted = S.musicMuted || S._musicAwaitGesture;
   S.musicMuted = false;
+  S._musicAwaitGesture = false;
   S._musicYtVol = -1;
   setStreetSpeakersLive(true);
   showMusicDock(S.musicTitle || 'Nhạc phố');
   const audio = $('yt-audio');
   const sec = streetMusicElapsedSec(S.musicStartedAt);
   if (audio) {
+    // Gắn lại src unmute trong cử chỉ click — cách trình duyệt cho phép tiếng
     audio.src = streetEmbedUrl(S.musicVideoId, false, sec);
-    setTimeout(kickStreetAudio, 400);
-    setTimeout(kickStreetAudio, 1200);
+    S._musicEmbedId = S.musicVideoId;
+    kickStreetAudio({ unmute: true });
+    setTimeout(() => kickStreetAudio({ unmute: true }), 400);
+    setTimeout(() => kickStreetAudio({ unmute: true }), 1200);
   }
-  toast('🔊 Loa phố đang phát');
+  if (wasMuted) toast('🔊 Loa phố đang phát');
 }
 
 function actMusicSpeakerOn() {
@@ -13827,6 +14674,34 @@ function bindMusicUi() {
       searchYoutubeMusic($('music-q')?.value || '');
     }
   });
+  // Chạm amp LOA PHỐ → bật tiếng (cử chỉ trình duyệt)
+  const dock = $('yt-dock');
+  if (dock) {
+    dock.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!S.musicPlaying) {
+        ensureStreetMusicPlaying({ unmute: true, toast: true });
+        return;
+      }
+      if (S.musicMuted || S._musicAwaitGesture) unmuteStreetMusic();
+      else kickStreetAudio({ unmute: true });
+      try { actMusicHoaNhip(); } catch (_) {}
+    };
+  }
+  // Chạm/phím đầu tiên trong game → bật tiếng loa (cử chỉ trình duyệt)
+  if (!S._musicGestureBound) {
+    S._musicGestureBound = true;
+    const unlock = () => {
+      if (!S.musicPlaying || !S.musicVideoId) return;
+      if (S.musicMuted || S._musicAwaitGesture) {
+        S._musicAwaitGesture = false;
+        unmuteStreetMusic();
+      }
+    };
+    window.addEventListener('pointerdown', unlock, { capture: true, passive: true });
+    window.addEventListener('keydown', unlock, { capture: true, passive: true });
+  }
   $('yt-yard-close') && ($('yt-yard-close').onclick = e => {
     e.stopPropagation();
     stopMusicOnYard();
@@ -15634,6 +16509,10 @@ $('btn-enter').onclick = async () => {
   const guided = localStorage.getItem('chua_guided');
   if (guided) startPlay();
   else { $('screen-guide').classList.remove('hidden'); }
+  // Cùng cử chỉ "Vào chùa" → tự phát bài mặc định (có tiếng)
+  try {
+    ensureStreetMusicPlaying({ unmute: true, toast: false });
+  } catch (_) {}
   // Kết nối Firebase song song (không chặn vào chùa)
   connectMultiplayer().catch(err => {
     console.warn(err);
@@ -15763,6 +16642,7 @@ $('action-btn').onclick = () => {
   if (S.karaokePerf) { cancelKaraokeSing(); return; }
   if (S.hotHoDraw) { cancelHotHoDraw(); return; }
   if (S.muaTraHen) { cancelMuaTraHen(); return; }
+  if (S.phoBayAct) { cancelPhoBayAct(); return; }
   if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
   if (S.bongDaAct) { cancelBongDaAct(); return; }
   if (S.phoVangCall) { cancelGioVangCall(); return; }
@@ -15844,6 +16724,10 @@ $('action-btn').onclick = () => {
   }
   if (S.nearMuaTra) {
     startMuaTraHen();
+    return;
+  }
+  if (S.nearPhoBay) {
+    startPhoBayAct();
     return;
   }
   if (S.nearMirrorPuddle) {
@@ -16004,6 +16888,7 @@ addEventListener('keydown', e => {
     if (S.karaokePerf) { cancelKaraokeSing(); return; }
     if (S.hotHoDraw) { cancelHotHoDraw(); return; }
     if (S.muaTraHen) { cancelMuaTraHen(); return; }
+    if (S.phoBayAct) { cancelPhoBayAct(); return; }
     if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
     if (S.bongDaAct) { cancelBongDaAct(); return; }
     if (S.phoVangCall) { cancelGioVangCall(); return; }
@@ -16798,6 +17683,7 @@ function openBook() {
   const xichLogs = (S.xichLoLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa đi xích lô lần nào</li>';
   const karaokeLogs = (S.karaokeLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa hát karaoke lần nào</li>';
   const muaTraLogs = (S.muaTraLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa hẹn trà mưa lần nào</li>';
+  const phoBayLogs = (S.phoBayLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa gọi Phở Bay lần nào</li>';
   const phoVangLogs = (S.phoVangLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa gọi Giờ Vàng lần nào</li>';
   const boyPhoLogs = (S.boyPhoLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa chào Boy Phố lần nào</li>';
   const bongDaLogs = (S.bongDaLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa chạm bóng lần nào</li>';
@@ -16830,6 +17716,13 @@ function openBook() {
     (S.muaTraHens | 0) > 0 ? '✅ Hẹn trà mưa' : '⬜ Hẹn trà mưa',
     S.muaAm ? '✅ Mưa ấm' : '⬜ Mưa ấm',
     S.banTraMua ? '✅ Bạn Trà Mưa' : '⬜ Bạn Trà Mưa',
+  ].join(' · ');
+  const phoBayModes = [
+    (S.phoBayGois | 0) > 0 ? '✅ Gọi phở' : '⬜ Gọi phở',
+    (S.phoBayHits | 0) > 0 ? '✅ Hít hơi' : '⬜ Hít hơi',
+    (S.phoBayAns | 0) > 0 ? '✅ Ăn bát bay' : '⬜ Ăn bát bay',
+    S.khachPhoBay ? '✅ Khách Phở Bay' : '⬜ Khách Phở Bay',
+    S.thucThanPho ? '✅ Thực Thần Phố' : '⬜ Thực Thần Phố',
   ].join(' · ');
   const phoVangModes = [
     (S.phoVangUses | 0) > 0 ? '✅ Giờ Vàng' : '⬜ Giờ Vàng',
@@ -16864,7 +17757,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin-top:6px">${nextLine}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🔥 Chuỗi ngày: <strong>${dailyBook.streak}</strong>${dailyBook.flair}${dailyBook.clearNote}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">Ấn khám phá: ${stamps}</p>
-    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🌦️ Đang: <strong>${weatherNow}</strong></p>
     <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm · ${S.btsSigs} chữ ký BTS${S.btsPrincessMode ? ' · 👑 Công Chúa' : ''}${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
     <h2 style="font-size:1rem;margin-top:8px">📋 Mục tiêu hôm nay</h2>
@@ -16913,6 +17806,10 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã hẹn <strong>${S.muaTraHens | 0}</strong> lượt${S.banTraMua ? ' · flair Bạn Trà Mưa' : ''}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">${muaTraModes}</p>
     <ul class="book-list">${muaTraLogs}</ul>
+    <h2 style="font-size:1rem;margin-top:8px">🍜 Phố An Lạc · Phở Bay</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Gọi <strong>${S.phoBayGois | 0}</strong> · hít <strong>${S.phoBayHits | 0}</strong> · ăn <strong>${S.phoBayAns | 0}</strong>${S.thucThanPho ? ' · flair Thực Thần Phố' : (S.khachPhoBay ? ' · flair Khách Phở Bay' : '')}</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">${phoBayModes}</p>
+    <ul class="book-list">${phoBayLogs}</ul>
     <h2 style="font-size:1rem;margin-top:8px">🎲 Phố An Lạc · hốt họ</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã hốt <strong>${S.hotHoDraws | 0}</strong> tay${S.chuHo ? ' · flair Chủ Họ' : ''}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">${hotHoModes}</p>
@@ -18329,57 +19226,61 @@ function updatePlayer(dt) {
   S.nearShop = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
     && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.busy)
     ? pickNearShop() : null;
-  // Mưa trà ghế đôi — sau cafe/pho/hair, thay cửa trà đá; trước kỳ ảo / karaoke / hốt họ
+  // Mưa trà ghế đôi — sau cafe/hair, thay cửa trà đá; trước Phở Bay / kỳ ảo / karaoke
   S.nearMuaTra = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
     && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.busy)
     ? pickNearMuaTra() : null;
-  // Phố Kỳ Ảo — sau quán / mưa trà, trước karaoke
+  // Phở Bay · Bát Hơi Thăng — sau mưa trà, trước kỳ ảo / karaoke (owns pho curb)
+  S.nearPhoBay = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.busy)
+    ? pickNearPhoBay() : null;
+  // Phố Kỳ Ảo — sau quán / mưa trà / Phở Bay, trước karaoke
   const freeWonder = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.busy);
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.nearPhoBay && !S.busy);
   S.nearMirrorPuddle = freeWonder ? pickNearMirrorPuddle() : null;
   S.nearRewindLamp = (!S.nearMirrorPuddle && freeWonder) ? pickNearRewindLamp() : null;
   S.nearLoveLight = (!S.nearMirrorPuddle && !S.nearRewindLamp && freeWonder) ? pickNearLoveLight() : null;
   S.nearPaperMail = (!S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && freeWonder) ? pickNearPaperMail() : null;
-  // Karaoke loa kéo vỉa hè — sau cửa quán / mưa trà / kỳ ảo
+  // Karaoke loa kéo vỉa hè — sau cửa quán / mưa trà / Phở Bay / kỳ ảo
   S.nearKaraoke = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.nearPhoBay
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.busy)
     ? pickNearKaraoke() : null;
   // Hốt họ south curb
   S.nearHotHo = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.nearPhoBay
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.busy)
     ? pickNearHotHo() : null;
   // Nhà nem chua trong hẻm
   S.nearNemChua = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.nearPhoBay
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo && !S.busy)
     ? pickNearNemChua() : null;
   // Xe chiến lợi phẩm phóng lợn
   S.nearPhongLonWreck = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.nearPhoBay
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo && !S.nearNemChua && !S.busy)
     ? pickNearPhongLonWreck() : null;
   // Bến xích lô
   S.nearXichLo = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.nearPhoBay
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo && !S.nearNemChua && !S.nearPhongLonWreck && !S.busy)
     ? pickNearXichLo() : null;
   // Boy Phố · Đội Hè — sau xích lô, trước Bóng Đá / Giờ Vàng
   S.nearBoyPho = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.nearPhoBay
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo
     && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.busy)
     ? pickNearBoyPho() : null;
   // Bóng Đá Vỉa Hè — sau Boy Phố, trước Giờ Vàng
   S.nearBongDa = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.nearPhoBay
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo
     && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.nearBoyPho && !S.busy)
     ? pickNearBongDa() : null;
   // Giờ Vàng · Đèn Bay — thấp nhất trong chuỗi phố (sau Bóng Đá)
   S.nearGioVang = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.nearPhoBay
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo
     && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.nearBoyPho && !S.nearBongDa && !S.busy)
     ? pickNearGioVang() : null;
@@ -18504,6 +19405,17 @@ function updatePlayer(dt) {
   } else if (S.muaTraHen) {
     const left = Math.max(0, (S.muaTraHen.dur - S.muaTraHen.t) | 0);
     btn.textContent = `Hủy · đứng dậy (${left}s)`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+  } else if (S.phoBayAct) {
+    const left = Math.max(0, (S.phoBayAct.dur - S.phoBayAct.t) | 0);
+    const kind = S.phoBayAct.kind;
+    btn.textContent = kind === 'an'
+      ? `Hủy · hạ tô (${left}s)`
+      : kind === 'hit'
+        ? `Hủy · thôi hít (${left}s)`
+        : `Hủy · thôi gọi (${left}s)`;
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
@@ -18649,6 +19561,12 @@ function updatePlayer(dt) {
   } else if (!S.busy && S.nearMuaTra) {
     const m = pickMuaTraMode();
     btn.textContent = m === 'am' ? 'Hẹn trà mưa · Mưa ấm' : 'Hẹn trà mưa';
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearPhoBay) {
+    btn.textContent = phoBayVerbLabel(pickPhoBayVerb());
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
@@ -18889,6 +19807,7 @@ function updateWorld(dt, t) {
   updatePhoKyAo(dt, t);
   updateHotHo(dt, t);
   updateMuaTra(dt, t);
+  updatePhoBay(dt, t);
   updateBoyPho(dt, t);
   updateBongDa(dt, t);
   updateGioVang(dt, t);

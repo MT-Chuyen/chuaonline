@@ -4,22 +4,15 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
-<title>Phố An Lạc · YouTube</title>
+<title>Phố An Lạc · Loa</title>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-  iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+  #yt { position: absolute; inset: 0; width: 100%; height: 100%; }
   .err { color: #eee; font: 15px/1.45 system-ui, sans-serif; padding: 28px 18px; text-align: center; }
-  .err a { color: #8ab4f8; }
 </style>
 </head>
 <body>
-<iframe
-  id="yt"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-  allowfullscreen
-  referrerpolicy="strict-origin-when-cross-origin"
-  title="YouTube"
-></iframe>
+<div id="yt"></div>
 <script>
 (function () {
   const u = new URL(location.href);
@@ -28,82 +21,128 @@
     document.body.innerHTML = '<p class="err">Thiếu mã video YouTube.</p>';
     return;
   }
-  const mute = u.searchParams.get('mute') === '1';
+  let mute = u.searchParams.get('mute') === '1';
   const start = parseInt(u.searchParams.get('start') || '0', 10) || 0;
   const wantAuto = u.searchParams.get('autoplay') !== '0';
+  let player = null;
+  let ready = false;
+  let wantVol = 100;
 
-  function buildSrc(host) {
-    const p = new URLSearchParams();
-    p.set('autoplay', wantAuto ? '1' : '0');
-    p.set('rel', '0');
-    p.set('modestbranding', '1');
-    p.set('playsinline', '1');
-    p.set('controls', '1');
-    p.set('enablejsapi', '1');
-    p.set('origin', location.origin);
-    if (mute) p.set('mute', '1');
-    if (start > 0) p.set('start', String(start));
-    return 'https://' + host + '/embed/' + encodeURIComponent(v) + '?' + p.toString();
-  }
-
-  const frame = document.getElementById('yt');
-  // Thử youtube.com trước (ổn định hơn một số máy), rồi nocookie
-  const hosts = u.searchParams.get('host') === 'nocookie'
-    ? ['www.youtube-nocookie.com', 'www.youtube.com']
-    : ['www.youtube.com', 'www.youtube-nocookie.com'];
-
-  let hostIdx = 0;
-  function loadHost() {
-    frame.src = buildSrc(hosts[hostIdx]);
-  }
-  loadHost();
-
-  // Ép play sau khi load (cần cử chỉ người dùng từ trang chính)
-  function forcePlay() {
+  function applyMuteState() {
+    if (!player || !ready) return;
     try {
-      frame.contentWindow.postMessage(JSON.stringify({
-        event: 'command', func: 'playVideo', args: []
-      }), '*');
-      if (!mute) {
-        frame.contentWindow.postMessage(JSON.stringify({
-          event: 'command', func: 'unMute', args: []
-        }), '*');
-        frame.contentWindow.postMessage(JSON.stringify({
-          event: 'command', func: 'setVolume', args: [100]
-        }), '*');
+      if (mute) player.mute();
+      else {
+        player.unMute();
+        player.setVolume(wantVol);
       }
     } catch (_) {}
   }
-  frame.addEventListener('load', function () {
-    setTimeout(forcePlay, 400);
-    setTimeout(forcePlay, 1200);
-  });
 
-  function setVol(n) {
-    const v = Math.max(0, Math.min(100, n | 0));
+  function forcePlay() {
+    if (!player || !ready) return;
     try {
-      frame.contentWindow.postMessage(JSON.stringify({
-        event: 'command', func: 'setVolume', args: [v]
-      }), '*');
+      applyMuteState();
+      player.playVideo();
     } catch (_) {}
   }
 
-  // Parent: play / unmute / volume từ khoảng cách tới loa 3D
+  window.onYouTubeIframeAPIReady = function () {
+    player = new YT.Player('yt', {
+      width: '100%',
+      height: '100%',
+      videoId: v,
+      playerVars: {
+        autoplay: wantAuto ? 1 : 0,
+        start: start > 0 ? start : undefined,
+        mute: mute ? 1 : 0,
+        rel: 0,
+        modestbranding: 1,
+        playsinline: 1,
+        controls: 0,
+        fs: 0,
+        disablekb: 1,
+        iv_load_policy: 3,
+        origin: location.origin,
+      },
+      events: {
+        onReady: function () {
+          ready = true;
+          applyMuteState();
+          if (wantAuto) forcePlay();
+          setTimeout(forcePlay, 300);
+          setTimeout(forcePlay, 1000);
+        },
+        onStateChange: function (ev) {
+          // 2 = paused — ép phát lại khi đang autoplay
+          if (wantAuto && ev && ev.data === 2) {
+            setTimeout(forcePlay, 200);
+          }
+          if (wantAuto && ev && ev.data === -1) {
+            setTimeout(forcePlay, 400);
+          }
+        },
+        onError: function () {
+          // fallback: thẻ iframe thuần
+          const f = document.createElement('iframe');
+          f.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen';
+          f.allowFullscreen = true;
+          f.referrerPolicy = 'strict-origin-when-cross-origin';
+          f.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0';
+          const p = new URLSearchParams({
+            autoplay: wantAuto ? '1' : '0',
+            rel: '0',
+            modestbranding: '1',
+            playsinline: '1',
+            controls: '0',
+            enablejsapi: '1',
+            origin: location.origin,
+          });
+          if (mute) p.set('mute', '1');
+          if (start > 0) p.set('start', String(start));
+          f.src = 'https://www.youtube.com/embed/' + encodeURIComponent(v) + '?' + p.toString();
+          document.body.innerHTML = '';
+          document.body.appendChild(f);
+        },
+      },
+    });
+  };
+
   window.addEventListener('message', function (ev) {
     if (!ev || ev.data == null) return;
     const d = ev.data;
-    if (d === 'pho-play' || d === 'pho-unmute') {
+    if (d === 'pho-play') {
       forcePlay();
       return;
     }
+    if (d === 'pho-unmute') {
+      mute = false;
+      forcePlay();
+      return;
+    }
+    if (d === 'pho-mute') {
+      mute = true;
+      applyMuteState();
+      return;
+    }
     if (typeof d === 'string' && d.indexOf('pho-volume:') === 0) {
-      setVol(parseInt(d.slice(11), 10) || 0);
+      wantVol = Math.max(0, Math.min(100, parseInt(d.slice(11), 10) || 0));
+      if (player && ready && !mute) {
+        try { player.setVolume(wantVol); } catch (_) {}
+      }
       return;
     }
     if (d && typeof d === 'object' && d.type === 'pho-volume') {
-      setVol(d.value);
+      wantVol = Math.max(0, Math.min(100, d.value | 0));
+      if (player && ready && !mute) {
+        try { player.setVolume(wantVol); } catch (_) {}
+      }
     }
   });
+
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
 })();
 </script>
 </body>

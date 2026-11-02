@@ -106,6 +106,22 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   animation:streetPulse 1.4s ease-out infinite;display:grid;place-items:center;text-align:center;line-height:1.2;
 }
 #btn-street-fab .sub{display:block;font-size:.68rem;font-weight:600;opacity:.9;margin-top:2px}
+/* Viện Nghiên Cứu — FAB mint/teal dưới nút phố */
+#btn-institute-fab{
+  position:absolute;left:50%;top:calc(118px + var(--st));transform:translateX(-50%);
+  z-index:69;pointer-events:auto;
+  min-width:200px;min-height:52px;padding:12px 18px;border-radius:16px;
+  border:2px solid rgba(120,255,220,.92);background:rgba(12,90,78,.96);color:#d8fff4;
+  font-family:inherit;font-size:.92rem;font-weight:800;letter-spacing:.01em;
+  box-shadow:0 10px 28px rgba(0,0,0,.5),0 0 0 0 rgba(80,220,180,.5);
+  animation:institutePulse 1.5s ease-out infinite;display:grid;place-items:center;text-align:center;line-height:1.2;
+}
+#btn-institute-fab .sub{display:block;font-size:.68rem;font-weight:600;opacity:.9;margin-top:2px}
+@keyframes institutePulse{
+  0%{box-shadow:0 0 0 0 rgba(80,220,180,.5)}
+  70%{box-shadow:0 0 0 12px rgba(80,220,180,0)}
+  100%{box-shadow:0 0 0 0 rgba(80,220,180,0)}
+}
 .icon-btn{
   width:42px;height:42px;border-radius:50%;border:1px solid var(--line);
   background:rgba(12,8,6,.42);color:rgba(243,235,224,.88);font-size:.72rem;font-weight:500;
@@ -697,9 +713,11 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button class="icon-btn" id="btn-book" title="Sổ cầu an">Sổ</button>
       <button class="icon-btn" id="btn-chat" title="Chat trên đầu (T)">Chat</button>
       <button class="icon-btn" id="btn-street" title="Đến Phố An Lạc (P)">Phố</button>
+      <button class="icon-btn" id="btn-institute" title="Viện Nghiên Cứu (I)">Viện</button>
       <button class="icon-btn" id="btn-share" title="Chia sẻ">Chia</button>
     </div>
     <button type="button" id="btn-street-fab" title="Đến Phố An Lạc ngay">🛤️ TỚI PHỐ AN LẠC<span class="sub">bấm để đứng giữa phố · phím P</span></button>
+    <button type="button" id="btn-institute-fab" title="Đến Viện Nghiên Cứu">🧬 TỚI VIỆN NGHIÊN CỨU<span class="sub">bấm để đứng giữa sân thú · phím I</span></button>
     <div id="chat-bar" aria-hidden="true">
       <input id="chat-input" type="text" maxlength="72" placeholder="Nói gì đó… hiện trên đầu" autocomplete="off" enterkeyhint="send"/>
       <button type="button" id="chat-send" title="Gửi">Gửi</button>
@@ -1021,6 +1039,13 @@ const S = {
   khachHoaAm: false, _musicNoteSpawn: 0, _musicBeatPulseAt: 0, _musicDanceCue: 0,
   musicHost: false, musicMuted: false, musicByName: '', _musicNetReady: false,
   musicStartedAt: 0, streetMusicShared: null, _wasOnAnLacStreet: false,
+  // Viện Nghiên Cứu Di Truyền · Sân Thú Biến Đổi (west isle)
+  vienSeen: {}, vienQuanSat: 0, vienVuot: 0, vienChup: 0,
+  thucTapVien: false, nhaNghienCuuSan: false,
+  nearInstituteAnimal: null, instituteAnimals: null, instituteAct: null,
+  instituteRoot: null, instituteRimAurora: null, instituteGateTip: null,
+  _instituteEntered: false, _instituteTipAt: 0, _instituteWarpTips: false,
+  _instituteCourtyardTip: false, _instituteSoTip: false, _vienDuyenReady: false,
 };
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
@@ -1407,6 +1432,17 @@ function loadSave() {
         at: w.at | 0,
       })).filter(w => w.text);
     }
+    if (d.vienSeen && typeof d.vienSeen === 'object') {
+      S.vienSeen = {};
+      Object.keys(d.vienSeen).forEach((k) => {
+        if (d.vienSeen[k]) S.vienSeen[String(k).slice(0, 24)] = true;
+      });
+    }
+    if (typeof d.vienQuanSat === 'number') S.vienQuanSat = Math.max(0, d.vienQuanSat | 0);
+    if (typeof d.vienVuot === 'number') S.vienVuot = Math.max(0, d.vienVuot | 0);
+    if (typeof d.vienChup === 'number') S.vienChup = Math.max(0, d.vienChup | 0);
+    if (typeof d.thucTapVien === 'boolean') S.thucTapVien = d.thucTapVien;
+    if (typeof d.nhaNghienCuuSan === 'boolean') S.nhaNghienCuuSan = d.nhaNghienCuuSan;
   } catch (_) {}
 }
 function saveAll() {
@@ -1546,6 +1582,12 @@ function saveAll() {
       musicNotesCaught: S.musicNotesCaught | 0,
       khachHoaAm: !!S.khachHoaAm,
       musicLog: (S.musicLog || []).slice(-12),
+      vienSeen: S.vienSeen || {},
+      vienQuanSat: S.vienQuanSat | 0,
+      vienVuot: S.vienVuot | 0,
+      vienChup: S.vienChup | 0,
+      thucTapVien: !!S.thucTapVien,
+      nhaNghienCuuSan: !!S.nhaNghienCuuSan,
     }));
   } catch (_) {}
 }
@@ -1597,6 +1639,8 @@ function templeFlairSuffix() {
   if (S.khachTangTroi) parts.push('Khách Tầng Trời');
   if (S.khachNghePhap) parts.push('Khách Nghe Pháp');
   if (S.khachQuaCua) parts.push('Khách Qua Cửa');
+  if (S.nhaNghienCuuSan) parts.push('Nhà Nghiên Cứu Sân');
+  else if (S.thucTapVien) parts.push('Thực Tập Sinh Viện');
   if (S.streakFlair === 'nhatTu') parts.push('Nhật Tu');
   else if (S.streakFlair === 'chuyenCan') parts.push('Chuyên Cần');
   return parts.length ? ` · ${parts.join(' · ')}` : '';
@@ -3593,6 +3637,7 @@ function buildScene() {
   });
 
   buildStreetDistrict();
+  buildInstituteDistrict();
   buildParticles();
   buildSky();
 }
@@ -3836,6 +3881,743 @@ function buildStreetDistrict() {
   buildPhoKyAo();
   buildPhongLonAlley();
   buildNemChuaAlley();
+}
+
+/* ========== Viện Nghiên Cứu Di Truyền · Sân Thú Biến Đổi (west isle) ========== */
+const INSTITUTE_X = -26;
+const INSTITUTE_Z = 0;
+const INSTITUTE_ANIMAL_SPECS = [
+  { id: 'koiRong', name: 'Cá Chép Rồng Đèn', dx: -6, dz: -4, color: 0xff7744, beat: 'koi', joke: 'Cá chép rồng đèn gật đầu xin… pin?' },
+  { id: 'trauHaiDau', name: 'Trâu Hai Đầu Nghiêng', dx: 6, dz: -4, color: 0x6a4a28, beat: 'buffalo', joke: 'Hai đầu nghiêng trái phải — đang cãi “ăn cỏ nào ngon hơn”.' },
+  { id: 'mayCaTra', name: 'Mây Cá Tra Bay', dx: 0, dz: -8, color: 0xa8c8e8, beat: 'cloud', joke: 'Mây cá tra bay thì thầm: “Đừng gọi tô… gọi mây!”' },
+  { id: 'meoBayDuoi', name: 'Mèo Bảy Đuôi Neon', dx: -8, dz: 2, color: 0xff66cc, beat: 'cat', joke: 'Bảy đuôi neon vẫy: “Vuốt ve = tăng độ sáng.”' },
+  { id: 'gaDongHo', name: 'Gà Bay Đồng Hồ', dx: 8, dz: 2, color: 0xf0c040, beat: 'chicken', joke: 'Gà đồng hồ gáy “cúc… cúc… giờ viện mở!”' },
+  { id: 'heoCauVong', name: 'Heo Cầu Vồng Bay', dx: -5, dz: 8, color: 0xff99aa, beat: 'pig', joke: 'Heo cầu vồng bay lơ lửng — “đừng gọi tôi là bacon fantasy”.' },
+  { id: 'ruaMaiChua', name: 'Rùa Bốn Mái Chùa', dx: 5, dz: 8, color: 0x3a8a58, beat: 'turtle', joke: 'Rùa bốn mái: mỗi bước một tiếng ngói khẽ.' },
+  { id: 'cuaKeo', name: 'Cua Kẹo Cao Su', dx: -9, dz: -8, color: 0xff5588, beat: 'crab', joke: 'Càng kéo dài như kẹo — cẩn thận dính tay!' },
+  { id: 'ngongGiay', name: 'Ngỗng Máy Bay Giấy', dx: 9, dz: -8, color: 0xe8f0ff, beat: 'goose', joke: 'Ngỗng giấy: “Tôi không bay xa — chỉ bay… vào sổ.”' },
+  { id: 'socDienQuang', name: 'Sóc Điện Quang', dx: 0, dz: 10, color: 0x88ffee, beat: 'squirrel', joke: 'Sóc điện quang vẽ tia chữ “AN” rồi cười khà.' },
+];
+
+function vienDistinctSeen() {
+  const m = S.vienSeen || {};
+  return Object.keys(m).filter((k) => m[k]).length;
+}
+function vienVuotUnlocked() {
+  return vienDistinctSeen() >= 3;
+}
+function vienChupUnlocked() {
+  return vienDistinctSeen() >= 6 || (S.vienChup | 0) >= 1;
+}
+function pickInstituteVerb() {
+  if (!vienVuotUnlocked()) return 'quanSat';
+  if (!vienChupUnlocked()) return 'vuotVe';
+  return 'chupAnh';
+}
+function instituteVerbLabel(v) {
+  if (v === 'vuotVe') return 'Vuốt ve';
+  if (v === 'chupAnh') return 'Chụp ảnh kỳ';
+  return 'Quan sát';
+}
+function instituteBusyBlocked() {
+  if (S.xichLoRide || S.karaokePerf || S.phoVangCall || S.hotHoDraw || S.muaTraHen) return true;
+  if (S.phoBayAct || S.coTuongAct || S.biVeAct || S.bongDaAct || S.boyPhoAct) return true;
+  if (S.senBayRide || S.chuongDaoRewind || S.thapMoRide || S.phatNoiSpeech) return true;
+  if (S.phongLonRide || S.mirrorSwap || S.rewindPlay || S.loveFreeze || S.paperRainActive) return true;
+  return false;
+}
+
+function buildInstituteAnimalMesh(spec) {
+  const g = new THREE.Group();
+  const col = spec.color || 0xffffff;
+  const bodyMat = new THREE.MeshStandardMaterial({
+    color: col, roughness: 0.55, metalness: 0.18,
+    emissive: col, emissiveIntensity: 0.22,
+  });
+  const accent = new THREE.MeshStandardMaterial({
+    color: 0xfff0c8, roughness: 0.4, metalness: 0.35,
+    emissive: 0xffaa66, emissiveIntensity: 0.35,
+  });
+  if (spec.beat === 'koi') {
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.55, 4, 8), bodyMat);
+    body.rotation.z = Math.PI / 2; body.position.y = 0.35; g.add(body);
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.22, 6), accent);
+    horn.position.set(0.28, 0.48, 0); horn.rotation.z = -0.6; g.add(horn);
+    g.userData.pulse = [body];
+  } else if (spec.beat === 'buffalo') {
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.32, 0.35), bodyMat);
+    torso.position.y = 0.38; g.add(torso);
+    const h1 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), bodyMat);
+    h1.position.set(0.22, 0.55, 0.12); g.add(h1);
+    const h2 = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), bodyMat);
+    h2.position.set(0.22, 0.55, -0.12); g.add(h2);
+    g.userData.headA = h1; g.userData.headB = h2; g.userData.pulse = [torso];
+  } else if (spec.beat === 'cloud') {
+    for (let i = 0; i < 3; i++) {
+      const blob = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22 + i * 0.04, 8, 6),
+        new THREE.MeshStandardMaterial({
+          color: 0xc8e0f8, roughness: 0.9, transparent: true, opacity: 0.85,
+          emissive: 0x88aacc, emissiveIntensity: 0.25,
+        })
+      );
+      blob.position.set((i - 1) * 0.28, 1.35 + (i % 2) * 0.12, (i - 1) * 0.1);
+      g.add(blob);
+    }
+    g.userData.floatY = 1.5;
+  } else if (spec.beat === 'cat') {
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), bodyMat);
+    body.scale.set(1.1, 0.85, 1.25); body.position.y = 0.42; g.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), bodyMat);
+    head.position.set(0.22, 0.62, 0); g.add(head);
+    const tails = [];
+    for (let i = 0; i < 7; i++) {
+      const tail = new THREE.Mesh(
+        new THREE.CapsuleGeometry(0.03, 0.45, 3, 5),
+        new THREE.MeshStandardMaterial({
+          color: i % 2 ? 0xff66ee : 0x66ffee, emissive: 0xff44cc, emissiveIntensity: 0.55, roughness: 0.4,
+        })
+      );
+      const ang = -0.6 + i * 0.2;
+      tail.position.set(-0.25, 0.4, (i - 3) * 0.06);
+      tail.rotation.z = Math.PI / 2 + ang;
+      g.add(tail); tails.push(tail);
+    }
+    g.userData.tails = tails; g.userData.pulse = [body, head];
+  } else if (spec.beat === 'chicken') {
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.26, 8, 6), bodyMat);
+    body.position.y = 0.4; g.add(body);
+    const clock = new THREE.Mesh(
+      new THREE.CircleGeometry(0.16, 16),
+      new THREE.MeshBasicMaterial({ color: 0xfff8e0, side: THREE.DoubleSide })
+    );
+    clock.position.set(0.26, 0.42, 0); clock.rotation.y = Math.PI / 2; g.add(clock);
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.18, 0.28), accent);
+    wing.position.set(0, 0.42, 0.28); g.add(wing);
+    g.userData.wing = wing; g.userData.pulse = [body];
+  } else if (spec.beat === 'pig') {
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), bodyMat);
+    body.position.y = 0.55; g.add(body);
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.42, 0.04, 6, 20),
+      new THREE.MeshStandardMaterial({ color: 0xffdd66, emissive: 0xff88aa, emissiveIntensity: 0.5, roughness: 0.35 })
+    );
+    ring.rotation.x = Math.PI / 2; ring.position.y = 0.55; g.add(ring);
+    g.userData.ring = ring; g.userData.floatY = 0.55; g.userData.pulse = [body];
+  } else if (spec.beat === 'turtle') {
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), bodyMat);
+    shell.scale.set(1.2, 0.7, 1.15); shell.position.y = 0.32; g.add(shell);
+    for (let i = 0; i < 4; i++) {
+      const roof = new THREE.Mesh(
+        new THREE.ConeGeometry(0.1, 0.14, 4),
+        new THREE.MeshStandardMaterial({ color: 0xa63d2a, roughness: 0.7 })
+      );
+      const ang = (i / 4) * Math.PI * 2;
+      roof.position.set(Math.cos(ang) * 0.16, 0.48, Math.sin(ang) * 0.16);
+      g.add(roof);
+    }
+    g.userData.pulse = [shell];
+  } else if (spec.beat === 'crab') {
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 6), bodyMat);
+    body.scale.set(1.3, 0.6, 1); body.position.y = 0.28; g.add(body);
+    const clawL = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.35, 3, 5), accent);
+    clawL.position.set(-0.35, 0.32, 0.15); clawL.rotation.z = 0.8; g.add(clawL);
+    const clawR = new THREE.Mesh(new THREE.CapsuleGeometry(0.06, 0.35, 3, 5), accent);
+    clawR.position.set(0.35, 0.32, 0.15); clawR.rotation.z = -0.8; g.add(clawR);
+    g.userData.clawL = clawL; g.userData.clawR = clawR; g.userData.pulse = [body];
+  } else if (spec.beat === 'goose') {
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 6), bodyMat);
+    body.scale.set(1.2, 0.9, 1.4); body.position.y = 0.4; g.add(body);
+    const wingL = new THREE.Mesh(
+      new THREE.BoxGeometry(0.55, 0.04, 0.22),
+      new THREE.MeshStandardMaterial({ color: 0xf4f8ff, roughness: 0.5, emissive: 0xaaccff, emissiveIntensity: 0.2 })
+    );
+    wingL.position.set(-0.2, 0.48, 0); wingL.rotation.z = 0.35; g.add(wingL);
+    const wingR = wingL.clone(); wingR.position.x = 0.2; wingR.rotation.z = -0.35; g.add(wingR);
+    g.userData.wingL = wingL; g.userData.wingR = wingR; g.userData.pulse = [body];
+  } else {
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), bodyMat);
+    body.position.y = 0.45; g.add(body);
+    const tail = new THREE.Mesh(
+      new THREE.ConeGeometry(0.08, 0.28, 6),
+      new THREE.MeshStandardMaterial({ color: 0xaaffff, emissive: 0x44ffcc, emissiveIntensity: 0.7 })
+    );
+    tail.position.set(-0.22, 0.4, 0); tail.rotation.z = Math.PI / 2; g.add(tail);
+    g.userData.trail = tail; g.userData.pulse = [body];
+  }
+  return g;
+}
+
+function buildInstituteDistrict() {
+  const ix = INSTITUTE_X, iz = INSTITUTE_Z;
+  const root = new THREE.Group();
+  root.position.set(0, 0, 0);
+  scene.add(root);
+  S.instituteRoot = root;
+
+  const isle = new THREE.Mesh(
+    new THREE.CircleGeometry(18, 48),
+    new THREE.MeshStandardMaterial({
+      color: 0xb8c8c0, roughness: 0.95, metalness: 0.05,
+      emissive: 0x1a4038, emissiveIntensity: 0.1,
+    })
+  );
+  isle.rotation.x = -Math.PI / 2;
+  isle.position.set(ix, -0.04, iz);
+  isle.receiveShadow = true;
+  root.add(isle);
+  markIndestructible(isle);
+
+  const yard = new THREE.Mesh(
+    new THREE.PlaneGeometry(24, 36),
+    new THREE.MeshStandardMaterial({
+      map: makeBrickTex(), roughness: 0.9, metalness: 0.06, color: 0xd8ece8,
+    })
+  );
+  yard.rotation.x = -Math.PI / 2;
+  yard.position.set(ix, 0.01, iz);
+  yard.receiveShadow = true;
+  root.add(yard);
+  markIndestructible(yard);
+
+  // Soft stone rim (±11.2 / ±14 local)
+  const rimMats = [];
+  const rimDefs = [
+    [22.4, 0.18, 0.35, 0, 0.08, 14],
+    [22.4, 0.18, 0.35, 0, 0.08, -14],
+    [0.35, 0.18, 28.4, 11.2, 0.08, 0],
+    [0.35, 0.18, 28.4, -11.2, 0.08, 0],
+  ];
+  rimDefs.forEach(([w, h, d, x, y, z]) => {
+    const m = box(w, h, d, M.stone, ix + x, y, iz + z, root, false);
+    markIndestructible(m);
+    rimMats.push(m);
+  });
+  S.instituteRimAurora = rimMats;
+
+  // Cloud bridge pad toward temple (visual)
+  const bridge = new THREE.Mesh(
+    new THREE.PlaneGeometry(6.5, 5.5),
+    new THREE.MeshStandardMaterial({
+      color: 0xc8ddd8, roughness: 0.88, metalness: 0.08,
+      emissive: 0x66aa99, emissiveIntensity: 0.12, transparent: true, opacity: 0.92,
+    })
+  );
+  bridge.rotation.x = -Math.PI / 2;
+  bridge.position.set(-16.5, 0.02, 0);
+  bridge.receiveShadow = true;
+  root.add(bridge);
+  markIndestructible(bridge);
+
+  // Gate / arch plaque
+  const gateZ = iz + 12.2;
+  box(0.55, 3.2, 0.55, M.plaster, ix - 2.4, 1.6, gateZ, root);
+  box(0.55, 3.2, 0.55, M.plaster, ix + 2.4, 1.6, gateZ, root);
+  box(5.4, 0.35, 0.45, M.tile, ix, 3.35, gateZ, root);
+  const plaque = textPlane('Viện Nghiên Cứu Di Truyền', 420, 64, '#e8fff8', '#0a4a40', 20);
+  plaque.position.set(ix, 3.85, gateZ + 0.4);
+  plaque.scale.set(3.4, 0.55, 1);
+  root.add(plaque);
+  const gateTip = textPlane('🧬 Sân Thú Biến Đổi', 340, 48, '#e8fff6', '#145048', 16);
+  gateTip.position.set(ix, 2.55, gateZ + 0.55);
+  gateTip.scale.set(2.5, 0.4, 1);
+  root.add(gateTip);
+  S.instituteGateTip = gateTip;
+
+  // Soft lab-carnival tint lights
+  const pl1 = new THREE.PointLight(0x66ffcc, 0.35, 16, 2);
+  pl1.position.set(ix, 4.2, iz);
+  root.add(pl1);
+  if (!IS_MOBILE) {
+    const pl2 = new THREE.PointLight(0xffaa88, 0.22, 12, 2);
+    pl2.position.set(ix - 6, 3.2, iz + 4);
+    root.add(pl2);
+  }
+
+  const animals = [];
+  INSTITUTE_ANIMAL_SPECS.forEach((spec) => {
+    const ax = ix + spec.dx;
+    const az = iz + spec.dz;
+    const stand = new THREE.Group();
+    // Pedestal carnival chrome ring + pastel plaque
+    const ped = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.55, 0.62, 0.35, 16),
+      new THREE.MeshStandardMaterial({ color: 0xd8e8e4, metalness: 0.45, roughness: 0.35, emissive: 0x224438, emissiveIntensity: 0.12 })
+    );
+    ped.position.y = 0.18;
+    stand.add(ped);
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.58, 0.035, 6, 24),
+      new THREE.MeshStandardMaterial({ color: 0xc0d8d0, metalness: 0.7, roughness: 0.25, emissive: 0x44aa88, emissiveIntensity: 0.25 })
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.38;
+    stand.add(ring);
+    const animal = buildInstituteAnimalMesh(spec);
+    animal.position.y = 0.38;
+    stand.add(animal);
+    const namePlaque = textPlane(spec.name, 300, 48, '#f0fff8', '#1a5048', 14);
+    namePlaque.position.set(0, 1.55, 0);
+    namePlaque.scale.set(1.8, 0.32, 1);
+    stand.add(namePlaque);
+    const glow = new THREE.Mesh(
+      new THREE.CircleGeometry(1.15, 20),
+      new THREE.MeshBasicMaterial({
+        color: spec.color, transparent: true, opacity: 0.14,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
+    );
+    glow.rotation.x = -Math.PI / 2;
+    glow.position.y = 0.04;
+    stand.add(glow);
+    stand.position.set(ax, 0, az);
+    root.add(stand);
+    animals.push({
+      ...spec,
+      x: ax, z: az,
+      pos: new THREE.Vector3(ax, 0, az),
+      mesh: stand,
+      animal,
+      tip: namePlaque,
+      glow,
+      r: 1.75,
+      phase: Math.random() * 6.28,
+    });
+  });
+  S.instituteAnimals = animals;
+}
+
+function pickNearInstituteAnimal() {
+  if (!playerRoot || S.instituteAct || !S.instituteAnimals) return null;
+  if (playerRoot.position.x >= -16) return null;
+  let best = null, bestD = 99;
+  for (const a of S.instituteAnimals) {
+    const d = Math.hypot(playerRoot.position.x - a.x, playerRoot.position.z - a.z);
+    if (d < a.r && d < bestD) { bestD = d; best = a; }
+  }
+  if (!best) return null;
+  const verb = pickInstituteVerb();
+  return { id: best.id, name: best.name, verb, label: instituteVerbLabel(verb), animal: best, pos: best.pos };
+}
+
+function goToInstituteGate() {
+  if (!playerRoot) {
+    toast('Game chưa sẵn sàng — thử tải lại trang');
+    return;
+  }
+  playerRoot.position.set(INSTITUTE_X, 0, INSTITUTE_Z + 4.5);
+  S.yaw = Math.PI; // nhìn −Z vào sân
+  S.pitch = 0.08;
+  if (player) player.rotation.y = Math.PI;
+  S._instituteEntered = true;
+  toast('🧬 Giữa Sân Thú Biến Đổi — đi vòng xem các em đang… biến!');
+  if (!S._instituteWarpTips) {
+    S._instituteWarpTips = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast('🧬 Đi vòng quanh sân · mỗi bệ có một thú biến đổi');
+    }, 3000);
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast(vienVuotUnlocked()
+        ? '🧬 Vuốt ve đã mở — lại gần thú rồi Vuốt ve'
+        : '🧬 Quan sát 3 thú khác nhau để mở Vuốt ve');
+    }, 9000);
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast(vienChupUnlocked()
+        ? '🧬 Chụp ảnh kỳ đã mở — thử một kiểu bất khả!'
+        : '🧬 Quan sát đủ 6 thú (hoặc chụp 1 lần) để mở Chụp ảnh kỳ');
+    }, 14000);
+  }
+}
+
+function startInstituteAct() {
+  if (S.busy || S.instituteAct || !S.nearInstituteAnimal) return;
+  if (instituteBusyBlocked()) {
+    toast('🧬 Viện chờ hết lượt khác đã');
+    return;
+  }
+  const near = S.nearInstituteAnimal;
+  const verb = near.verb || pickInstituteVerb();
+  if (verb === 'vuotVe' && !vienVuotUnlocked()) {
+    toast('🧬 Quan sát thêm thú để mở Vuốt ve');
+    return;
+  }
+  if (verb === 'chupAnh' && !vienChupUnlocked()) {
+    toast('🧬 Cần quan sát thêm hoặc đã có một ảnh kỳ');
+    return;
+  }
+  if (verb === 'quanSat') startInstituteQuanSat(near);
+  else if (verb === 'vuotVe') startInstituteVuotVe(near);
+  else startInstituteChupAnh(near);
+}
+
+function startInstituteQuanSat(near) {
+  const a = near.animal;
+  const firstOf = !(S.vienSeen && S.vienSeen[a.id]);
+  const dur = IS_MOBILE ? 4.2 : 5.2;
+  S.busy = true;
+  S.instituteAct = {
+    kind: 'quanSat', t: 0, dur, firstOf, rewarded: false,
+    animalId: a.id, name: a.name, joke: a.joke,
+    lineIdx: 0, nextLineAt: 0.6,
+    lines: [`🧬 Quan sát · ${a.name}`, `🧬 ${a.joke || 'Thú biến đổi gật đầu dễ thương.'}`],
+    ax: a.x, az: a.z, faceYaw: 0,
+  };
+  const dx = a.x - playerRoot.position.x;
+  const dz = a.z - playerRoot.position.z;
+  const yaw = Math.atan2(dx, dz);
+  S.yaw = yaw;
+  S.instituteAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  if (a.glow?.material) a.glow.material.opacity = 0.32;
+  try { playWhoosh(); } catch (_) {}
+  toast(firstOf ? `🧬 Lần đầu gặp · ${a.name}` : `🧬 Quan sát lại · ${a.name}`);
+}
+
+function startInstituteVuotVe(near) {
+  const a = near.animal;
+  const dur = IS_MOBILE ? 5.5 : 7.0;
+  S.busy = true;
+  playerRoot.position.set(a.x + 0.55, 0, a.z + 0.35);
+  S.instituteAct = {
+    kind: 'vuotVe', t: 0, dur, rewarded: false,
+    animalId: a.id, name: a.name,
+    lineIdx: 0, nextLineAt: 0.5,
+    lines: [
+      `🧬 Vuốt ve · ${a.name} nghiêng người`,
+      '✨ Thú biến đổi kêu “rừn… rừn” dễ thương',
+      '🧬 Sân viện lấp lánh nhẹ',
+    ],
+    ax: a.x, az: a.z, faceYaw: 0,
+  };
+  const yaw = Math.atan2(a.x - playerRoot.position.x, a.z - playerRoot.position.z);
+  S.yaw = yaw;
+  S.instituteAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armR.rotation.set(-0.9, 0.1, -0.35);
+    ud.armL.rotation.set(-0.4, 0, 0.3);
+  } catch (_) {}
+  if (a.glow?.material) a.glow.material.opacity = 0.36;
+  try { playWhoosh(); } catch (_) {}
+  toast(`🧬 Vuốt ve · ${a.name}`);
+}
+
+function startInstituteChupAnh(near) {
+  const a = near.animal;
+  const firstPhoto = (S.vienChup | 0) === 0;
+  const dur = IS_MOBILE ? 8.2 : 10.5;
+  S.busy = true;
+  playerRoot.position.set(a.x + 0.9, 0, a.z + 0.7);
+  S.instituteAct = {
+    kind: 'chupAnh', t: 0, dur, firstPhoto, rewarded: false, flashed: false,
+    animalId: a.id, name: a.name, beat: a.beat,
+    lineIdx: 0, nextLineAt: 0.55,
+    lines: [
+      `📸 Chụp ảnh kỳ · ${a.name}`,
+      '🧬 Ống kính ảo sáng — thú sắp… biến kiểu!',
+      '✨ Pose bất khả · sổ ghi dấu',
+    ],
+    ax: a.x, az: a.z, faceYaw: 0,
+  };
+  const yaw = Math.atan2(a.x - playerRoot.position.x, a.z - playerRoot.position.z);
+  S.yaw = yaw;
+  S.instituteAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armR.rotation.set(-1.4, 0.15, -0.7);
+    ud.armL.rotation.set(-0.5, 0, 0.45);
+  } catch (_) {}
+  if (a.glow?.material) a.glow.material.opacity = 0.4;
+  try { playWhoosh(); } catch (_) {}
+  toast(firstPhoto ? `📸 Ảnh kỳ đầu · ${a.name}` : `📸 Chụp lại · ${a.name}`);
+}
+
+function escalateInstituteFlairs() {
+  const seen = vienDistinctSeen();
+  if (seen >= 3 && !S._vienVuotTip) {
+    S._vienVuotTip = true;
+    setTimeout(() => toast('🧬 Mở · Vuốt ve — thú nhún vui hơn'), 700);
+  }
+  if ((seen >= 6 || (S.vienChup | 0) >= 1) && !S.thucTapVien) {
+    S.thucTapVien = true;
+    setTimeout(() => {
+      toast('🧬 Flair · Thực Tập Sinh Viện');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 900);
+  }
+  if (seen >= 8 && (S.vienChup | 0) >= 3 && !S.nhaNghienCuuSan) {
+    S.nhaNghienCuuSan = true;
+    setTimeout(() => {
+      toast('🧬 Flair · Nhà Nghiên Cứu Sân · viền sân rực aurora');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 1100);
+  }
+  if (seen >= 3 && !S._instituteSoTip) {
+    S._instituteSoTip = true;
+    setTimeout(() => toast('📒 Sổ đang ghi bộ sưu tập thú biến đổi'), 1400);
+  }
+}
+
+function finishInstituteAct(early) {
+  const act = S.instituteAct;
+  if (!act) return;
+  const elapsed = act.t;
+  const counts = !early || elapsed >= 1.2;
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+  } catch (_) {}
+  if (playerRoot) {
+    playerRoot.position.y = 0;
+    playerRoot.position.set(act.ax + 0.7, 0, act.az + 0.5);
+  }
+  const a = (S.instituteAnimals || []).find((x) => x.id === act.animalId);
+  if (a?.animal) {
+    a.animal.rotation.set(0, 0, 0);
+    a.animal.position.y = 0.38;
+    if (a.animal.userData.headA) a.animal.userData.headA.rotation.x = 0;
+    if (a.animal.userData.headB) a.animal.userData.headB.rotation.x = 0;
+  }
+  if (a?.glow?.material) a.glow.material.opacity = 0.14;
+
+  if (counts && !act.rewarded) {
+    act.rewarded = true;
+    if (act.kind === 'quanSat') {
+      const firstOf = !(S.vienSeen && S.vienSeen[act.animalId]);
+      if (!S.vienSeen) S.vienSeen = {};
+      S.vienSeen[act.animalId] = true;
+      S.vienQuanSat = (S.vienQuanSat | 0) + 1;
+      let gain = firstOf ? 4 : (early ? 1 : 2);
+      if (firstOf && ((S.congDuc | 0) >= 10 || S._streetEntered || S._vienDuyenReady)) {
+        gain += 1;
+        S._vienDuyenReady = false;
+        setTimeout(() => toast('🧬 Duyên chùa/phố · +1 công đức quan sát'), 900);
+      }
+      gainCongDuc(gain, firstOf ? `🧬 Viện · quan sát ${act.name}` : 'Viện · quan sát', true);
+      toast(early
+        ? `🧬 Quan sát nhẹ · +${gain}`
+        : `🧬 Quan sát · ${act.name} · +${gain}${firstOf ? ' · lần đầu' : ''}`);
+      escalateInstituteFlairs();
+      saveAll();
+      try { updateMeritHud(); } catch (_) {}
+    } else if (act.kind === 'vuotVe') {
+      S.vienVuot = (S.vienVuot | 0) + 1;
+      const gain = early ? 2 : 3;
+      gainCongDuc(gain, '🧬 Viện · vuốt ve', true);
+      toast(early ? `🧬 Vuốt nhẹ · +${gain}` : `🧬 Vuốt ve · ${act.name} · +${gain}`);
+      escalateInstituteFlairs();
+      saveAll();
+    } else if (act.kind === 'chupAnh') {
+      const firstPhoto = (S.vienChup | 0) === 0;
+      S.vienChup = (S.vienChup | 0) + 1;
+      let gain = firstPhoto ? 8 : (early ? 3 : 5);
+      gainCongDuc(gain, firstPhoto ? '🧬 Viện · ảnh kỳ đầu' : 'Viện · chụp ảnh kỳ', true);
+      toast(early
+        ? `📸 Ảnh kỳ nhẹ · +${gain}`
+        : `📸 Chụp ảnh kỳ · ${act.name} · +${gain}${firstPhoto ? ' · lần đầu' : ''}`);
+      if (!early) {
+        const flash = $('selfie-flash');
+        if (flash) {
+          flash.classList.add('on');
+          setTimeout(() => flash.classList.remove('on'), 140);
+        }
+      }
+      escalateInstituteFlairs();
+      saveAll();
+      try { updateMeritHud(); } catch (_) {}
+    }
+  } else if (early && elapsed >= 1.2) {
+    toast('🧬 Lượt nhẹ · Esc sớm vẫn ghi sổ');
+  }
+
+  S.instituteAct = null;
+  S.busy = false;
+}
+
+function cancelInstituteAct() {
+  if (!S.instituteAct) return;
+  finishInstituteAct(true);
+}
+
+function updateInstitute(dt, t) {
+  const animals = S.instituteAnimals;
+  if (animals) {
+    const denser = vienVuotUnlocked();
+    const nearId = S.nearInstituteAnimal?.id;
+    animals.forEach((a) => {
+      if (a.tip && camera) a.tip.quaternion.copy(camera.quaternion);
+      const an = a.animal;
+      if (!an || S.instituteAct?.animalId === a.id) return;
+      const nearBoost = nearId === a.id ? 1.6 : 1;
+      const bob = denser ? 0.045 : 0.028;
+      const spd = denser ? 2.4 : 1.6;
+      const baseY = an.userData.floatY != null ? an.userData.floatY : 0.38;
+      an.position.y = baseY + Math.sin(t * spd + a.phase) * bob * nearBoost;
+      an.rotation.y = Math.sin(t * 0.7 + a.phase) * 0.12 * nearBoost;
+      if (an.userData.headA && an.userData.headB) {
+        an.userData.headA.rotation.x = Math.sin(t * 2.2 + a.phase) * 0.25;
+        an.userData.headB.rotation.x = -Math.sin(t * 2.2 + a.phase) * 0.25;
+      }
+      if (an.userData.tails) {
+        an.userData.tails.forEach((tail, i) => {
+          tail.rotation.y = Math.sin(t * 3 + i) * 0.35;
+        });
+      }
+      if (an.userData.wing) an.userData.wing.rotation.x = Math.sin(t * 4 + a.phase) * 0.4;
+      if (an.userData.ring) an.userData.ring.rotation.z = t * 0.8;
+      if (an.userData.clawL) {
+        an.userData.clawL.scale.x = 1 + Math.sin(t * 2.5) * 0.15;
+        an.userData.clawR.scale.x = 1 + Math.sin(t * 2.5 + 1) * 0.15;
+      }
+      if (an.userData.wingL) {
+        an.userData.wingL.rotation.z = 0.35 + Math.sin(t * 3) * 0.2;
+        an.userData.wingR.rotation.z = -0.35 - Math.sin(t * 3) * 0.2;
+      }
+      if (an.userData.pulse) {
+        an.userData.pulse.forEach((m) => {
+          if (m.material?.emissiveIntensity != null) {
+            m.material.emissiveIntensity = 0.18 + 0.12 * Math.abs(Math.sin(t * 2 + a.phase));
+          }
+        });
+      }
+      if (a.glow?.material && !S.instituteAct) {
+        a.glow.material.opacity = 0.1 + 0.08 * Math.abs(Math.sin(t * 1.4 + a.phase));
+      }
+    });
+  }
+
+  if (S.instituteGateTip && camera) S.instituteGateTip.quaternion.copy(camera.quaternion);
+
+  // Aurora rim when Nhà Nghiên Cứu Sân
+  if (S.instituteRimAurora && S.nhaNghienCuuSan) {
+    S.instituteRimAurora.forEach((m, i) => {
+      if (!m.material) return;
+      const pulse = 0.35 + 0.35 * Math.abs(Math.sin(t * 1.2 + i));
+      m.material.emissive = m.material.emissive || new THREE.Color(0x44ffcc);
+      if (m.material.color) m.material.color.setHex(0xa8e8d8);
+      m.material.emissive.setHex(0x44ffaa);
+      m.material.emissiveIntensity = pulse;
+    });
+  }
+
+  // Soft tip near animal
+  if (S.nearInstituteAnimal && !S.instituteAct) {
+    const now = performance.now();
+    if (now - (S._instituteTipAt || 0) > 15000) {
+      S._instituteTipAt = now;
+      const v = S.nearInstituteAnimal.verb;
+      toast(`🧬 ${S.nearInstituteAnimal.name} · ${instituteVerbLabel(v)}?`);
+    }
+  }
+
+  // Courtyard nudge ~25s if never visited
+  if (S.playing && !S._instituteCourtyardTip && !S._instituteEntered) {
+    const playT = (typeof S._playStartedAt === 'number') ? (performance.now() - S._playStartedAt) : 0;
+    if (playT > 25000) {
+      S._instituteCourtyardTip = true;
+      toast('🧬 Viện Nghiên Cứu Di Truyền mở sân thú biến đổi… · nút mint / phím I');
+    }
+  }
+
+  const act = S.instituteAct;
+  if (!act) return;
+  if ($('modal')?.classList.contains('open')) {
+    cancelInstituteAct();
+    return;
+  }
+  act.t += dt;
+  const u = Math.min(1, act.t / act.dur);
+  if (player) { player.rotation.y = act.faceYaw; S.yaw = act.faceYaw; }
+
+  const a = (S.instituteAnimals || []).find((x) => x.id === act.animalId);
+  const an = a?.animal;
+  if (act.kind === 'quanSat') {
+    if (a?.glow?.material) a.glow.material.opacity = 0.28 + 0.2 * Math.abs(Math.sin(act.t * 3));
+    if (an) {
+      an.rotation.y = Math.sin(act.t * 1.5) * 0.25;
+      if (an.userData.pulse) {
+        an.userData.pulse.forEach((m) => {
+          if (m.material) m.material.emissiveIntensity = 0.35 + 0.35 * Math.abs(Math.sin(act.t * 4));
+        });
+      }
+    }
+  } else if (act.kind === 'vuotVe') {
+    if (an) {
+      an.rotation.z = Math.sin(act.t * 5) * 0.18;
+      an.position.y = 0.38 + Math.abs(Math.sin(act.t * 3)) * 0.08;
+    }
+    if (!IS_MOBILE && Math.random() < 0.08) {
+      try { emitSmoke(act.ax, 0.9, act.az, 1); } catch (_) {}
+    }
+  } else if (act.kind === 'chupAnh') {
+    if (an) {
+      // Impossible pose by beat
+      if (act.beat === 'koi') {
+        an.rotation.z = u * Math.PI * 2;
+        an.position.y = 0.5 + Math.sin(u * Math.PI) * 0.35;
+      } else if (act.beat === 'buffalo' && an.userData.headA) {
+        an.userData.headA.rotation.x = -u * 0.9;
+        an.userData.headB.rotation.x = -u * 0.9;
+        an.userData.headA.position.z = 0.12 - u * 0.08;
+        an.userData.headB.position.z = -0.12 + u * 0.08;
+      } else if (act.beat === 'cloud') {
+        an.position.y = 1.2 + u * 0.6;
+        an.scale.setScalar(1 + u * 0.35);
+      } else if (act.beat === 'cat' && an.userData.tails) {
+        an.userData.tails.forEach((tail, i) => { tail.rotation.y = u * Math.PI + i * 0.4; });
+        an.rotation.y = u * Math.PI;
+      } else if (act.beat === 'chicken' && an.userData.wing) {
+        an.userData.wing.rotation.x = -u * 1.2;
+        an.position.y = 0.38 + u * 0.4;
+      } else if (act.beat === 'pig') {
+        an.position.y = 0.55 + Math.sin(u * Math.PI) * 0.5;
+        if (an.userData.ring) an.userData.ring.rotation.z = u * Math.PI * 3;
+      } else if (act.beat === 'turtle') {
+        an.rotation.y = u * Math.PI * 2;
+      } else if (act.beat === 'crab') {
+        if (an.userData.clawL) {
+          an.userData.clawL.scale.set(1 + u * 1.2, 1, 1);
+          an.userData.clawR.scale.set(1 + u * 1.2, 1, 1);
+        }
+      } else if (act.beat === 'goose') {
+        an.position.y = 0.4 + u * 0.8;
+        if (an.userData.wingL) {
+          an.userData.wingL.rotation.z = 0.8;
+          an.userData.wingR.rotation.z = -0.8;
+        }
+      } else {
+        an.position.y = 0.45 + u * 0.5;
+        an.rotation.y = u * Math.PI * 2;
+        if (!IS_MOBILE && Math.random() < 0.15) {
+          try { emitSmoke(act.ax + Math.sin(act.t) * 0.3, 0.8, act.az, 1); } catch (_) {}
+        }
+      }
+    }
+    if (!act.flashed && u > 0.72) {
+      act.flashed = true;
+      const flash = $('selfie-flash');
+      if (flash) {
+        flash.classList.add('on');
+        setTimeout(() => flash.classList.remove('on'), 120);
+      }
+      try { playBell?.(0.3, 1.5); } catch (_) {}
+    }
+  }
+
+  if (act.lineIdx < act.lines.length && act.t >= act.nextLineAt) {
+    toast(act.lines[act.lineIdx]);
+    act.lineIdx += 1;
+    act.nextLineAt = act.t + 2.4;
+  }
+
+  if (u >= 1) finishInstituteAct(false);
 }
 
 /* ========== Hẻm Phóng Lợn · 3 tội phạm xe máy cũ ========== */
@@ -11535,8 +12317,8 @@ function goToStreetGate() {
 
 function tryMove(nx, nz) {
   const r = 0.35;
-  // Phố Việt bên phải (+X), đối diện chuông (−X) · + hẻm Nem (+Z)
-  if (nx < -18 || nx > 32 || nz < -22 || nz > 20) return false;
+  // Phố (+X) · Viện Nghiên Cứu (−X, isle ~−26 r18) · hẻm Nem (+Z)
+  if (nx < -45 || nx > 32 || nz < -22 || nz > 20) return false;
   for (const c of colliders) {
     if (c.destroyed) continue; // công trình đã bị phá — đi xuyên được
     if (nx + r > c.a && nx - r < c.b && nz + r > c.c && nz - r < c.d) return false;
@@ -16137,15 +16919,15 @@ function updateSuThay(dt, t) {
 }
 
 /* —— Hướng dẫn viên Chuyên · cạnh tượng Superman —— */
-/** Cạnh Superman (4.2, 11.2) · phía gần cổng tam quan (z≈12.5), lệch vào lối giữa */
-const GUIDE_SPOT = { x: 2.55, z: 12.15, r: 2.55 };
+/** Trước bát hương / chỗ thắp hương (spot z≈2.2, lư z≈2.5) · phía cổng, không về chính điện */
+const GUIDE_SPOT = { x: 0, z: 4.15, r: 2.55 };
 const GUIDE_HEAD_URL = './assets/guide-chuyen-head.png';
 const GUIDE_BODY_URL = './assets/guide-chuyen.png';
 const GUIDE_TOPICS = [
   {
     q: 'Tổng quan khu chùa?',
     keys: ['tổng', 'overview', 'khu', 'chùa gì', 'ở đâu', 'map', 'bản đồ', 'toàn'],
-    a: 'Chùa An Lạc: sân giữa có tượng Superman + mình đứng đây; Chính điện phía trong (thắp hương); trái có chuông; phải hồ sen + bồ đề; Phố An Lạc phía ngoài cổng — quán, karaoke, bóng đá… Cứ đi vòng, nút hành động hiện khi lại gần.',
+    a: 'Chùa An Lạc: mình đứng trước bát hương (phía cổng); Chính điện phía sau lư hương; tượng Superman gần cổng; trái có chuông; phải hồ sen + bồ đề; Phố An Lạc phía ngoài cổng — quán, karaoke, bóng đá… Cứ đi vòng, nút hành động hiện khi lại gần.',
   },
   {
     q: 'Chính điện làm gì?',
@@ -16160,7 +16942,7 @@ const GUIDE_TOPICS = [
   {
     q: 'Superman · BTS · fanmeet?',
     keys: ['superman', 'siêu nhân', 'bts', 'fanmeet', 'idol', 'ký'],
-    a: 'Tượng Superman khổng lồ ngay cạnh mình — chụp ảnh tinh thần thôi, đừng leo. BTS fanmeet góc sân trái (khăn tím): ôm, hôn, chữ ký, selfie… nút hiện khi đứng gần từng thành viên.',
+    a: 'Tượng Superman khổng lồ gần cổng — chụp ảnh tinh thần thôi, đừng leo. Bát hương ngay sau lưng mình: lại gần để thắp hương. BTS fanmeet góc sân trái (khăn tím): ôm, hôn, chữ ký, selfie… nút hiện khi đứng gần từng thành viên.',
   },
   {
     q: 'Phố An Lạc có gì?',
@@ -16176,7 +16958,7 @@ const GUIDE_TOPICS = [
 const GUIDE_FALLBACK = [
   'Câu hay! Tóm lại: sân = Superman + hướng dẫn (mình); điện = hương; trái = chuông; phải = sen; ngoài cổng = phố. Hỏi lại bằng nút chủ đề cũng được.',
   'Mình chưa khớp đúng từ khoá — thử hỏi “Chính điện”, “Phố”, “chuông”, “BTS” hoặc “tháp”. Hoặc chọn sẵn câu bên trên.',
-  'Đứng đây cạnh Superman là đúng rồi. Đi chậm, nhìn nút hành động dưới màn hình — mỗi chỗ một việc.',
+  'Đứng đây gần Bà Năm là đúng rồi. Đi chậm, nhìn nút hành động dưới màn hình — mỗi chỗ một việc.',
 ];
 let guideNpc = null; // { root, body, glow, tip, portrait, facePlate, label, bubbleEl, pos, sayUntil }
 
@@ -16199,7 +16981,7 @@ function answerGuideQuestion(raw) {
     return 'Chào bạn! Mình là Chuyên — hướng dẫn viên khu chùa. Hỏi điện, chuông, phố, BTS, tháp… gì cũng được.';
   }
   if (/bạn là ai|là ai|tên/.test(low)) {
-    return 'Mình là Chuyên, hướng dẫn viên đứng cạnh tượng Superman. Ảnh trên đầu đúng là mình — khỏi nhầm với idol bên kia sân.';
+    return 'Mình là Chuyên, hướng dẫn viên đứng trước bát hương (phía cổng). Ảnh trên đầu đúng là mình — khỏi nhầm với idol bên kia sân.';
   }
   if (/làm sao|hướng dẫn|help|bắt đầu|tutorial/.test(low)) {
     return GUIDE_TOPICS[0].a;
@@ -16324,7 +17106,7 @@ function openGuideTalk() {
   openModal(`
     <h2>🧭 Hướng dẫn viên · Chuyên</h2>
     <div class="bts-photo-wrap"><img class="bts-photo round" src="${GUIDE_HEAD_URL}" alt="Chuyên"/></div>
-    <p>Đứng cạnh tượng Superman đây. Bạn muốn hỏi gì về khu chùa — hoặc gõ câu hỏi tự do bên dưới.</p>
+    <p>Đứng trước bát hương, phía cổng đây. Bạn muốn hỏi gì về khu chùa — hoặc gõ câu hỏi tự do bên dưới.</p>
     <div class="row">${choices}</div>
     <div class="row" style="margin-top:10px;flex-direction:column;align-items:stretch;gap:8px">
       <input class="input" id="guide-ask" maxlength="100" placeholder="Ví dụ: Chính điện ở đâu? Phố có gì?" autocomplete="off"/>
@@ -17723,6 +18505,9 @@ $('chat-input') && ($('chat-input').onkeydown = (e) => {
 const _warpStreet = (e) => { e?.preventDefault?.(); goToStreetGate(); };
 $('btn-street') && ($('btn-street').onclick = _warpStreet);
 $('btn-street-fab') && ($('btn-street-fab').onclick = _warpStreet);
+const _warpInstitute = (e) => { e?.preventDefault?.(); goToInstituteGate(); };
+$('btn-institute') && ($('btn-institute').onclick = _warpInstitute);
+$('btn-institute-fab') && ($('btn-institute-fab').onclick = _warpInstitute);
 $('btn-share').onclick = () => doShare();
 bindMusicUi();
 $('action-btn').onclick = () => {
@@ -18013,6 +18798,7 @@ addEventListener('keydown', e => {
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') toggleAiming();
     if (e.code === 'KeyV') toggleFpsMode();
     if (e.code === 'KeyP') goToStreetGate();
+    if (e.code === 'KeyI') goToInstituteGate();
     if (e.code === 'KeyT') {
       if (S.chatOpen) closeChatBar();
       else openChatBar();
@@ -20430,7 +21216,7 @@ function updatePlayer(dt) {
     const now = performance.now();
     if (now - (S._guideTipAt || 0) > 16000) {
       S._guideTipAt = now;
-      toast('🧭 Hướng dẫn viên Chuyên cạnh tượng Superman — hỏi về cả khu chùa');
+      toast('🧭 Hướng dẫn viên Chuyên trước bát hương — hỏi về cả khu chùa');
     }
   }
 

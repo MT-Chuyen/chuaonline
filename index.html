@@ -433,6 +433,8 @@ const S = {
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
 const DMG = { chao: 0, dam: 14, da: 18, tat: 12, ak: 28, bazooka: 55, knife: 42, kill: 100 };
+/** Điểm hồi sinh khi bị hạ — ngay cổng tam quan */
+const GATE_SPAWN = { x: 0, z: 13.2 };
 
 const SPOTS = [
   { id: 'incense', pos: new THREE.Vector3(0, 0, 2.2), r: 2.3, label: 'Thắp hương' },
@@ -2748,15 +2750,19 @@ async function connectMultiplayer() {
       }
       rp.name = data.name || rp.name;
       rp.label.textContent = rp.name;
-      rp.tx = data.x; rp.tz = data.z; rp.tyaw = data.yaw || 0;
+      // Đang chờ hồi sinh tại cổng — không kéo về chỗ chết cũ
+      if (!rp.reviving) {
+        rp.tx = data.x; rp.tz = data.z; rp.tyaw = data.yaw || 0;
+      }
       const gType = data.gun || '';
       if (rp.gunType !== gType) {
         rp.gunType = gType;
         attachWeapon(rp.mesh, gType);
       }
       if (data.emote && data.emoteAt && now - data.emoteAt < 900) {
-        rp.emoteUntil = Math.max(rp.emoteUntil, data.emoteAt + 700);
+        rp.emoteUntil = Math.max(rp.emoteUntil || 0, data.emoteAt + 700);
         rp.emoteType = data.emote;
+        if (data.emote === 'kill' && !rp.reviving) reviveRemoteAtGate(rp);
       }
     }
     for (const [id, rp] of remotePlayers) {
@@ -2894,7 +2900,27 @@ function receiveFriendAction(msg) {
   }
 }
 
-/** Bị hạ — ngã xuống, khóa điều khiển, hồi sinh sau 3s */
+/** Bạn bè bị hạ — ngã rồi hồi sinh tại cổng (hiển thị phía người chơi khác) */
+function reviveRemoteAtGate(rp, delayMs = 3200) {
+  if (!rp || rp.reviving) return;
+  rp.reviving = true;
+  rp.hp = 0;
+  rp.emoteUntil = Date.now() + delayMs;
+  rp.emoteType = 'kill';
+  setTimeout(() => {
+    rp.tx = GATE_SPAWN.x;
+    rp.tz = GATE_SPAWN.z;
+    rp.mesh.position.set(GATE_SPAWN.x, 0, GATE_SPAWN.z);
+    rp.mesh.rotation.x = 0;
+    rp.mesh.rotation.z = 0;
+    rp.hp = MAX_HP;
+    rp.reviving = false;
+    rp.emoteUntil = 0;
+    toast(`${rp.name} đã hồi sinh tại cổng tam quan`);
+  }, delayMs);
+}
+
+/** Bị hạ — ngã xuống, khóa điều khiển, hồi sinh tại cổng sau 3s */
 function applyDeath(byName) {
   if (S.deadUntil && performance.now() < S.deadUntil) return;
   S.hp = 0;
@@ -2910,20 +2936,23 @@ function applyDeath(byName) {
     player.position.y = 0.15;
   }
   spawnExplosionBurst(playerRoot.position.x, 0.8, playerRoot.position.z, false);
-  toast(`${byName || 'Ai đó'} đã hạ bạn! Hồi sinh…`);
+  // Báo đang chết — bạn bè thấy mình ngã; sau đó publish vị trí cổng
+  publishPresence(true);
+  toast(`${byName || 'Ai đó'} đã hạ bạn! Hồi sinh tại cổng…`);
   setTimeout(() => {
     if (player) {
       player.rotation.z = 0;
       player.rotation.x = 0;
       player.position.y = 0;
     }
-    // Hồi sinh gần cổng — đầy máu
-    playerRoot.position.set(0, 0, 8.5);
+    // Hồi sinh đúng cổng tam quan — đầy máu
+    playerRoot.position.set(GATE_SPAWN.x, 0, GATE_SPAWN.z);
+    S.yaw = Math.PI; // nhìn vào chùa
     S.busy = false;
     S.deadUntil = 0;
     S.hp = MAX_HP;
     updateHpUI();
-    toast('Bạn đã hồi sinh tại cổng chùa');
+    toast('Bạn đã hồi sinh tại cổng tam quan');
     publishPresence(true);
   }, 3200);
 }
@@ -2933,17 +2962,22 @@ async function doFriendAction(type, target) {
   if (performance.now() < S.combatUntil) return;
   playCombatAnim(type);
   const dmg = DMG[type] || 0;
+  let hitType = type;
   if (dmg > 0 && remotePlayers.has(target.id)) {
     const rp = remotePlayers.get(target.id);
     rp.hp = Math.max(0, (rp.hp ?? MAX_HP) - dmg);
     spawnDamageNumber(rp.mesh.position.x, 1.55, rp.mesh.position.z, dmg);
     showTargetHp(rp.name, rp.hp, MAX_HP);
+    if (rp.hp <= 0) {
+      hitType = 'kill';
+      reviveRemoteAtGate(rp);
+    }
   }
-  toast(dmg ? `Bạn ${ACT_LABEL[type] || type} ${target.name} (−${dmg})` : `Bạn ${ACT_LABEL[type] || type} ${target.name}`);
+  toast(dmg ? `Bạn ${ACT_LABEL[hitType] || hitType} ${target.name} (−${dmg})` : `Bạn ${ACT_LABEL[type] || type} ${target.name}`);
   if (!fbDb || !S.uid) return;
-  update(ref(fbDb, `players/${S.uid}`), { emote: type, emoteAt: Date.now(), t: Date.now() });
+  update(ref(fbDb, `players/${S.uid}`), { emote: hitType, emoteAt: Date.now(), t: Date.now() });
   push(ref(fbDb, `inbox/${target.id}`), {
-    type, damage: dmg, fromName: S.name, from: S.uid, t: Date.now(),
+    type: hitType, damage: hitType === 'kill' ? MAX_HP : dmg, fromName: S.name, from: S.uid, t: Date.now(),
   });
 }
 
@@ -3370,12 +3404,18 @@ async function fireWeapon() {
         if (remotePlayers.has(best.id)) {
           const rp = remotePlayers.get(best.id);
           rp.hp = Math.max(0, (rp.hp ?? MAX_HP) - dmg);
-          rp.emoteUntil = Date.now() + 900;
-          rp.emoteType = rp.hp <= 0 ? 'kill' : 'knife';
           spawnDamageNumber(best.point.x, 1.5, best.point.z, dmg, false);
           showTargetHp(rp.name, rp.hp, MAX_HP);
-          sendGunHit(rp.hp <= 0 ? 'kill' : 'knife', best, dmg);
-          toast(rp.hp <= 0 ? `Hạ ${best.name}! 🗡️` : `Chém ${best.name} −${dmg}`);
+          if (rp.hp <= 0) {
+            reviveRemoteAtGate(rp);
+            sendGunHit('kill', best, MAX_HP);
+            toast(`Hạ ${best.name}! Hồi sinh tại cổng 🗡️`);
+          } else {
+            rp.emoteUntil = Date.now() + 900;
+            rp.emoteType = 'knife';
+            sendGunHit('knife', best, dmg);
+            toast(`Chém ${best.name} −${dmg}`);
+          }
         }
       }
     } else {
@@ -3406,7 +3446,12 @@ async function fireWeapon() {
           rp.hp = Math.max(0, (rp.hp ?? MAX_HP) - dmg);
           spawnDamageNumber(impact.point.x, impact.point.y, impact.point.z, dmg, true);
           showTargetHp(rp.name, rp.hp, MAX_HP);
-          sendGunHit(rp.hp <= 0 ? 'kill' : 'bazooka', impact, dmg);
+          if (rp.hp <= 0) {
+            reviveRemoteAtGate(rp);
+            sendGunHit('kill', impact, MAX_HP);
+          } else {
+            sendGunHit('bazooka', impact, dmg);
+          }
         }
       }
       if (impact?.kind === 'npc' && impact.aiIndex != null) {
@@ -3440,10 +3485,16 @@ async function fireWeapon() {
         rp.hp = Math.max(0, (rp.hp ?? MAX_HP) - dmg);
         spawnDamageNumber(impact.point.x, impact.point.y, impact.point.z, dmg);
         showTargetHp(rp.name, rp.hp, MAX_HP);
-        sendGunHit(rp.hp <= 0 ? 'kill' : 'ak', impact, dmg);
+        if (rp.hp <= 0) {
+          reviveRemoteAtGate(rp);
+          sendGunHit('kill', impact, MAX_HP);
+          toast(`AK hạ ${impact.name}! Hồi sinh tại cổng`);
+        } else {
+          sendGunHit('ak', impact, dmg);
+          toast(`AK trúng ${impact.name} (−${dmg})!`);
+        }
       }
       spawnExplosionBurst(impact.point.x, impact.point.y, impact.point.z, false);
-      toast(`AK trúng ${impact.name} (−${dmg})!`);
     } else if (impact?.kind === 'npc') {
       const r = damageNPC(impact.aiIndex, dmg, false);
       toast(r === 'dead' ? `AK hạ NPC ${impact.name}!` : `AK trúng ${impact.name} (−${dmg})`);
@@ -3488,8 +3539,11 @@ addEventListener('mouseup', e => {
 function updateRemotes(dt) {
   const now = Date.now();
   for (const [, rp] of remotePlayers) {
-    rp.mesh.position.x += (rp.tx - rp.mesh.position.x) * Math.min(1, dt * 8);
-    rp.mesh.position.z += (rp.tz - rp.mesh.position.z) * Math.min(1, dt * 8);
+    // Khi đang chết / chờ hồi sinh: giữ tại chỗ ngã, không lerp
+    if (!rp.reviving || rp.emoteUntil <= now) {
+      rp.mesh.position.x += (rp.tx - rp.mesh.position.x) * Math.min(1, dt * 8);
+      rp.mesh.position.z += (rp.tz - rp.mesh.position.z) * Math.min(1, dt * 8);
+    }
     // xoay mượt
     let dy = rp.tyaw - rp.mesh.rotation.y;
     while (dy > Math.PI) dy -= Math.PI * 2;

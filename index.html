@@ -4259,7 +4259,7 @@ function placeInstituteMutationDino(parent, ix, iz) {
   holder.position.set(wx, 0, wz);
   parent.add(holder);
 
-  // Bệ đá
+  // Đệm đất thấp — chân sát mặt sân (không bệ cao)
   const rockMat = new THREE.MeshStandardMaterial({
     color: 0x5a5548, roughness: 0.92, metalness: 0.08,
     emissive: 0x1a1810, emissiveIntensity: 0.06,
@@ -4268,23 +4268,13 @@ function placeInstituteMutationDino(parent, ix, iz) {
     color: 0x3d5a38, roughness: 0.95, metalness: 0.04,
     emissive: 0x0a2010, emissiveIntensity: 0.08,
   });
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.8, 0.55, 10), rockMat);
-  base.position.y = 0.28; base.receiveShadow = true; holder.add(base);
-  const slab = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 2.15, 0.35, 9), mossMat);
-  slab.position.y = 0.58; slab.receiveShadow = true; holder.add(slab);
-  for (let i = 0; i < 5; i++) {
-    const bit = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(0.28 + Math.random() * 0.2, 0),
-      i % 2 ? mossMat : rockMat
-    );
-    const a = (i / 5) * Math.PI * 2;
-    bit.position.set(Math.cos(a) * 1.7, 0.55, Math.sin(a) * 1.5);
-    bit.rotation.set(Math.random(), Math.random(), Math.random());
-    holder.add(bit);
-  }
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.9, 0.12, 12), rockMat);
+  base.position.y = 0.06; base.receiveShadow = true; holder.add(base);
+  const slab = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.25, 0.08, 10), mossMat);
+  slab.position.y = 0.12; slab.receiveShadow = true; holder.add(slab);
 
   const tip = textPlane('🧬 Khủng Long Đột Biến', 400, 52, '#fff4e8', '#4a2010', 18);
-  tip.position.set(0, 6.4, 0);
+  tip.position.set(0, 4.6, 0);
   tip.scale.set(2.6, 0.42, 1);
   holder.add(tip);
 
@@ -4310,15 +4300,15 @@ function placeInstituteMutationDino(parent, ix, iz) {
     (gltf) => {
       const model = gltf.scene || gltf.scenes?.[0];
       if (!model) return;
-      // Chuẩn hoá chiều cao ~5–6m trên bệ
+      // Chuẩn hoá chiều cao · chân sát mặt đất
       const box = new THREE.Box3().setFromObject(model);
       const size = new THREE.Vector3();
       box.getSize(size);
-      const targetH = IS_MOBILE ? 4.0 : 5.2;
+      const targetH = IS_MOBILE ? 3.4 : 4.2;
       const sc = targetH / Math.max(0.05, size.y);
       model.scale.setScalar(sc);
       box.setFromObject(model);
-      model.position.y = 0.75 - box.min.y; // đứng trên slab
+      model.position.y = 0.12 - box.min.y; // chân trên đệm đất thấp
       // Model +Z forward — hướng vào tâm sân Viện
       model.rotation.y = 0;
 
@@ -8501,6 +8491,126 @@ function updateInstitute(dt, t) {
       S._instituteCourtyardTip = true;
       toast('🧬 Viện Nghiên Cứu Di Truyền mở sân thú biến đổi… · nút mint / phím I');
     }
+  }
+
+  // —— Balloon safari act tick ——
+  if (balloonAct) {
+    if ($('modal')?.classList.contains('open')) {
+      cancelInstituteBalloonAct();
+      return;
+    }
+    balloonAct.t += dt;
+    const u = Math.min(1, balloonAct.t / balloonAct.dur);
+    const dockX = balloonAct.dockX != null ? balloonAct.dockX : INSTITUTE_X + 11.0;
+    const dockZ = balloonAct.dockZ != null ? balloonAct.dockZ : INSTITUTE_Z - 10.5;
+    const cruiseY = balloonAct.cruiseY || 4.5;
+
+    if (balloonAct.kind === 'lenCau' || balloonAct.kind === 'safariHoangHon') {
+      // Rise → orbit oval → descend
+      let py = cruiseY;
+      let px = dockX, pz = dockZ;
+      if (u < 0.12) {
+        const e = u / 0.12;
+        py = 0.2 + (cruiseY - 0.2) * (1 - Math.pow(1 - e, 2));
+        px = dockX; pz = dockZ;
+      } else if (u > 0.88) {
+        const e = (u - 0.88) / 0.12;
+        const p = balloonPathXZ(balloonAct.orbitT || 0);
+        px = p.x + (dockX - p.x) * e;
+        pz = p.z + (dockZ - p.z) * e;
+        py = cruiseY + (0 - cruiseY) * e;
+      } else {
+        const orbitU = (u - 0.12) / 0.76;
+        balloonAct.orbitT = (balloonAct.orbitT || 0) + dt * (balloonAct.golden ? 0.55 : 0.48);
+        const p = balloonPathXZ(balloonAct.orbitT);
+        px = p.x; pz = p.z;
+        py = cruiseY + Math.sin(orbitU * Math.PI * 2) * 0.25;
+        // Soft camera look toward yard center
+        S.yaw = Math.atan2(-(INSTITUTE_X - px), -(INSTITUTE_Z - pz));
+        if (player) player.rotation.y = S.yaw;
+      }
+      if (playerRoot) {
+        playerRoot.position.set(px, Math.max(0, py), pz);
+      }
+      // Balloon mesh follows player in world (relative to dock group)
+      if (S.instituteBalloonMesh && S.instituteBalloonRoot) {
+        S.instituteBalloonMesh.position.set(
+          px - S.instituteBalloonRoot.position.x,
+          py + 0.85,
+          pz - S.instituteBalloonRoot.position.z
+        );
+        S.instituteBalloonMesh.rotation.y = S.yaw || 0;
+        if (balloonAct.golden && S.instituteBalloonMesh.children?.[0]?.material) {
+          const env = S.instituteBalloonMesh.children[0];
+          if (env.material?.emissive) {
+            env.material.emissive.setHex(0xffcc66);
+            env.material.emissiveIntensity = 0.45 + 0.3 * Math.abs(Math.sin(balloonAct.t * 3));
+          }
+        }
+      }
+      // Trail particles (desktop / after escalate)
+      if (balloonAct.trail && !IS_MOBILE && Math.random() < 0.08) {
+        try { emitSmoke(px, py - 0.3, pz, 1); } catch (_) {}
+      }
+      // Safari auto-spot mid-orbit
+      if (balloonAct.golden && !balloonAct.autoSpotDone && u > 0.25 && u < 0.75) {
+        balloonAct.autoSpotDone = true;
+        (balloonAct.autoSpotIds || []).forEach((id, i) => {
+          const a = (S.instituteAnimals || []).find((x) => x.id === id);
+          if (a) {
+            setTimeout(() => {
+              highlightBalloonSpot(a, IS_MOBILE ? 4500 : 6000);
+              if (!IS_MOBILE || i < 2) {
+                spawnBalloonJokeBubble(a, instituteBalloonJoke(a.name, i + (S.vienKhinhKhi | 0)));
+              }
+            }, i * 900);
+          }
+        });
+      }
+      // Soft one-liner mid normal ride
+      if (!balloonAct.golden && !balloonAct.midJoke && u > 0.4) {
+        balloonAct.midJoke = true;
+        const free = balloonFreeSpotAnimals();
+        if (free.length) {
+          const a = free[(S.vienKhinhKhi | 0) % free.length];
+          if (!IS_MOBILE) spawnBalloonJokeBubble(a, instituteBalloonJoke(a.name, S.vienKhinhKhi | 0));
+          else toast(instituteBalloonJoke(a.name, S.vienKhinhKhi | 0));
+        }
+      }
+    } else if (balloonAct.kind === 'ngamHabitat') {
+      // Soft hover above dock + sequential spot beams (pedestals stay put)
+      const hoverY = 2.6 + Math.sin(balloonAct.t * 1.5) * 0.15;
+      if (playerRoot) playerRoot.position.set(dockX, hoverY, dockZ);
+      if (S.instituteBalloonMesh && S.instituteBalloonRoot) {
+        S.instituteBalloonMesh.position.set(0, hoverY + 0.9, 0);
+      }
+      if (balloonAct.spotIdx < (balloonAct.spotIds || []).length && balloonAct.t >= balloonAct.nextSpotAt) {
+        const id = balloonAct.spotIds[balloonAct.spotIdx];
+        const a = (S.instituteAnimals || []).find((x) => x.id === id);
+        if (a) {
+          highlightBalloonSpot(a, IS_MOBILE ? 4500 : 6500);
+          spawnBalloonJokeBubble(a, instituteBalloonJoke(a.name, balloonAct.spotIdx + (S.vienKhinhKhi | 0)));
+          // Soft look toward animal
+          S.yaw = Math.atan2(-(a.x - dockX), -(a.z - dockZ));
+          if (player) player.rotation.y = S.yaw;
+        }
+        balloonAct.spotIdx += 1;
+        balloonAct.nextSpotAt = balloonAct.t + (IS_MOBILE ? 2.2 : 2.8);
+      }
+    } else if (balloonAct.kind === 'thaBongBong') {
+      if (player) { player.rotation.y = balloonAct.faceYaw; S.yaw = balloonAct.faceYaw; }
+      if (!balloonAct.joked && balloonAct.t >= (balloonAct.jokeAt || 1.2)) {
+        balloonAct.joked = true;
+        const focus = (S.instituteAnimals || []).find((x) => x.id === balloonAct.focusId);
+        if (focus) spawnBalloonJokeBubble(focus, instituteBalloonJoke(focus.name, S.vienKhinhKhi | 0));
+      }
+      if (!IS_MOBILE && Math.random() < 0.06) {
+        try { emitSmoke(dockX + (Math.random() - 0.5), 1.5 + Math.random(), dockZ + (Math.random() - 0.5), 1); } catch (_) {}
+      }
+    }
+
+    if (u >= 1) finishInstituteBalloonAct(false);
+    return;
   }
 
   // —— Parade act tick ——

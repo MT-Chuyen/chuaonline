@@ -1024,52 +1024,52 @@ function buildSky() {
   const sgeo = new THREE.BufferGeometry();
   sgeo.setAttribute('position', new THREE.BufferAttribute(spos, 3));
   const stars = new THREE.Points(sgeo, noFog(new THREE.PointsMaterial({
-    color: 0xffffff, size: 2.2, transparent: true, opacity: 1, depthWrite: false, sizeAttenuation: false,
+    color: 0xffffff, size: 4.5, transparent: true, opacity: 1, depthWrite: false, sizeAttenuation: false,
   })));
   sky.add(stars); S.sky.stars = stars;
 
-  // Ngân Hà — vắt ngang bầu trời phía trên
+  // Ngân Hà — lớn hơn
   const milky = new THREE.Mesh(
-    new THREE.PlaneGeometry(70, 18),
-    noFog(new THREE.MeshBasicMaterial({ map: makeMilkyTex(), transparent: true, opacity: 0.75, depthWrite: false, side: THREE.DoubleSide }))
+    new THREE.PlaneGeometry(110, 32),
+    noFog(new THREE.MeshBasicMaterial({ map: makeMilkyTex(), transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide }))
   );
-  milky.position.set(0, 38, -8); milky.rotation.x = -0.2; milky.rotation.z = 0.4;
+  milky.position.set(0, 36, -6); milky.rotation.x = -0.15; milky.rotation.z = 0.4;
   sky.add(milky); S.sky.milky = milky;
 
-  // Trái Đất — to, gần, phía trên-trước khi ngẩng nhìn
+  // Trái Đất — rất to
   const earthMat = noFog(new THREE.MeshStandardMaterial({
     map: makeEarthTex(), roughness: 0.65, metalness: 0.05,
-    emissive: 0x1a3355, emissiveIntensity: 0.55,
+    emissive: 0x1a3355, emissiveIntensity: 0.65,
   }));
-  const earth = new THREE.Mesh(new THREE.SphereGeometry(5.5, 28, 18), earthMat);
-  earth.position.set(-12, 32, -18);
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(12, 32, 20), earthMat);
+  earth.position.set(-14, 28, -16);
   const atmo = new THREE.Mesh(
-    new THREE.SphereGeometry(5.9, 16, 12),
-    noFog(new THREE.MeshBasicMaterial({ color: 0x66aaff, transparent: true, opacity: 0.22, side: THREE.BackSide, depthWrite: false }))
+    new THREE.SphereGeometry(12.8, 20, 14),
+    noFog(new THREE.MeshBasicMaterial({ color: 0x66aaff, transparent: true, opacity: 0.28, side: THREE.BackSide, depthWrite: false }))
   );
   earth.add(atmo); S.sky.atmo = atmo;
   sky.add(earth); S.sky.earth = earth;
 
-  // Mặt trăng
+  // Mặt trăng — to
   const moon = new THREE.Mesh(
-    new THREE.SphereGeometry(2.8, 14, 12),
-    noFog(new THREE.MeshStandardMaterial({ color: 0xfff5e0, roughness: 0.85, emissive: 0xaa9966, emissiveIntensity: 0.45 }))
+    new THREE.SphereGeometry(6, 16, 14),
+    noFog(new THREE.MeshStandardMaterial({ color: 0xfff5e0, roughness: 0.85, emissive: 0xaa9966, emissiveIntensity: 0.55 }))
   );
-  moon.position.set(16, 30, -12); sky.add(moon); S.sky.moon = moon;
+  moon.position.set(18, 26, -10); sky.add(moon); S.sky.moon = moon;
 
-  // Vệ tinh — quỹ đạo gần, to hơn
+  // Vệ tinh — to rõ
   for (let i = 0; i < 5; i++) {
     const sat = new THREE.Group();
     sat.add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.45, 0.45), noFog(new THREE.MeshStandardMaterial({ color: 0xeeeeee, metalness: 0.7, roughness: 0.3, emissive: 0x444444, emissiveIntensity: 0.35 }))));
     sat.add(new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.06, 0.7), noFog(new THREE.MeshStandardMaterial({ color: 0x3366cc, metalness: 0.5, emissive: 0x113388, emissiveIntensity: 0.45 }))));
     const blink = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 4), noFog(new THREE.MeshBasicMaterial({ color: 0xff3333 })));
     blink.position.set(0.5, 0.25, 0); sat.add(blink);
-    sat.scale.setScalar(1.4);
-    sat.userData = { kind: 'sat', a: (i / 5) * 6.28, speed: 0.25 + Math.random() * 0.15, r: 22 + i * 3, y: 24 + (i % 3) * 3, blink };
+    sat.scale.setScalar(3.2);
+    sat.userData = { kind: 'sat', a: (i / 5) * 6.28, speed: 0.22 + Math.random() * 0.12, r: 20 + i * 3, y: 22 + (i % 3) * 3, blink };
     sky.add(sat); S.sky.sats.push(sat);
   }
 
-  // Máy bay — bay thấp hơn để dễ thấy
+  // Máy bay — phóng to
   for (let i = 0; i < 3; i++) {
     const plane = new THREE.Group();
     const fuselage = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 1.3, 3, 6), noFog(new THREE.MeshStandardMaterial({ color: 0xf0f0f0, roughness: 0.45, metalness: 0.35, emissive: 0x333333, emissiveIntensity: 0.15 })));
@@ -1083,15 +1083,15 @@ function buildSky() {
     navR.position.set(0, 0, -1.05); plane.add(navR);
     const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 5, 4), noFog(new THREE.MeshBasicMaterial({ color: 0xffffaa })));
     nose.position.set(0.75, 0, 0); plane.add(nose);
-    plane.userData = { kind: 'aircraft', x: -40 + i * 25, y: 16 + i * 2.5, z: -5 + i * 4, speed: 5.5 + i, phase: i };
-    plane.scale.setScalar(1.8); sky.add(plane); S.sky.craft.push(plane);
+    plane.userData = { kind: 'aircraft', x: -40 + i * 25, y: 15 + i * 2.5, z: -5 + i * 4, speed: 5.5 + i, phase: i };
+    plane.scale.setScalar(4.5); sky.add(plane); S.sky.craft.push(plane);
   }
 
-  // Starship / spacecraft — gần, sáng, rõ
+  // Starship / spacecraft — rất to
   const ships = [
-    { color: 0x66ccff, scale: 2.4 },
-    { color: 0xaaff77, scale: 2.0 },
-    { color: 0xff88cc, scale: 2.8 },
+    { color: 0x66ccff, scale: 5.5 },
+    { color: 0xaaff77, scale: 4.8 },
+    { color: 0xff88cc, scale: 6.2 },
   ];
   ships.forEach((cfg, i) => {
     const ship = new THREE.Group();
@@ -1105,8 +1105,8 @@ function buildSky() {
     thruster.position.x = -0.95; ship.add(thruster);
     ship.userData = {
       kind: i === 2 ? 'spacecraft' : 'starship',
-      a: i * 2.1, speed: 0.35 + i * 0.08,
-      r: 18 + i * 4, y: 20 + i * 3.5, bob: i, thruster,
+      a: i * 2.1, speed: 0.28 + i * 0.06,
+      r: 16 + i * 4, y: 18 + i * 3, bob: i, thruster,
     };
     ship.scale.setScalar(cfg.scale); sky.add(ship); S.sky.craft.push(ship);
   });
@@ -1130,7 +1130,7 @@ function updateSky(dt, t, dusk) {
 
   S.sky.earth.rotation.y += dt * 0.08;
   S.sky.milky.rotation.z = 0.4 + Math.sin(t * 0.03) * 0.04;
-  S.sky.stars.material.size = 2.0 + Math.sin(t * 3) * 0.35;
+  S.sky.stars.material.size = 4.2 + Math.sin(t * 3) * 0.6;
 
   S.sky.sats.forEach(sat => {
     const u = sat.userData;

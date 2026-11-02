@@ -189,7 +189,7 @@ const _v = new THREE.Vector3(), _v2 = new THREE.Vector3();
 
 const S = {
   name: '', muted: false, playing: false,
-  yaw: 0, pitch: -0.32, drag: false, lx: 0, ly: 0,
+  yaw: 0, pitch: 0.28, drag: false, lx: 0, ly: 0,
   keys: Object.create(null),
   joy: { on: false, dx: 0, dy: 0, id: null },
   near: null,
@@ -1159,8 +1159,10 @@ canvas.addEventListener('pointermove', e => {
   if (!S.drag || e.pointerId !== lookPtr) return;
   const dx = e.clientX - S.lx, dy = e.clientY - S.ly;
   S.lx = e.clientX; S.ly = e.clientY;
-  S.yaw -= dx * 0.005; S.pitch -= dy * 0.004;
-  S.pitch = Math.max(-1.1, Math.min(-0.05, S.pitch));
+  // Kéo ngang xoay, kéo dọc: lên = nhìn trời/tháp, xuống = nhìn sân
+  S.yaw -= dx * 0.0055;
+  S.pitch += dy * 0.0045;
+  S.pitch = Math.max(-0.55, Math.min(1.15, S.pitch)); // âm = nhìn lên, dương = nhìn xuống
 });
 const endLook = e => { if (e.pointerId === lookPtr) { S.drag = false; lookPtr = null; } };
 canvas.addEventListener('pointerup', endLook); canvas.addEventListener('pointercancel', endLook);
@@ -1745,13 +1747,18 @@ function updatePlayer(dt) {
     if (!S.busy) { ud.armL.rotation.x *= 0.8; ud.armR.rotation.x *= 0.8; }
   }
 
-  // Camera theo sau
-  const dist = 5.2, h = 3.2;
-  const cx = playerRoot.position.x + Math.sin(S.yaw) * dist * Math.cos(S.pitch);
-  const cy = playerRoot.position.y + h + Math.sin(-S.pitch) * 2;
-  const cz = playerRoot.position.z + Math.cos(S.yaw) * dist * Math.cos(S.pitch);
-  camera.position.lerp(_v.set(cx, cy, cz), 1 - Math.pow(0.001, dt));
-  _v2.set(playerRoot.position.x, playerRoot.position.y + 1.3, playerRoot.position.z);
+  // Camera quỹ đạo quanh nhân vật — cho phép nhìn lên trời / tháp cao
+  const dist = 6.2;
+  const phi = S.pitch; // -0.55..1.15
+  const cosP = Math.cos(phi);
+  const px = playerRoot.position.x, pz = playerRoot.position.z;
+  const cx = px + Math.sin(S.yaw) * dist * Math.max(0.12, cosP);
+  const cy = playerRoot.position.y + 1.35 + Math.sin(phi) * dist;
+  const cz = pz + Math.cos(S.yaw) * dist * Math.max(0.12, cosP);
+  camera.position.lerp(_v.set(cx, Math.max(0.6, cy), cz), 1 - Math.pow(0.0008, dt));
+  // Khi ngẩng nhìn (phi < 0) điểm nhìn nâng cao để thấy tháp / bầu trời
+  const lookY = 1.35 + (phi < 0 ? -phi * 14 : 0);
+  _v2.set(px, lookY, pz);
   camera.lookAt(_v2);
 
   // Spot gần + người chơi thật gần

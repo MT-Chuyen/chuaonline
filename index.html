@@ -4,6 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <meta name="theme-color" content="#1a0f08"/>
+<!-- Bắt buộc để YouTube embed không Error 153 (cần gửi Referer) -->
+<meta name="referrer" content="strict-origin-when-cross-origin"/>
 <title>Lên Chùa Cầu An</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -11443,9 +11445,16 @@ function mountStreetVideo(videoId, title, muted) {
   const origin = encodeURIComponent(location.origin || 'https://localhost');
   const mute = muted ? '&mute=1' : '';
   const nice = String(title || 'YouTube').replace(/"/g, '');
+  // youtube.com + Referrer-Policy — tránh Error 153 (player configuration)
   // controls=1 để bấm Play nếu trình duyệt chặn autoplay
-  const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&controls=1&enablejsapi=1${mute}&origin=${origin}`;
-  frame.innerHTML = `<iframe src="${src}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${nice}"></iframe>`;
+  const src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&controls=1${mute}&origin=${origin}`;
+  frame.innerHTML = `<iframe
+    src="${src}"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowfullscreen
+    referrerpolicy="strict-origin-when-cross-origin"
+    title="${nice}"
+  ></iframe>`;
   yard.classList.add('on');
   yard.classList.add('yt-playing');
   yard.classList.remove('yt-board');

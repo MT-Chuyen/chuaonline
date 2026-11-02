@@ -1,84 +1,84 @@
 {
-  "updatedAt": "2026-11-02T21:17:18+07:00",
+  "updatedAt": "2026-11-02T21:30:27+07:00",
   "pipeline": {
     "agent1": {
       "id": "agent1",
       "name": "Agent 1 — Director",
       "role": "Assign · Review · Improve",
       "status": "done",
-      "detail": "Task assigned to Agent 2: TASK-20261102-2115-pho-an-lac.md"
+      "detail": "Loop complete 10/10 — Giờ Vàng OK, no new task, active=false next=stop"
     },
     "agent2": {
       "id": "agent2",
       "name": "Agent 2 — Builder",
       "role": "Implement task in index.html",
-      "status": "working",
-      "detail": "Starting build: Giờ Vàng · Đèn Bay"
+      "status": "done",
+      "detail": "Build complete — Giờ Vàng · Đèn Bay ready for final Agent1 review (iter 10/10)"
     },
-    "pipelinePhase": "assigned"
+    "pipelinePhase": "review"
   },
   "currentTask": {
     "file": "agents/tasks/TASK-20261102-2115-pho-an-lac.md",
     "name": "TASK-20261102-2115-pho-an-lac.md",
     "title": "Phố An Lạc — Giờ Vàng · Đèn Bay",
     "wish": "Players want the soft IRL-impossible street fantasy: **đèn đường thật sự nhấc khỏi trụ**, bay lơ lửng, and for a dozen seconds both Phố An Lạc becomes a private **Giờ Vàng** — chợ-đêm warmth without leaving the temple gate. Closing street slice: whole phố spectacle, not another shop/karaoke/xích lô sequel.",
-    "phase": "assigned",
+    "phase": "review",
     "checklist": [
       {
-        "done": false,
+        "done": true,
         "text": "**Giờ Vàng hotspot** — mid-street mesh cue (soft gold ring + tip plane **✨ Giờ Vàng · đèn bay**) near ~`20.2, STREET_Z` (center lane), **north of** hốt họ south curb (~20.5/−4.75) and **clear of** mưa trà (~23.9/−5.65), karaoke north, xích lô (~26), shop door centers. Proximity `nearGioVang` with Vietnamese verb **Gọi Giờ Vàng**. **Priority:** gossip > shop door (cafe/pho/hair/tea) > mưa trà > karaoke > hốt họ > xích lô > **Giờ Vàng** — never steal higher hooks; Giờ Vàng only wins when those are null."
       },
       {
-        "done": false,
+        "done": true,
         "text": "**Đèn bay sequence** — on interact: `S.busy`, timed ~12–16s; lock gentle face toward mid-street (player stays on ground — **no** free-fly). Must use existing `S.streetLamps[]` (already built in `buildStreetDistrict`): store/restore `homeY` / intensity / emissive; lerp bulbs + lights up + slow orbit; end/Esc → lerp home. **During Giờ Vàng**, own lamp look; do **not** let karaoke Đêm loa / xích lô đêm / hốt họ Chủ Họ lamp pulses fight mid-sequence (yield: if those modes are active, either soft-block Giờ Vàng with tip *“đèn đang thuộc đêm loa / xích lô / họ”* or pause their pulse until restore). Mobile: fewer particles / fewer lamps lift."
       },
       {
-        "done": false,
+        "done": true,
         "text": "**Fantasy beats** — gold dust or cheap sparks on road; 2–4 short VN toast lines (playful chợ-đêm / giờ vàng, non-idol, non-BTS). Optional soft mid-street ring pulse. Mobile: fewer particles."
       },
       {
-        "done": false,
+        "done": true,
         "text": "**Rewards + persist** — `S.phoVangUses` (number) + `S.phoVangBestTier` (`lap`/`ruc`/`rang`) + `S.khachGioVang` flair in `saveAll` / load; first call higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip like `banTraMua` / `chuHo` / `caSiViaHe` / `khachPho`."
       },
       {
-        "done": false,
+        "done": true,
         "text": "**Soft hooks** — night / `calm` / dusk: taller lift or brighter first toast; optional once-per-weather-window bonus (`weatherBonus.phoVang` or similar). After shop visit or gossip in session: `duyenPhoVang` soft tip or +1 công đức on next finish (do not rewrite shop/gossip content)."
       },
       {
-        "done": false,
+        "done": true,
         "text": "**Sổ** — short **🛤️ Phố An Lạc · Giờ Vàng đèn bay** lines (số lần / bậc cao nhất / 1–3 nhật ký). Do not replace shop list, gossip, xích lô, karaoke, hốt họ, or mưa trà Sổ blocks."
       },
       {
-        "done": false,
+        "done": true,
         "text": "**Leave intact** — mưa trà ghế đôi + Bạn Trà Mưa, hốt họ + Chủ Họ, karaoke loa kéo + Đêm loa vàng, xích lô + bến, 4 shops + Khách Phố, gossip/đánh ghen, Nem Chua, Phóng Lợn, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate systems as-is, Ronaldo–Messi poster."
       },
       {
-        "done": false,
+        "done": true,
         "text": "UI copy in Vietnamese where the game already uses Vietnamese"
       },
       {
-        "done": false,
+        "done": true,
         "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry)"
       },
       {
-        "done": false,
+        "done": true,
         "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.streetLamps` / weatherMood / day phase / `S.busy` patterns from mưa trà / karaoke / xích lô / hốt họ"
       },
       {
-        "done": false,
+        "done": true,
         "text": "**Do NOT** expand BTS / princess / idol romance"
       },
       {
-        "done": false,
+        "done": true,
         "text": "**Do NOT** rewrite karaoke, xích lô, hốt họ, mưa trà, đánh ghen narrative, or deep cafe/pho/hair/tea menus this pass (Giờ Vàng is the vertical slice; lamps are shared carefully)"
       }
     ],
-    "done": 0,
+    "done": 12,
     "total": 12,
-    "progress": 0.0,
-    "hasDoneReport": false,
-    "doneReport": "",
-    "mtime": "2026-11-02T21:16:18+07:00"
+    "progress": 100.0,
+    "hasDoneReport": true,
+    "doneReport": "- Files changed: `index.html`, `agents/tasks/TASK-20261102-2115-pho-an-lac.md`, `agents/loop-state.json`\n- What the player can do now:\n  - Warp to Phố An Lạc (FAB / P) → tip 「Đèn phố muốn bay…」 → step just outside gossip ring mid-street → **Gọi Giờ Vàng**\n  - Watch street lamps lift off poles, orbit mid-lane ~12–16s with gold dust + VN toasts; Esc/Hủy after 1.5s still counts\n  - Escalate Lấp → Rực (+ flair **Khách Giờ Vàng** at 3) → Rạng (5 or night/calm bonus); Sổ tracks lần / bậc\n  - Soft duyên after shop / gossip / mưa trà → tip + extra công đức on next Giờ Vàng\n  - Soft-blocks if karaoke / xích lô đêm / hốt họ are mid-sequence; those lamp pulses yield during Giờ Vàng\n- How to test:\n  1. Load game → FAB / P → stand mid-street outside gossip → interact **Gọi Giờ Vàng**\n  2. Confirm bulbs lift + restore; first call toast + công đức; Sổ section appears\n  3. Call 3× → flair Khách Giờ Vàng; check merit chip\n  4. During karaoke/xích lô đêm/hốt họ active → tip blocks Giờ Vàng; after → works\n  5. Smoke: shops, gossip, mưa trà, karaoke, hốt họ, xích lô, pagoda fantasies still OK\n- Known limits / next ideas for Agent 1:\n  - Hotspot r=4.8 (usable annulus outside gossip r=3.2); warp spawn still hits gossip first by design\n  - Idle Đêm loa / Chủ Họ / xích lô Dem unlocked pulses pause only while `phoVangCall` active (active performances still soft-block start)\n  - Loop iter 10/10 — final Director review next; no further build unless polish-critical\n  - No commit",
+    "mtime": "2026-11-02T21:24:10+07:00"
   },
   "tasks": [
     {
@@ -86,63 +86,63 @@
       "name": "TASK-20261102-2115-pho-an-lac.md",
       "title": "Phố An Lạc — Giờ Vàng · Đèn Bay",
       "wish": "Players want the soft IRL-impossible street fantasy: **đèn đường thật sự nhấc khỏi trụ**, bay lơ lửng, and for a dozen seconds both Phố An Lạc becomes a private **Giờ Vàng** — chợ-đêm warmth without leaving the temple gate. Closing street slice: whole phố spectacle, not another shop/karaoke/xích lô sequel.",
-      "phase": "assigned",
+      "phase": "review",
       "checklist": [
         {
-          "done": false,
+          "done": true,
           "text": "**Giờ Vàng hotspot** — mid-street mesh cue (soft gold ring + tip plane **✨ Giờ Vàng · đèn bay**) near ~`20.2, STREET_Z` (center lane), **north of** hốt họ south curb (~20.5/−4.75) and **clear of** mưa trà (~23.9/−5.65), karaoke north, xích lô (~26), shop door centers. Proximity `nearGioVang` with Vietnamese verb **Gọi Giờ Vàng**. **Priority:** gossip > shop door (cafe/pho/hair/tea) > mưa trà > karaoke > hốt họ > xích lô > **Giờ Vàng** — never steal higher hooks; Giờ Vàng only wins when those are null."
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Đèn bay sequence** — on interact: `S.busy`, timed ~12–16s; lock gentle face toward mid-street (player stays on ground — **no** free-fly). Must use existing `S.streetLamps[]` (already built in `buildStreetDistrict`): store/restore `homeY` / intensity / emissive; lerp bulbs + lights up + slow orbit; end/Esc → lerp home. **During Giờ Vàng**, own lamp look; do **not** let karaoke Đêm loa / xích lô đêm / hốt họ Chủ Họ lamp pulses fight mid-sequence (yield: if those modes are active, either soft-block Giờ Vàng with tip *“đèn đang thuộc đêm loa / xích lô / họ”* or pause their pulse until restore). Mobile: fewer particles / fewer lamps lift."
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Fantasy beats** — gold dust or cheap sparks on road; 2–4 short VN toast lines (playful chợ-đêm / giờ vàng, non-idol, non-BTS). Optional soft mid-street ring pulse. Mobile: fewer particles."
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Rewards + persist** — `S.phoVangUses` (number) + `S.phoVangBestTier` (`lap`/`ruc`/`rang`) + `S.khachGioVang` flair in `saveAll` / load; first call higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip like `banTraMua` / `chuHo` / `caSiViaHe` / `khachPho`."
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Soft hooks** — night / `calm` / dusk: taller lift or brighter first toast; optional once-per-weather-window bonus (`weatherBonus.phoVang` or similar). After shop visit or gossip in session: `duyenPhoVang` soft tip or +1 công đức on next finish (do not rewrite shop/gossip content)."
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Sổ** — short **🛤️ Phố An Lạc · Giờ Vàng đèn bay** lines (số lần / bậc cao nhất / 1–3 nhật ký). Do not replace shop list, gossip, xích lô, karaoke, hốt họ, or mưa trà Sổ blocks."
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Leave intact** — mưa trà ghế đôi + Bạn Trà Mưa, hốt họ + Chủ Họ, karaoke loa kéo + Đêm loa vàng, xích lô + bến, 4 shops + Khách Phố, gossip/đánh ghen, Nem Chua, Phóng Lợn, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate systems as-is, Ronaldo–Messi poster."
         },
         {
-          "done": false,
+          "done": true,
           "text": "UI copy in Vietnamese where the game already uses Vietnamese"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry)"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.streetLamps` / weatherMood / day phase / `S.busy` patterns from mưa trà / karaoke / xích lô / hốt họ"
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Do NOT** expand BTS / princess / idol romance"
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Do NOT** rewrite karaoke, xích lô, hốt họ, mưa trà, đánh ghen narrative, or deep cafe/pho/hair/tea menus this pass (Giờ Vàng is the vertical slice; lamps are shared carefully)"
         }
       ],
-      "done": 0,
+      "done": 12,
       "total": 12,
-      "progress": 0.0,
-      "hasDoneReport": false,
-      "doneReport": "",
-      "mtime": "2026-11-02T21:16:18+07:00"
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`, `agents/tasks/TASK-20261102-2115-pho-an-lac.md`, `agents/loop-state.json`\n- What the player can do now:\n  - Warp to Phố An Lạc (FAB / P) → tip 「Đèn phố muốn bay…」 → step just outside gossip ring mid-street → **Gọi Giờ Vàng**\n  - Watch street lamps lift off poles, orbit mid-lane ~12–16s with gold dust + VN toasts; Esc/Hủy after 1.5s still counts\n  - Escalate Lấp → Rực (+ flair **Khách Giờ Vàng** at 3) → Rạng (5 or night/calm bonus); Sổ tracks lần / bậc\n  - Soft duyên after shop / gossip / mưa trà → tip + extra công đức on next Giờ Vàng\n  - Soft-blocks if karaoke / xích lô đêm / hốt họ are mid-sequence; those lamp pulses yield during Giờ Vàng\n- How to test:\n  1. Load game → FAB / P → stand mid-street outside gossip → interact **Gọi Giờ Vàng**\n  2. Confirm bulbs lift + restore; first call toast + công đức; Sổ section appears\n  3. Call 3× → flair Khách Giờ Vàng; check merit chip\n  4. During karaoke/xích lô đêm/hốt họ active → tip blocks Giờ Vàng; after → works\n  5. Smoke: shops, gossip, mưa trà, karaoke, hốt họ, xích lô, pagoda fantasies still OK\n- Known limits / next ideas for Agent 1:\n  - Hotspot r=4.8 (usable annulus outside gossip r=3.2); warp spawn still hits gossip first by design\n  - Idle Đêm loa / Chủ Họ / xích lô Dem unlocked pulses pause only while `phoVangCall` active (active performances still soft-block start)\n  - Loop iter 10/10 — final Director review next; no further build unless polish-critical\n  - No commit",
+      "mtime": "2026-11-02T21:24:10+07:00"
     },
     {
       "file": "agents/tasks/TASK-20261102-2107-pho-an-lac.md",
@@ -1199,10 +1199,40 @@
   ],
   "git": {
     "indexDirty": true,
-    "indexMtime": "2026-11-02T21:16:56+07:00",
-    "diffStat": "index.html | 10126 ++++++++++++++++++++++++++++++++++++++++++++++++-----------\n 1 file changed, 8379 insertions(+), 1747 deletions(-)"
+    "indexMtime": "2026-11-02T21:30:22+07:00",
+    "diffStat": "index.html | 679 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---\n 1 file changed, 651 insertions(+), 28 deletions(-)"
   },
   "activity": [
+    {
+      "ts": "2026-11-02T21:25:29+07:00",
+      "agent": "agent1",
+      "message": "Loop complete 10/10 — Giờ Vàng OK, no new task, active=false next=stop",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T21:24:50+07:00",
+      "agent": "agent1",
+      "message": "Final review Giờ Vàng · close loop 10/10",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:24:13+07:00",
+      "agent": "agent2",
+      "message": "Build complete — Giờ Vàng · Đèn Bay ready for final Agent1 review (iter 10/10)",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T21:24:13+07:00",
+      "agent": "agent2",
+      "message": "Finished: Giờ Vàng hotspot + đèn bay + persist/Sổ/flair",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:18:16+07:00",
+      "agent": "agent2",
+      "message": "Implementing Giờ Vàng hotspot + đèn bay sequence",
+      "status": "working"
+    },
     {
       "ts": "2026-11-02T21:16:55+07:00",
       "agent": "agent2",
@@ -1652,36 +1682,6 @@
       "agent": "system",
       "message": "Loop restarted — 10 rounds, pagoda fantasy",
       "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:08:12+07:00",
-      "agent": "system",
-      "message": "Loop armed — next: agent1",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:00:52+07:00",
-      "agent": "system",
-      "message": "Loop stopped",
-      "status": "idle"
-    },
-    {
-      "ts": "2026-11-02T20:00:51+07:00",
-      "agent": "agent1",
-      "message": "Final review — loop complete",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T20:00:10+07:00",
-      "agent": "agent1",
-      "message": "Final loop 10/10 — reviewing street shops",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:59:41+07:00",
-      "agent": "agent2",
-      "message": "Build complete — ready for review",
-      "status": "done"
     }
   ]
 }

@@ -476,16 +476,24 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 .music-actions .btn.secondary{margin-top:0}
 #yt-yard{
   position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.01);
-  width:min(780px,88vw);aspect-ratio:16/9;z-index:8;pointer-events:none;opacity:0;
+  width:min(780px,88vw);aspect-ratio:16/9;z-index:48;pointer-events:none;opacity:0;
   border-radius:4px;overflow:hidden;border:3px solid rgba(40,30,20,.9);
   box-shadow:0 12px 36px rgba(0,0,0,.6),0 0 28px rgba(80,180,120,.18);
-  transition:opacity .25s;background:#050805;
+  transition:opacity .2s;background:#050805;
+  /* Không để look-zone / HUD che mất màn YouTube */
 }
-#yt-yard.on{opacity:1;pointer-events:auto}
-#yt-yard iframe{width:100%;height:100%;border:0;display:block;background:#000}
+#yt-yard.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+/* Khung iframe phải có kích thước thật — trước đây height:100% trên div rỗng → màn trống */
+#yt-yard-frame{
+  position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;
+  background:#000;z-index:0;
+}
+#yt-yard iframe{
+  position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#000;z-index:1;
+}
 #yt-yard-bar{
   position:absolute;left:0;right:0;bottom:0;display:flex;gap:6px;justify-content:flex-end;
-  padding:6px;background:linear-gradient(transparent,rgba(0,0,0,.75));pointer-events:auto;
+  padding:6px;background:linear-gradient(transparent,rgba(0,0,0,.75));pointer-events:auto;z-index:2;
 }
 #yt-yard-bar button{
   border:1px solid rgba(243,235,224,.3);background:rgba(12,8,6,.7);color:#fff;
@@ -738,6 +746,11 @@ const S = {
   nearMuaTra: null, muaTraStand: null, muaTraHen: null,
   muaTraHens: 0, muaTraLog: [], muaAm: false, banTraMua: false,
   _muaTraTipAt: 0, _muaTraStreetTip: false,
+  // Giờ Vàng · Đèn Bay (mid-street Phố An Lạc)
+  nearGioVang: null, gioVangStand: null, phoVangCall: null,
+  phoVangUses: 0, phoVangBestTier: '', phoVangLog: [],
+  khachGioVang: false, _gioVangTipAt: 0, _gioVangStreetTip: false,
+  _phoVangDuyenReady: false, _phoVangDuyenTip: false,
   // Hẻm Phóng Lợn — tội phạm xe máy cũ (bắn được)
   phongLonCrew: null, phongLonKills: 0, phongLonLog: [], truGian: false,
   _phongLonTipAt: 0, _phongLonStreetTip: false, phongLonRoot: null,
@@ -1026,6 +1039,18 @@ function loadSave() {
         at: w.at | 0,
       })).filter(w => w.text);
     }
+    if (typeof d.phoVangUses === 'number') S.phoVangUses = Math.max(0, d.phoVangUses | 0);
+    if (typeof d.phoVangBestTier === 'string' && ['lap', 'ruc', 'rang'].includes(d.phoVangBestTier)) {
+      S.phoVangBestTier = d.phoVangBestTier;
+    }
+    if (typeof d.khachGioVang === 'boolean') S.khachGioVang = d.khachGioVang;
+    if (Array.isArray(d.phoVangLog)) {
+      S.phoVangLog = d.phoVangLog.slice(-12).map(w => ({
+        text: String(w.text || '').slice(0, 80),
+        tier: String(w.tier || '').slice(0, 12),
+        at: w.at | 0,
+      })).filter(w => w.text);
+    }
     if (typeof d.phongLonKills === 'number') S.phongLonKills = Math.max(0, d.phongLonKills | 0);
     if (typeof d.truGian === 'boolean') S.truGian = d.truGian;
     if (typeof d.vuaTruGian === 'boolean') S.vuaTruGian = d.vuaTruGian;
@@ -1178,6 +1203,10 @@ function saveAll() {
       muaAm: !!S.muaAm,
       banTraMua: !!S.banTraMua,
       muaTraLog: (S.muaTraLog || []).slice(-12),
+      phoVangUses: S.phoVangUses | 0,
+      phoVangBestTier: S.phoVangBestTier || '',
+      khachGioVang: !!S.khachGioVang,
+      phoVangLog: (S.phoVangLog || []).slice(-12),
       phongLonKills: S.phongLonKills | 0,
       truGian: !!S.truGian,
       vuaTruGian: !!S.vuaTruGian,
@@ -1246,6 +1275,7 @@ function templeFlairSuffix() {
   if (S.caSiViaHe) parts.push('Ca Sĩ Vỉa Hè');
   if (S.chuHo) parts.push('Chủ Họ');
   if (S.banTraMua) parts.push('Bạn Trà Mưa');
+  if (S.khachGioVang) parts.push('Khách Giờ Vàng');
   if (S.vuaTruGian) parts.push('Vua Trừ Gian');
   else if (S.truGian) parts.push('Trừ Gian');
   if (S.khachSenBay) parts.push('Khách Sen Bay');
@@ -1541,6 +1571,9 @@ function toastDailyGoalsHint() {
   if ((S.muaTraHens | 0) < 3) {
     setTimeout(() => toast('🧊 Khi ra phố · một ly dưới mưa trên hè cũng ấm'), 8800);
   }
+  if ((S.phoVangUses | 0) < 1) {
+    setTimeout(() => toast('✨ Khi ra phố · giữa hè có Giờ Vàng · đèn bay'), 10000);
+  }
 }
 function dailyGoalsBookHtml() {
   ensureDailyGoals(false);
@@ -1750,6 +1783,8 @@ function tryWeatherRitualBonus(act) {
     bonus = 1; line = '🌧️ Chuông trong mưa — ấm lòng';
   } else if (mood === 'rain' && act === 'muaTra') {
     bonus = 2; line = '🌧️ Hẹn trà đúng lúc mưa phố';
+  } else if ((mood === 'calm' || mood === 'mist') && act === 'phoVang') {
+    bonus = 2; line = '✨ Giờ Vàng đúng Không khí an';
   }
   if (!bonus) return 0;
   S.weatherBonus[key] = true;
@@ -3165,7 +3200,11 @@ function buildStreetDistrict() {
       const pl = new THREE.PointLight(0xffcc88, 0.45, 8, 2);
       pl.position.set(x, 3.2, z);
       scene.add(pl);
-      streetLamps.push({ bulb, pl, baseI: 0.45, baseE: 0.7 });
+      streetLamps.push({
+        bulb, pl, baseI: 0.45, baseE: 0.7,
+        homeX: x, homeY: 3.35, homeZ: z,
+        lightHomeY: 3.2,
+      });
     }
   }
   S.streetLamps = streetLamps;
@@ -3184,6 +3223,7 @@ function buildStreetDistrict() {
   buildKaraokeStand();
   buildHotHoStand();
   buildMuaTraStand();
+  buildGioVangStand();
   buildGossipCircle();
   buildGossipCircleNgoaiTinh();
   buildPhoKyAo();
@@ -4348,6 +4388,7 @@ function openGossipStory(circle) {
     try {
       gainCongDuc?.(2, g?.kind === 'ngoai-tinh' ? 'Nghe chuyện ngoại tình' : 'Nghe chuyện phố', true);
     } catch (_) {}
+    try { markPhoVangDuyen(); } catch (_) {}
   };
 }
 
@@ -5109,6 +5150,7 @@ function openShopVisit(shop) {
     puffShopSteam(shop);
     updateMeritHud();
     tryUnlockKhachPho();
+    try { markPhoVangDuyen(); } catch (_) {}
   };
   $('m-shop-ok').onclick = () => finish(true);
   $('m-shop-bye').onclick = () => finish(false);
@@ -5823,9 +5865,9 @@ function updateXichLo(dt, t) {
     }
   }
 
-  // Đèn phố ấm khi đã mở đêm / đang đi chuyến đêm
+  // Đèn phố ấm khi đã mở đêm / đang đi chuyến đêm (nhường Giờ Vàng)
   const lamps = S.streetLamps;
-  if (lamps && (S.xichLoDem || S.xichLoRide?.mode === 'dem')) {
+  if (lamps && !S.phoVangCall && (S.xichLoDem || S.xichLoRide?.mode === 'dem')) {
     const pulse = S.xichLoRide?.mode === 'dem'
       ? 0.55 + 0.45 * Math.abs(Math.sin(t * 2.8))
       : 0.2 + 0.18 * Math.abs(Math.sin(t * 1.6));
@@ -6170,9 +6212,9 @@ function updateKaraoke(dt, t) {
     }
   }
 
-  // Đêm loa vàng — đèn phố gần loa nhịp vàng (không đè xích lô đêm đang chạy)
+  // Đêm loa vàng — đèn phố gần loa nhịp vàng (không đè xích lô đêm / Giờ Vàng)
   const lamps = S.streetLamps;
-  if (lamps && S.karaokeDemLoa && S.xichLoRide?.mode !== 'dem') {
+  if (lamps && !S.phoVangCall && S.karaokeDemLoa && S.xichLoRide?.mode !== 'dem') {
     const active = !!S.karaokePerf || !S.xichLoDem;
     const pulse = S.karaokePerf
       ? 0.65 + 0.55 * Math.abs(Math.sin(t * (S.karaokePerf.mode === 'remix' ? 5.2 : 3.6)))
@@ -6561,9 +6603,9 @@ function updateHotHo(dt, t) {
     }
   }
 
-  // Chủ Họ — soft warm pulse đèn phố gần bàn (không đè karaoke DemLoa / xích lô dem)
+  // Chủ Họ — soft warm pulse đèn phố gần bàn (không đè karaoke DemLoa / xích lô dem / Giờ Vàng)
   const lamps = S.streetLamps;
-  if (lamps && S.chuHo && S.xichLoRide?.mode !== 'dem' && !S.karaokeDemLoa) {
+  if (lamps && !S.phoVangCall && S.chuHo && S.xichLoRide?.mode !== 'dem' && !S.karaokeDemLoa) {
     const active = !!S.hotHoDraw;
     const pulse = active
       ? 0.45 + 0.4 * Math.abs(Math.sin(t * 3.2))
@@ -6928,6 +6970,7 @@ function finishMuaTraHen(early) {
     updateMeritHud();
     pulseMeritHud();
     tryUnlockKhachPho();
+    try { markPhoVangDuyen(); } catch (_) {}
     try {
       const nSpark = IS_MOBILE ? 2 : 4;
       for (let i = 0; i < nSpark; i++) {
@@ -7099,6 +7142,515 @@ function updateMuaTra(dt, t) {
   }
 
   if (u >= 1) finishMuaTraHen(false);
+}
+
+/* ========== Giờ Vàng · Đèn Bay · giữa Phố An Lạc ========== */
+/** Mid-lane — lớn hơn vòng gossip (r 3.2) để đứng ngoài vòng vẫn gọi được; priority vẫn nhường gossip/shop/… */
+const GIO_VANG_SPOT = { x: 20.2, z: STREET_Z, r: 4.8 };
+const GIO_VANG_LINES = [
+  '✨ Đèn đường nhấc khỏi trụ — phố giữ giờ vàng riêng',
+  '🛤️ Chợ-đêm ấm trên hè An Lạc · không cần rời cổng chùa',
+  '🏮 Bóng đèn quay chậm quanh giữa phố',
+  '⏳ Vài nhịp · đèn nhớ mình rồi hạ',
+];
+const GIO_VANG_LINES_RUC = [
+  '🌟 Đèn bay rực hơn · cả phố nhuộm vàng',
+  '✨ Khách Giờ Vàng · đèn nhớ chân mình',
+  '🛤️ An Lạc mở chợ-đêm trong nháy mắt',
+  '🏮 Quỹ đạo cao hơn · vàng rơi trên đường',
+];
+const GIO_VANG_LINES_RANG = [
+  '☀️ Rạng · đèn bay cao, phố sáng như giờ vàng thật',
+  '✨ Vòng giữa phố thở vàng · đèn nhớ mình',
+  '🛤️ Cả hè An Lạc thành chợ-đêm riêng',
+  '🌟 Đèn hạ chậm — vẫn để lại ấm trên hè',
+];
+
+function phoVangTierForUses(n) {
+  const u = n | 0;
+  if (u >= 5) return 'rang';
+  if (u >= 3) return 'ruc';
+  if (u >= 1) return 'lap';
+  return '';
+}
+function phoVangTierLabel(tier) {
+  if (tier === 'rang') return 'Rạng';
+  if (tier === 'ruc') return 'Rực';
+  if (tier === 'lap') return 'Lấp';
+  return 'Giờ Vàng';
+}
+function phoVangTierRank(tier) {
+  if (tier === 'rang') return 3;
+  if (tier === 'ruc') return 2;
+  if (tier === 'lap') return 1;
+  return 0;
+}
+function bumpPhoVangBestTier(tier) {
+  if (phoVangTierRank(tier) > phoVangTierRank(S.phoVangBestTier)) {
+    S.phoVangBestTier = tier;
+  }
+}
+function streetLampsClaimedByNightMode() {
+  if (S.karaokePerf) return 'đêm loa';
+  if (S.xichLoRide?.mode === 'dem') return 'xích lô';
+  if (S.hotHoDraw) return 'họ';
+  return null;
+}
+function markPhoVangDuyen() {
+  if (S._phoVangDuyenReady) return;
+  S._phoVangDuyenReady = true;
+  if (!S._phoVangDuyenTip) {
+    S._phoVangDuyenTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast('✨ Đèn phố nhớ mình — giữa hè thử Gọi Giờ Vàng');
+    }, 900);
+  }
+}
+function restoreStreetLampsHome() {
+  const lamps = S.streetLamps;
+  if (!lamps) return;
+  lamps.forEach((L) => {
+    if (L.bulb) {
+      L.bulb.position.set(L.homeX ?? L.bulb.position.x, L.homeY ?? 3.35, L.homeZ ?? L.bulb.position.z);
+      if (L.bulb.material) {
+        L.bulb.material.emissiveIntensity = L.baseE || 0.7;
+        L.bulb.material.color.setHex(0xffe0a0);
+        if (L.bulb.material.emissive) L.bulb.material.emissive.setHex(0xffaa44);
+      }
+    }
+    if (L.pl) {
+      L.pl.position.set(L.homeX ?? L.pl.position.x, L.lightHomeY ?? 3.2, L.homeZ ?? L.pl.position.z);
+      L.pl.intensity = L.baseI || 0.45;
+      L.pl.color.setHex(0xffcc88);
+    }
+  });
+}
+
+function buildGioVangStand() {
+  const sx = GIO_VANG_SPOT.x, sz = GIO_VANG_SPOT.z;
+  const stand = new THREE.Group();
+
+  const glow = new THREE.Mesh(
+    new THREE.RingGeometry(1.15, 1.85, 36),
+    new THREE.MeshBasicMaterial({
+      color: 0xffd070, transparent: true, opacity: 0.18,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.set(0, 0.035, 0);
+  stand.add(glow);
+
+  const disc = new THREE.Mesh(
+    new THREE.CircleGeometry(1.05, 28),
+    new THREE.MeshBasicMaterial({
+      color: 0xffc050, transparent: true, opacity: 0.08,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  disc.rotation.x = -Math.PI / 2;
+  disc.position.set(0, 0.03, 0);
+  stand.add(disc);
+
+  const tip = textPlane('✨ Giờ Vàng · đèn bay', 360, 48, '#fff8e0', '#5a3810', 15);
+  tip.position.set(0, 1.65, 0);
+  tip.scale.set(2.35, 0.4, 1);
+  stand.add(tip);
+
+  const pl = new THREE.PointLight(0xffd090, 0.18, 5.5, 2);
+  pl.position.set(0, 1.4, 0);
+  stand.add(pl);
+
+  const sparks = [];
+  const nSpark = IS_MOBILE ? 5 : 10;
+  for (let i = 0; i < nSpark; i++) {
+    const sp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.04, 5, 4),
+      new THREE.MeshBasicMaterial({ color: 0xffe8a0, transparent: true, opacity: 0.0, depthWrite: false })
+    );
+    sp.position.set((Math.random() - 0.5) * 2.2, 0.2 + Math.random() * 0.4, (Math.random() - 0.5) * 2.2);
+    stand.add(sp);
+    sparks.push({ mesh: sp, ph: Math.random() * 6.28, spd: 0.6 + Math.random() * 0.9 });
+  }
+
+  stand.position.set(sx, 0, sz);
+  scene.add(stand);
+  S.gioVangStand = {
+    mesh: stand, glow, disc, tip, light: pl, sparks,
+    pos: new THREE.Vector3(sx, 0, sz),
+  };
+}
+
+function pickNearGioVang() {
+  if (!playerRoot || S.phoVangCall || !S.gioVangStand) return null;
+  const d = Math.hypot(
+    playerRoot.position.x - GIO_VANG_SPOT.x,
+    playerRoot.position.z - GIO_VANG_SPOT.z
+  );
+  if (d > GIO_VANG_SPOT.r) return null;
+  return { id: 'giovang', label: 'Gọi Giờ Vàng', pos: GIO_VANG_SPOT };
+}
+
+function startGioVangCall() {
+  if (S.busy || S.phoVangCall || !S.gioVangStand) return;
+  const claimed = streetLampsClaimedByNightMode();
+  if (claimed) {
+    toast(claimed === 'đêm loa'
+      ? '🌟 Đèn đang thuộc đêm loa — hát xong rồi gọi Giờ Vàng'
+      : claimed === 'xích lô'
+        ? '🏮 Đèn đang thuộc xích lô đêm — xuống xe rồi gọi'
+        : '🎲 Đèn đang thuộc họ — rút xong tay rồi gọi Giờ Vàng');
+    return;
+  }
+  if (!S.streetLamps?.length) {
+    toast('✨ Đèn phố chưa sẵn — thử lại sau');
+    return;
+  }
+
+  const uses = S.phoVangUses | 0;
+  let tier = phoVangTierForUses(uses + 1); // tier after this call
+  // Soft: first call of night/calm/dusk window can push toward Rạng early
+  const nightish = S.timePhase === 'night' || S.timePhase === 'dusk' || S.weatherMood === 'calm';
+  if (nightish && uses >= 2 && tier !== 'rang') {
+    // after 3 normally → ruc; night bonus can hint rang at 4+
+    if (uses + 1 >= 4) tier = 'rang';
+  }
+  const first = uses === 0;
+  const dur = tier === 'rang' ? 15.5 : tier === 'ruc' ? 14.2 : 12.8;
+  const lines = tier === 'rang' ? GIO_VANG_LINES_RANG
+    : tier === 'ruc' ? GIO_VANG_LINES_RUC
+      : GIO_VANG_LINES;
+
+  // Snapshot + lift plan
+  const lamps = S.streetLamps;
+  const liftN = IS_MOBILE
+    ? (tier === 'rang' ? 4 : tier === 'ruc' ? 3 : 2)
+    : (tier === 'rang' ? lamps.length : tier === 'ruc' ? Math.min(lamps.length, 5) : Math.min(lamps.length, 4));
+  const liftH = tier === 'rang' ? 2.55 : tier === 'ruc' ? 2.05 : 1.45;
+  const nightBoost = nightish ? 1.15 : 1;
+  const orbitR = tier === 'rang' ? 1.35 : tier === 'ruc' ? 1.05 : 0.75;
+
+  const lampStates = lamps.map((L, i) => {
+    const homeX = L.homeX ?? L.bulb?.position.x ?? 0;
+    const homeY = L.homeY ?? 3.35;
+    const homeZ = L.homeZ ?? L.bulb?.position.z ?? 0;
+    L.homeX = homeX; L.homeY = homeY; L.homeZ = homeZ;
+    if (L.lightHomeY == null) L.lightHomeY = L.pl?.position.y ?? 3.2;
+    return {
+      i,
+      lift: i < liftN,
+      homeX, homeY, homeZ,
+      lightHomeY: L.lightHomeY,
+      ang0: Math.atan2(homeZ - GIO_VANG_SPOT.z, homeX - GIO_VANG_SPOT.x),
+      rad0: Math.hypot(homeX - GIO_VANG_SPOT.x, homeZ - GIO_VANG_SPOT.z) || 1,
+    };
+  });
+
+  S.busy = true;
+  S.phoVangCall = {
+    tier, t: 0, dur, first, rewarded: false, nightish,
+    lineIdx: 0, nextLineAt: 0.55,
+    lines: lines.slice(),
+    lampStates, liftH: liftH * nightBoost, orbitR,
+    faceYaw: 0,
+    duyen: !!S._phoVangDuyenReady,
+  };
+
+  const dx = GIO_VANG_SPOT.x - playerRoot.position.x;
+  const dz = GIO_VANG_SPOT.z - playerRoot.position.z;
+  const yaw = Math.atan2(dx, dz);
+  S.yaw = yaw;
+  S.phoVangCall.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armR.rotation.set(-0.55, 0, -0.15);
+    ud.armL.rotation.set(-0.35, 0, 0.2);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+
+  toast(first
+    ? (nightish ? '✨ Giờ Vàng · đêm phố nhấc đèn' : '✨ Giờ Vàng · đèn phố muốn bay')
+    : `✨ Gọi Giờ Vàng · ${phoVangTierLabel(tier)}`);
+  if (S.gioVangStand?.glow?.material) S.gioVangStand.glow.material.opacity = 0.38;
+  if (S.gioVangStand?.disc?.material) S.gioVangStand.disc.material.opacity = 0.16;
+}
+
+function finishGioVangCall(early) {
+  const call = S.phoVangCall;
+  if (!call) return;
+  const elapsed = call.t;
+  const counts = !early || elapsed >= 1.5;
+
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+  } catch (_) {}
+  playerRoot.position.y = 0;
+  restoreStreetLampsHome();
+
+  if (counts && !call.rewarded) {
+    call.rewarded = true;
+    S.phoVangUses = (S.phoVangUses | 0) + 1;
+    const n = S.phoVangUses | 0;
+    let tier = call.tier || phoVangTierForUses(n);
+    // Escalate unlocks by visit count
+    if (n >= 5) tier = 'rang';
+    else if (n >= 3) tier = tier === 'rang' ? 'rang' : 'ruc';
+    else if (n >= 1) tier = tier === 'rang' || tier === 'ruc' ? tier : 'lap';
+    // Night/calm first-of-window can unlock Rạng early (≥3 + weather bonus path)
+    if (call.nightish && n >= 3) {
+      const wb = tryWeatherRitualBonus('phoVang');
+      if (wb > 0 || n >= 5) tier = 'rang';
+      else if (n >= 4) tier = 'rang';
+    } else if (call.nightish) {
+      tryWeatherRitualBonus('phoVang');
+    }
+    bumpPhoVangBestTier(tier);
+
+    let gain = call.first ? 8 : tier === 'rang' ? 5 : tier === 'ruc' ? 4 : 3;
+    if (early) gain = Math.max(2, gain - 2);
+
+    if (n >= 3 && !S.khachGioVang) {
+      S.khachGioVang = true;
+      setTimeout(() => {
+        toast('🌟 Flair · Khách Giờ Vàng');
+        try { publishPresence?.(true); } catch (_) {}
+      }, 1100);
+    } else if (n === 1) {
+      setTimeout(() => toast('✨ Bậc Lấp · đèn bay ấm hơn lần sau'), 850);
+    } else if (n === 3) {
+      setTimeout(() => toast('🌟 Bậc Rực · phố vàng hơn'), 850);
+    } else if (n >= 5 && S.phoVangBestTier === 'rang') {
+      setTimeout(() => toast('☀️ Bậc Rạng · quỹ đạo cao + vàng dày'), 850);
+    }
+
+    if (call.duyen && S._phoVangDuyenReady) {
+      S._phoVangDuyenReady = false;
+      gain += 1;
+      setTimeout(() => toast('✨ Đèn nhớ mình · +1 công đức duyên phố'), 1400);
+    }
+
+    const line = early
+      ? `Hạ sớm · ${phoVangTierLabel(tier)}`
+      : `Giờ Vàng xong · ${phoVangTierLabel(tier)}`;
+    S.phoVangLog = (S.phoVangLog || []).concat([{
+      text: `${line}${call.first ? ' · lần đầu' : ''} · lần ${n}`,
+      tier,
+      at: Date.now(),
+    }]).slice(-12);
+
+    saveAll();
+    gainCongDuc(gain, call.first ? '🛤️ Giờ Vàng Phố An Lạc' : `Giờ Vàng · ${phoVangTierLabel(tier)}`, true);
+    toast(early
+      ? `✨ Đèn hạ sớm · +${gain}`
+      : `🛤️ Giờ Vàng Phố An Lạc · +${gain}${call.first ? ' · lần đầu' : ` · ${n} lần · ${phoVangTierLabel(tier)}`}`);
+    try { playWhoosh(); } catch (_) {}
+    updateMeritHud();
+    pulseMeritHud();
+    try {
+      const nSpark = IS_MOBILE ? 2 : 5;
+      for (let i = 0; i < nSpark; i++) {
+        emitSmoke(
+          GIO_VANG_SPOT.x + (Math.random() - 0.5) * 1.2,
+          1.2 + Math.random() * 0.8,
+          GIO_VANG_SPOT.z + (Math.random() - 0.5) * 1.2,
+          1
+        );
+      }
+    } catch (_) {}
+  } else if (!counts) {
+    toast('✨ Chưa kịp gọi — đứng giữa hè thử lại');
+  }
+
+  const stand = S.gioVangStand;
+  if (stand?.sparks) stand.sparks.forEach(s => { if (s.mesh?.material) s.mesh.material.opacity = 0; });
+  if (stand?.glow?.material) {
+    stand.glow.material.opacity = 0.18;
+    stand.glow.scale.set(1, 1, 1);
+  }
+  if (stand?.disc?.material) stand.disc.material.opacity = 0.08;
+  if (stand?.light) stand.light.intensity = 0.18;
+
+  S.phoVangCall = null;
+  S.busy = false;
+}
+
+function cancelGioVangCall() {
+  if (!S.phoVangCall) return;
+  finishGioVangCall(true);
+}
+
+function updateGioVang(dt, t) {
+  const stand = S.gioVangStand;
+  if (stand?.tip && camera) stand.tip.quaternion.copy(camera.quaternion);
+
+  // Soft tip trên phố trong ~30s sau khi vào
+  if (playerRoot && playerRoot.position.x > 14.5 && !S._gioVangStreetTip) {
+    S._gioVangStreetTip = true;
+    const delay = (S.timePhase === 'night' || S.timePhase === 'dusk' || S.weatherMood === 'calm') ? 6000 : 14000;
+    setTimeout(() => {
+      if (!S.playing || (S.phoVangUses | 0) > 0) return;
+      toast('✨ Đèn phố muốn bay… — đứng giữa hè · Gọi Giờ Vàng');
+    }, delay);
+  }
+
+  // Idle pulse
+  if (stand?.mesh && !S.phoVangCall) {
+    if (stand.glow?.material) {
+      const warm = S.khachGioVang || (S.phoVangUses | 0) > 0;
+      stand.glow.material.opacity = 0.12 + 0.1 * Math.abs(Math.sin(t * 1.4));
+      stand.glow.material.color.setHex(warm ? 0xffc050 : 0xffd070);
+    }
+    if (stand.light) {
+      stand.light.intensity = 0.14 + 0.1 * Math.abs(Math.sin(t * 1.7));
+    }
+    if (stand.disc?.material) {
+      stand.disc.material.opacity = S.khachGioVang
+        ? 0.1 + 0.08 * Math.abs(Math.sin(t * 1.2))
+        : 0.06 + 0.04 * Math.abs(Math.sin(t * 1.1));
+    }
+  }
+
+  if (S.nearGioVang && !S.phoVangCall) {
+    const now = performance.now();
+    if (now - (S._gioVangTipAt || 0) > 16000) {
+      S._gioVangTipAt = now;
+      const claimed = streetLampsClaimedByNightMode();
+      if (claimed) {
+        toast(claimed === 'đêm loa'
+          ? '🌟 Đèn đang thuộc đêm loa'
+          : claimed === 'xích lô'
+            ? '🏮 Đèn đang thuộc xích lô đêm'
+            : '🎲 Đèn đang thuộc họ');
+      } else {
+        const n = S.phoVangUses | 0;
+        toast(S.khachGioVang
+          ? '🌟 Khách Giờ Vàng · gọi đèn bay thêm lần nữa?'
+          : n > 0
+            ? `✨ Giờ Vàng · bậc ${phoVangTierLabel(phoVangTierForUses(n))} — gọi tiếp?`
+            : '✨ Giữa hè · Gọi Giờ Vàng — đèn phố sẽ bay');
+      }
+    }
+  }
+
+  const call = S.phoVangCall;
+  if (!call) return;
+
+  if ($('modal')?.classList.contains('open')) {
+    cancelGioVangCall();
+    return;
+  }
+
+  call.t += dt;
+  const u = Math.min(1, call.t / call.dur);
+  // Rise 0–0.18, hover orbit 0.18–0.78, settle 0.78–1
+  let liftU = 0;
+  if (u < 0.18) liftU = u / 0.18;
+  else if (u < 0.78) liftU = 1;
+  else liftU = 1 - (u - 0.78) / 0.22;
+  liftU = liftU * liftU * (3 - 2 * liftU);
+
+  // Player stays on ground · gentle face mid-street
+  if (playerRoot) {
+    playerRoot.position.y = Math.sin(call.t * 2.4) * 0.015;
+    if (player) player.rotation.y = call.faceYaw;
+    S.yaw = call.faceYaw;
+  }
+
+  const lamps = S.streetLamps;
+  if (lamps && call.lampStates) {
+    call.lampStates.forEach((st) => {
+      const L = lamps[st.i];
+      if (!L) return;
+      if (!st.lift) {
+        // Warm non-lifting bulbs gently
+        if (L.bulb?.material) {
+          L.bulb.material.emissiveIntensity = (L.baseE || 0.7) + 0.35 * liftU;
+          L.bulb.material.color.setHex(0xffe090);
+        }
+        if (L.pl) {
+          L.pl.intensity = (L.baseI || 0.45) + 0.35 * liftU;
+          L.pl.color.setHex(0xffd070);
+        }
+        return;
+      }
+      const ang = st.ang0 + call.t * (0.55 + (call.tier === 'rang' ? 0.25 : 0.1));
+      const rad = st.rad0 + call.orbitR * liftU * Math.sin(call.t * 1.2 + st.i);
+      const cx = GIO_VANG_SPOT.x + Math.cos(ang) * (st.rad0 * (1 - 0.15 * liftU) + call.orbitR * 0.35 * liftU);
+      const cz = GIO_VANG_SPOT.z + Math.sin(ang) * (st.rad0 * (1 - 0.15 * liftU) + call.orbitR * 0.35 * liftU);
+      const y = st.homeY + call.liftH * liftU;
+      if (L.bulb) {
+        L.bulb.position.set(cx, y, cz);
+        if (L.bulb.material) {
+          L.bulb.material.emissiveIntensity = (L.baseE || 0.7) + 0.9 * liftU + 0.35 * Math.abs(Math.sin(call.t * 3 + st.i));
+          L.bulb.material.color.setHex(0xffe8b0);
+        }
+      }
+      if (L.pl) {
+        L.pl.position.set(cx, y - 0.15, cz);
+        L.pl.intensity = (L.baseI || 0.45) + 1.1 * liftU;
+        L.pl.color.setHex(0xffd878);
+      }
+    });
+  }
+
+  // Gold dust on road
+  if (stand?.sparks) {
+    const dens = call.tier === 'rang' ? 1.35 : call.tier === 'ruc' ? 1.15 : 1;
+    stand.sparks.forEach((s, i) => {
+      if (!s.mesh) return;
+      if (IS_MOBILE && i > 3) { s.mesh.visible = false; return; }
+      s.mesh.visible = true;
+      const life = (call.t * s.spd + s.ph) % 1.4;
+      s.mesh.position.y = 0.15 + life * 1.6 * dens * liftU;
+      s.mesh.position.x = Math.cos(s.ph + call.t * 1.3) * (0.4 + life * 1.1);
+      s.mesh.position.z = Math.sin(s.ph * 1.3 + call.t) * (0.4 + life * 1.0);
+      s.mesh.material.opacity = liftU * (0.55 - life * 0.35);
+    });
+  }
+  if (stand?.glow?.material) {
+    stand.glow.material.opacity = 0.28 + 0.28 * liftU * Math.abs(Math.sin(call.t * 2.2));
+    const sc = 1 + 0.25 * liftU;
+    stand.glow.scale.set(sc, sc, sc);
+  }
+  if (stand?.disc?.material) {
+    stand.disc.material.opacity = 0.1 + 0.2 * liftU;
+  }
+  if (stand?.light) {
+    stand.light.intensity = 0.25 + 0.85 * liftU;
+  }
+
+  // Soft shop sign / floor warm during sequence
+  if (S.streetShops && Math.random() < (IS_MOBILE ? 0.04 : 0.1)) {
+    S.streetShops.forEach((s) => {
+      if (s.glow?.material) {
+        s.glow.material.opacity = Math.min(0.36, (s.glow.material.opacity || 0.12) + 0.04 * liftU);
+        s.glow.material.color.setHex(0xffc878);
+      }
+    });
+  }
+
+  // Toast lines
+  if (call.lineIdx < call.lines.length && call.t >= call.nextLineAt) {
+    toast(call.lines[call.lineIdx]);
+    call.lineIdx += 1;
+    call.nextLineAt = call.t + (call.tier === 'rang' ? 2.6 : 3.0);
+  }
+
+  if (!IS_MOBILE && liftU > 0.4 && Math.random() < 0.12) {
+    try {
+      emitSmoke(
+        GIO_VANG_SPOT.x + (Math.random() - 0.5) * 2,
+        0.4 + Math.random() * 0.5,
+        GIO_VANG_SPOT.z + (Math.random() - 0.5) * 2,
+        1
+      );
+    } catch (_) {}
+  }
+
+  if (u >= 1) finishGioVangCall(false);
 }
 
 function addRibbon(x, y, z, ai) {
@@ -7607,6 +8159,18 @@ function goToStreetGate() {
           : '🧊 Hẹn trà dưới mưa — ghế đôi trước Trà đá vỉa hè')
         : '🧊 Ghế đôi trà mưa · ngồi thêm một hẹn');
     }, 8800);
+  }
+  if (!S._gioVangStreetTip) {
+    S._gioVangStreetTip = true;
+    const soft = S.timePhase === 'night' || S.timePhase === 'dusk' || S.weatherMood === 'calm';
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast((S.phoVangUses | 0) === 0
+        ? (soft
+          ? '✨ Đèn phố muốn bay… — đứng giữa hè · Gọi Giờ Vàng'
+          : '✨ Giữa Phố An Lạc · thử Gọi Giờ Vàng · đèn bay')
+        : '✨ Giờ Vàng · gọi đèn bay thêm lần nữa');
+    }, soft ? 5200 : 11000);
   }
 }
 
@@ -10477,10 +11041,14 @@ function playMusicOnYard(videoId, title) {
   const frame = $('yt-yard-frame');
   const yard = $('yt-yard');
   if (frame && yard) {
-    const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+    // origin giúp embed ổn định hơn trên GitHub Pages / localhost
+    const origin = encodeURIComponent(location.origin || 'https://localhost');
+    const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${origin}`;
     frame.innerHTML = `<iframe src="${src}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="${niceTitle.replace(/"/g, '')}"></iframe>`;
     yard.classList.add('on');
     yard.setAttribute('aria-hidden', 'false');
+    // Ép cập nhật vị trí overlay ngay (tránh frame đầu scale 0.01)
+    try { updateYardYtOverlay(); } catch (_) {}
   }
   const panelMat = S.musicRoot?.userData?.panel?.material;
   if (panelMat) panelMat.emissiveIntensity = 0.95;
@@ -10654,7 +11222,14 @@ function updateYardYtOverlay() {
   const el = $('yt-yard');
   if (!el) return;
   if (!S.musicPlaying || !S.musicScreenAnchor || !camera) {
-    if (!S.musicPlaying) el.classList.remove('on');
+    if (!S.musicPlaying) {
+      el.classList.remove('on');
+      el.style.opacity = '';
+      el.style.pointerEvents = '';
+      el.style.transform = '';
+      el.style.left = '';
+      el.style.top = '';
+    }
     return;
   }
   const panel = S.musicRoot?.userData?.panel;
@@ -10662,20 +11237,26 @@ function updateYardYtOverlay() {
 
   _v.copy(S.musicScreenAnchor);
   _v.project(camera);
-  if (_v.z > 1 || _v.x < -1.35 || _v.x > 1.35 || _v.y < -1.35 || _v.y > 1.35) {
-    el.style.opacity = '0.15';
-    el.style.pointerEvents = 'none';
+  const behind = _v.z > 1;
+  const offscreen = _v.x < -1.4 || _v.x > 1.4 || _v.y < -1.4 || _v.y > 1.4;
+  if (behind || offscreen) {
+    // Vẫn hiện nhỏ ở góc để không “mất” video khi quay đi
+    el.style.opacity = '0.92';
+    el.style.pointerEvents = 'auto';
+    el.style.left = '72%';
+    el.style.top = '78%';
+    el.style.transform = 'translate(-50%, -50%) scale(0.42)';
   } else {
-    el.style.opacity = '';
-    el.style.pointerEvents = '';
+    el.style.opacity = '1';
+    el.style.pointerEvents = 'auto';
+    const x = (_v.x * 0.5 + 0.5) * window.innerWidth;
+    const y = (-_v.y * 0.5 + 0.5) * window.innerHeight;
+    const dist = camera.position.distanceTo(S.musicScreenAnchor);
+    const scale = Math.max(0.45, Math.min(1.65, 12.5 / Math.max(2.8, dist)));
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.style.transform = `translate(-50%, -50%) scale(${scale})`;
   }
-  const x = (_v.x * 0.5 + 0.5) * window.innerWidth;
-  const y = (-_v.y * 0.5 + 0.5) * window.innerHeight;
-  const dist = camera.position.distanceTo(S.musicScreenAnchor);
-  const scale = Math.max(0.35, Math.min(1.55, 11.5 / Math.max(3.0, dist)));
-  el.style.left = `${x}px`;
-  el.style.top = `${y}px`;
-  el.style.transform = `translate(-50%, -50%) scale(${scale})`;
   if (!el.classList.contains('on')) el.classList.add('on');
 }
 
@@ -12416,6 +12997,7 @@ $('action-btn').onclick = () => {
   if (S.karaokePerf) { cancelKaraokeSing(); return; }
   if (S.hotHoDraw) { cancelHotHoDraw(); return; }
   if (S.muaTraHen) { cancelMuaTraHen(); return; }
+  if (S.phoVangCall) { cancelGioVangCall(); return; }
   if (S.musicMode) { closeMusicPanel(); return; }
   if (S.busy && S.interactOpen) { cancelNpcInteract(); return; }
   if (S.busy) return;
@@ -12522,6 +13104,10 @@ $('action-btn').onclick = () => {
   }
   if (S.nearXichLo) {
     startXichLoRide();
+    return;
+  }
+  if (S.nearGioVang) {
+    startGioVangCall();
     return;
   }
   // At chuông: Đảo Thời chip/duyên beats soft NPC coop cue
@@ -12634,6 +13220,7 @@ addEventListener('keydown', e => {
     if (S.karaokePerf) { cancelKaraokeSing(); return; }
     if (S.hotHoDraw) { cancelHotHoDraw(); return; }
     if (S.muaTraHen) { cancelMuaTraHen(); return; }
+    if (S.phoVangCall) { cancelGioVangCall(); return; }
     if (S.musicMode) { closeMusicPanel(); return; }
     if (typingInField()) return;
     if (S.interactOpen || $('modal')?.classList.contains('open') || $('bts-bar')?.classList.contains('show') || $('combat-bar')?.classList.contains('show')) {
@@ -13420,6 +14007,7 @@ function openBook() {
   const xichLogs = (S.xichLoLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa đi xích lô lần nào</li>';
   const karaokeLogs = (S.karaokeLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa hát karaoke lần nào</li>';
   const muaTraLogs = (S.muaTraLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa hẹn trà mưa lần nào</li>';
+  const phoVangLogs = (S.phoVangLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa gọi Giờ Vàng lần nào</li>';
   const phoKyLogs = (S.phoKyAoLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa chứng kiến điều kỳ nào trên phố</li>';
   const phoKyChecks = [
     S.phoKyAoSeen?.mirror ? '✅ Gương' : '⬜ Gương',
@@ -13450,6 +14038,14 @@ function openBook() {
     S.muaAm ? '✅ Mưa ấm' : '⬜ Mưa ấm',
     S.banTraMua ? '✅ Bạn Trà Mưa' : '⬜ Bạn Trà Mưa',
   ].join(' · ');
+  const phoVangModes = [
+    (S.phoVangUses | 0) > 0 ? '✅ Giờ Vàng' : '⬜ Giờ Vàng',
+    phoVangTierRank(S.phoVangBestTier) >= 1 ? '✅ Lấp' : '⬜ Lấp',
+    phoVangTierRank(S.phoVangBestTier) >= 2 ? '✅ Rực' : '⬜ Rực',
+    phoVangTierRank(S.phoVangBestTier) >= 3 ? '✅ Rạng' : '⬜ Rạng',
+    S.khachGioVang ? '✅ Khách Giờ Vàng' : '⬜ Khách Giờ Vàng',
+  ].join(' · ');
+  const phoVangBest = phoVangTierLabel(S.phoVangBestTier || '') || '—';
   openModal(`
     <h2>Sổ cầu an của tôi</h2>
     <div class="stat-grid">
@@ -13461,7 +14057,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin-top:6px">${nextLine}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🔥 Chuỗi ngày: <strong>${dailyBook.streak}</strong>${dailyBook.flair}${dailyBook.clearNote}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">Ấn khám phá: ${stamps}</p>
-    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🌦️ Đang: <strong>${weatherNow}</strong></p>
     <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm · ${S.btsSigs} chữ ký BTS${S.btsPrincessMode ? ' · 👑 Công Chúa' : ''}${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
     <h2 style="font-size:1rem;margin-top:8px">📋 Mục tiêu hôm nay</h2>
@@ -13510,6 +14106,14 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã hẹn <strong>${S.muaTraHens | 0}</strong> lượt${S.banTraMua ? ' · flair Bạn Trà Mưa' : ''}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">${muaTraModes}</p>
     <ul class="book-list">${muaTraLogs}</ul>
+    <h2 style="font-size:1rem;margin-top:8px">🎲 Phố An Lạc · hốt họ</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã hốt <strong>${S.hotHoDraws | 0}</strong> tay${S.chuHo ? ' · flair Chủ Họ' : ''}</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">${hotHoModes}</p>
+    <ul class="book-list">${hotHoLogs}</ul>
+    <h2 style="font-size:1rem;margin-top:8px">🛤️ Phố An Lạc · Giờ Vàng đèn bay</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã gọi <strong>${S.phoVangUses | 0}</strong> lần · bậc cao nhất: <strong>${phoVangBest}</strong>${S.khachGioVang ? ' · flair Khách Giờ Vàng' : ''}</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">${phoVangModes}</p>
+    <ul class="book-list">${phoVangLogs}</ul>
     <h2 style="font-size:1rem;margin-top:8px">✨ Phố An Lạc · kỳ ảo</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">${phoKyChecks}${S.chungNhanPho ? ' · flair Chứng Nhân Phố' : ''}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">Thư đã nhặt: <strong>${S.paperNotesRead | 0}</strong></p>
@@ -14912,6 +15516,12 @@ function updatePlayer(dt) {
     && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo && !S.nearNemChua && !S.nearPhongLonWreck && !S.busy)
     ? pickNearXichLo() : null;
+  // Giờ Vàng · Đèn Bay — thấp nhất trong chuỗi phố (sau xích lô)
+  S.nearGioVang = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo
+    && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.busy)
+    ? pickNearGioVang() : null;
 
   // Soft tip near festival marker
   if (S.nearFestival && S.festivalActive) {
@@ -15024,6 +15634,12 @@ function updatePlayer(dt) {
   } else if (S.muaTraHen) {
     const left = Math.max(0, (S.muaTraHen.dur - S.muaTraHen.t) | 0);
     btn.textContent = `Hủy · đứng dậy (${left}s)`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+  } else if (S.phoVangCall) {
+    const left = Math.max(0, (S.phoVangCall.dur - S.phoVangCall.t) | 0);
+    btn.textContent = `Hủy · hạ đèn (${left}s)`;
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
@@ -15209,6 +15825,12 @@ function updatePlayer(dt) {
     cbar.classList.remove('show');
     bbar.classList.remove('show');
     S.interactOpen = false;
+  } else if (!S.busy && S.nearGioVang) {
+    btn.textContent = 'Gọi Giờ Vàng';
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
   } else if (!S.busy && near?.id === 'bell' && shouldOfferChuongDao()) {
     btn.textContent = 'Đảo thời · thỉnh';
     btn.classList.add('show');
@@ -15354,6 +15976,7 @@ function updateWorld(dt, t) {
   updatePhoKyAo(dt, t);
   updateHotHo(dt, t);
   updateMuaTra(dt, t);
+  updateGioVang(dt, t);
   updatePhongLon(dt, t);
   updateMusicScreenFx(dt, t);
   updateProjectiles(dt);

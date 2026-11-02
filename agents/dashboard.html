@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent Pipeline — Lên Chùa Cầu An</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1410;
+      --paper: #f3ebe0;
+      --paper2: #e8dcc8;
+      --gold: #b8860b;
+      --gold-soft: #d4a84b;
+      --jade: #2f6b4f;
+      --jade-dim: #1e4534;
+      --clay: #9a4a2e;
+      --mist: rgba(26, 20, 16, 0.08);
+      --line: rgba(26, 20, 16, 0.14);
+      --ok: #2f6b4f;
+      --work: #b8860b;
+      --wait: #6b6358;
+      --warn: #9a4a2e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Be Vietnam Pro", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(184, 134, 11, 0.18), transparent 60%),
+        radial-gradient(900px 500px at 100% 0%, rgba(47, 107, 79, 0.14), transparent 55%),
+        linear-gradient(165deg, #f7f1e6 0%, #e9dfd0 45%, #ddd0bc 100%);
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 60px; }
+    header {
+      display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between;
+      gap: 16px; margin-bottom: 22px;
+    }
+    .brand {
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1.05;
+      margin: 0;
+    }
+    .brand span { color: var(--jade); }
+    .sub { margin: 6px 0 0; color: rgba(26,20,16,.65); font-size: .92rem; }
+    .meta {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      font-size: .8rem; color: rgba(26,20,16,.6);
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 10px; border-radius: 999px;
+      background: rgba(255,255,255,.45);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(6px);
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--wait);
+      box-shadow: 0 0 0 3px rgba(0,0,0,.04);
+    }
+    .dot.live { background: var(--ok); animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: .7; }
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 860px) {
+      .pipeline { grid-template-columns: 1fr; }
+      .arrow { transform: rotate(90deg); justify-self: center; }
+    }
+    .agent {
+      position: relative;
+      padding: 18px 18px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 30px rgba(26,20,16,.06);
+      overflow: hidden;
+      transition: transform .25s ease, border-color .25s ease;
+    }
+    .agent::before {
+      content: "";
+      position: absolute; inset: 0 auto 0 0; width: 4px;
+      background: var(--wait);
+    }
+    .agent.working::before { background: var(--work); }
+    .agent.done::before, .agent.watching::before { background: var(--ok); }
+    .agent.ready::before { background: var(--gold-soft); }
+    .agent.waiting::before { background: var(--wait); }
+    .agent.working { border-color: rgba(184,134,11,.35); }
+    .agent h2 {
+      margin: 0 0 4px;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.55rem;
+      font-weight: 700;
+    }
+    .role { font-size: .78rem; color: rgba(26,20,16,.55); margin-bottom: 12px; }
+    .status-row {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    }
+    .badge {
+      font-size: .72rem; font-weight: 600; letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: 4px 8px; border-radius: 6px;
+      background: var(--mist);
+    }
+    .badge.working { background: rgba(184,134,11,.18); color: #7a5a08; }
+    .badge.done, .badge.watching { background: rgba(47,107,79,.15); color: var(--jade-dim); }
+    .badge.ready { background: rgba(212,168,75,.22); color: #6b4e10; }
+    .badge.waiting, .badge.idle { background: rgba(26,20,16,.08); color: var(--wait); }
+    .detail { font-size: .92rem; line-height: 1.45; min-height: 2.6em; }
+    .arrow {
+      display: flex; align-items: center; justify-content: center;
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.4rem; color: var(--gold);
+      padding: 0 4px;
+    }
+    .phase-chip {
+      writing-mode: horizontal-tb;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: linear-gradient(160deg, rgba(184,134,11,.16), rgba(47,107,79,.12));
+      border: 1px dashed rgba(184,134,11,.4);
+      font-size: .78rem; font-weight: 600;
+      max-width: 110px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.35fr .9fr;
+      gap: 14px;
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .panel {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid var(--line);
+      box-shadow: 0 10px 30px rgba(26,20,16,.05);
+    }
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: .78rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(26,20,16,.5);
+      font-weight: 600;
+    }
+    .task-title {
+      font-family: "Cormorant Garamond", serif;
+      font-size: 1.45rem;
+      margin: 0 0 6px;
+      font-weight: 700;
+    }
+    .wish {
+      font-size: .9rem;
+      color: rgba(26,20,16,.72);
+      line-height: 1.5;
+      margin-bottom: 14px;
+      white-space: pre-wrap;
+    }
+    .bar {
+      height: 10px; border-radius: 999px; background: rgba(26,20,16,.08);
+      overflow: hidden; margin: 8px 0 6px;
+    }
+    .bar > i {
+      display: block; height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--jade), var(--gold-soft));
+      border-radius: inherit;
+      transition: width .5s ease;
+    }
+    .prog-label { font-size: .8rem; color: rgba(26,20,16,.55); margin-bottom: 12px; }
+    .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    .checks li {
+      display: grid; grid-template-columns: 22px 1fr; gap: 8px;
+      align-items: start;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.4);
+      border: 1px solid transparent;
+      font-size: .88rem;
+      line-height: 1.35;
+    }
+    .checks li.done {
+      border-color: rgba(47,107,79,.2);
+      background: rgba(47,107,79,.08);
+      color: rgba(26,20,16,.55);
+      text-decoration: line-through;
+    }
+    .box {
+      width: 18px; height: 18px; border-radius: 5px;
+      border: 1.5px solid rgba(26,20,16,.3);
+      display: grid; place-items: center;
+      font-size: .7rem; margin-top: 1px;
+    }
+    .checks li.done .box {
+      background: var(--jade); border-color: var(--jade); color: #fff;
+    }
+    .file {
+      margin-top: 12px; font-size: .78rem; color: rgba(26,20,16,.5);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .timeline { display: grid; gap: 10px; max-height: 420px; overflow: auto; }
+    .ev {
+      display: grid; grid-template-columns: 64px 1fr; gap: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--mist);
+    }
+    .ev:last-child { border-bottom: 0; }
+    .ev .when { font-size: .72rem; color: rgba(26,20,16,.45); padding-top: 3px; }
+    .ev .who {
+      font-size: .72rem; font-weight: 600; letter-spacing: .04em;
+      text-transform: uppercase; color: var(--jade);
+      margin-bottom: 2px;
+    }
+    .ev .who.a2 { color: var(--clay); }
+    .ev .msg { font-size: .88rem; line-height: 1.4; }
+    .empty {
+      color: rgba(26,20,16,.45); font-size: .9rem; padding: 12px 0;
+    }
+    .git {
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(26,20,16,.04);
+      font-size: .8rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      white-space: pre-wrap;
+      color: rgba(26,20,16,.7);
+    }
+    .git.dirty { border-left: 3px solid var(--work); }
+    .git.clean { border-left: 3px solid var(--ok); }
+    footer {
+      margin-top: 18px;
+      font-size: .78rem;
+      color: rgba(26,20,16,.45);
+      display: flex; flex-wrap: wrap; gap: 10px 18px;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: .85em;
+      background: rgba(26,20,16,.06);
+      padding: 1px 5px; border-radius: 4px;
+    }
+    .report {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(47,107,79,.08);
+      border: 1px solid rgba(47,107,79,.18);
+      font-size: .85rem;
+      white-space: pre-wrap;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1 class="brand">Agent <span>Pipeline</span></h1>
+        <p class="sub">Theo dõi Agent 1 (Director) và Agent 2 (Builder) — Lên Chùa Cầu An</p>
+      </div>
+      <div class="meta">
+        <span class="pill"><span class="dot" id="liveDot"></span> <span id="liveLabel">connecting…</span></span>
+        <span class="pill" id="updatedAt">—</span>
+        <span class="pill" id="phasePill">phase: —</span>
+      </div>
+    </header>
+
+    <section class="pipeline" id="pipeline">
+      <article class="agent" id="agent1Card">
+        <h2>Agent 1</h2>
+        <div class="role">Director — assign · check · improve</div>
+        <div class="status-row"><span class="badge" id="a1Badge">idle</span></div>
+        <div class="detail" id="a1Detail">—</div>
+      </article>
+      <div class="arrow">
+        <div class="phase-chip" id="phaseChip">idle</div>
+      </div>
+      <article class="agent" id="agent2Card">
+        <h2>Agent 2</h2>
+        <div class="role">Builder — implement the task</div>
+        <div class="status-row"><span class="badge" id="a2Badge">idle</span></div>
+        <div class="detail" id="a2Detail">—</div>
+      </article>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <h3>Current task</h3>
+        <div id="taskPanel">
+          <p class="empty">Chưa có task. Chạy <code>./agents/run-pipeline.sh new "…"</code></p>
+        </div>
+      </article>
+      <article class="panel">
+        <h3>Activity</h3>
+        <div class="timeline" id="timeline">
+          <p class="empty">Chưa có log. Agent ghi bằng <code>./agents/run-pipeline.sh log agent1 "…"</code></p>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      <span>Mở dashboard: <code>./agents/run-pipeline.sh serve</code></span>
+      <span>Refresh mỗi 2s từ <code>status.json</code></span>
+      <span>Checklist trong task file = tiến độ thật</span>
+    </footer>
+  </div>
+
+  <script>
+    const PHASE_LABEL = {
+      idle: "Idle",
+      planning: "Agent1 planning",
+      assigned: "Ready for Agent2",
+      building: "Agent2 building",
+      review: "Agent1 review",
+    };
+
+    function esc(s) {
+      return String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function setAgent(cardId, badgeId, detailId, agent) {
+      const card = document.getElementById(cardId);
+      const badge = document.getElementById(badgeId);
+      const detail = document.getElementById(detailId);
+      const st = agent.status || "idle";
+      card.className = "agent " + st;
+      badge.className = "badge " + st;
+      badge.textContent = st;
+      detail.textContent = agent.detail || "—";
+    }
+
+    function timeShort(iso) {
+      if (!iso) return "—";
+      try {
+        const d = new Date(iso);
+        return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      } catch {
+        return iso;
+      }
+    }
+
+    function render(data) {
+      const p = data.pipeline || {};
+      const a1 = p.agent1 || {};
+      const a2 = p.agent2 || {};
+      const phase = p.pipelinePhase || "idle";
+
+      setAgent("agent1Card", "a1Badge", "a1Detail", a1);
+      setAgent("agent2Card", "a2Badge", "a2Detail", a2);
+
+      document.getElementById("phaseChip").textContent = PHASE_LABEL[phase] || phase;
+      document.getElementById("phasePill").textContent = "phase: " + (PHASE_LABEL[phase] || phase);
+      document.getElementById("updatedAt").textContent = "updated " + timeShort(data.updatedAt);
+      document.getElementById("liveDot").classList.add("live");
+      document.getElementById("liveLabel").textContent = "live";
+
+      const task = data.currentTask;
+      const panel = document.getElementById("taskPanel");
+      if (!task) {
+        panel.innerHTML = `<p class="empty">Chưa có task.</p>`;
+      } else {
+        const checks = (task.checklist || []).map((c) => `
+          <li class="${c.done ? "done" : ""}">
+            <span class="box">${c.done ? "✓" : ""}</span>
+            <span>${esc(c.text)}</span>
+          </li>`).join("");
+        const report = task.hasDoneReport
+          ? `<div class="report"><strong>Done report</strong>\n${esc(task.doneReport || "(empty)")}</div>`
+          : "";
+        const git = data.git || {};
+        const gitCls = git.indexDirty ? "dirty" : "clean";
+        const gitText = git.indexDirty
+          ? (`index.html dirty\n` + (git.diffStat || "(no diffstat)"))
+          : "index.html clean (no uncommitted changes)";
+        panel.innerHTML = `
+          <div class="task-title">${esc(task.title)}</div>
+          <div class="wish">${esc(task.wish || "")}</div>
+          <div class="bar"><i style="width:${task.progress || 0}%"></i></div>
+          <div class="prog-label">${task.done || 0}/${task.total || 0} checklist · ${task.progress || 0}%</div>
+          <ul class="checks">${checks || '<li class="empty">No checklist items</li>'}</ul>
+          ${report}
+          <div class="file">${esc(task.file)} · mtime ${esc(timeShort(task.mtime))}</div>
+          <div class="git ${gitCls}">${esc(gitText)}</div>
+        `;
+      }
+
+      const tl = document.getElementById("timeline");
+      const acts = data.activity || [];
+      if (!acts.length) {
+        tl.innerHTML = `<p class="empty">Chưa có activity log.</p>`;
+      } else {
+        tl.innerHTML = acts.map((ev) => {
+          const who = String(ev.agent || "system").toLowerCase();
+          const a2 = who.includes("2");
+          return `<div class="ev">
+            <div class="when">${esc(timeShort(ev.ts))}</div>
+            <div>
+              <div class="who ${a2 ? "a2" : ""}">${esc(ev.agent || "system")}${ev.status ? " · " + esc(ev.status) : ""}</div>
+              <div class="msg">${esc(ev.message || "")}</div>
+            </div>
+          </div>`;
+        }).join("");
+      }
+    }
+
+    async function tick() {
+      try {
+        const res = await fetch("status.json?ts=" + Date.now(), { cache: "no-store" });
+        if (!res.ok) throw new Error("status " + res.status);
+        const data = await res.json();
+        render(data);
+      } catch (e) {
+        document.getElementById("liveDot").classList.remove("live");
+        document.getElementById("liveLabel").textContent = "offline — chạy serve";
+      }
+    }
+
+    tick();
+    setInterval(tick, 2000);
+  </script>
+</body>
+</html>

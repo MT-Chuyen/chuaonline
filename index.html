@@ -83,6 +83,26 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 }
 .chip strong{color:#fff;font-weight:600}
 #hud-btns{position:absolute;top:calc(12px + var(--st));right:12px;display:flex;flex-direction:column;gap:8px;pointer-events:auto;z-index:50}
+#btn-street{
+  background:rgba(180,80,20,.92)!important;border-color:rgba(255,200,80,.95)!important;color:#ffe9b0!important;
+  font-weight:700;width:48px;height:48px;font-size:.78rem;box-shadow:0 0 0 0 rgba(255,180,60,.55);
+  animation:streetPulse 1.6s ease-out infinite;
+}
+@keyframes streetPulse{
+  0%{box-shadow:0 0 0 0 rgba(255,180,60,.55)}
+  70%{box-shadow:0 0 0 12px rgba(255,180,60,0)}
+  100%{box-shadow:0 0 0 0 rgba(255,180,60,0)}
+}
+/* Nút lớn dưới màn — dễ bấm trên điện thoại (và cũng hiện trên PC) */
+#btn-street-fab{
+  position:absolute;right:12px;bottom:calc(108px + var(--sb));z-index:55;pointer-events:auto;
+  min-width:118px;min-height:48px;padding:10px 14px;border-radius:14px;
+  border:1px solid rgba(255,200,80,.85);background:rgba(160,60,10,.92);color:#ffe9b0;
+  font-family:inherit;font-size:.86rem;font-weight:700;letter-spacing:.01em;
+  box-shadow:0 8px 24px rgba(0,0,0,.45),0 0 0 0 rgba(255,180,60,.5);
+  animation:streetPulse 1.6s ease-out infinite;display:grid;place-items:center;text-align:center;line-height:1.2;
+}
+#btn-street-fab .sub{display:block;font-size:.62rem;font-weight:500;opacity:.8;margin-top:2px}
 .icon-btn{
   width:42px;height:42px;border-radius:50%;border:1px solid var(--line);
   background:rgba(12,8,6,.42);color:rgba(243,235,224,.88);font-size:.72rem;font-weight:500;
@@ -119,11 +139,88 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 }
 #bts-bar.show{display:flex}
 .bts-btn{
-  min-width:88px;min-height:44px;padding:10px 14px;border-radius:999px;border:1px solid rgba(180,120,255,.4);
-  background:rgba(40,20,60,.72);color:#f3e8ff;font-size:.82rem;font-weight:600;
+  min-width:76px;min-height:44px;padding:10px 12px;border-radius:999px;border:1px solid rgba(180,120,255,.4);
+  background:rgba(40,20,60,.72);color:#f3e8ff;font-size:.78rem;font-weight:600;
   cursor:pointer;font-family:inherit;backdrop-filter:blur(12px);
 }
 .bts-btn:active{transform:scale(.96);background:rgba(120,60,180,.45)}
+.bts-btn.princess-on{
+  border-color:rgba(255,180,220,.65);background:rgba(120,40,90,.75);color:#ffe8f4;
+  box-shadow:0 0 14px rgba(255,140,200,.35);
+}
+#princess-chip{
+  display:none;margin-top:8px;background:rgba(80,20,60,.55);border-color:rgba(255,180,220,.4);
+  color:#ffe8f4;font-size:.7rem;
+}
+#princess-chip.on{display:inline-block}
+#merit-chip,#time-chip,#stamp-chip,#fate-chip,#streak-chip,#weather-chip{
+  display:none;margin-top:8px;font-size:.7rem;
+}
+#merit-chip.on,#time-chip.on,#stamp-chip.on,#fate-chip.on,#streak-chip.on,#weather-chip.on{display:inline-block}
+#merit-chip{
+  background:rgba(40,55,35,.55);border-color:rgba(180,220,140,.4);color:#e8f5d8;
+}
+#time-chip{
+  background:rgba(40,35,55,.55);border-color:rgba(180,160,220,.4);color:#e8e0ff;
+}
+#stamp-chip{
+  background:rgba(55,40,25,.55);border-color:rgba(220,180,120,.4);color:#ffe8c8;
+}
+#fate-chip{
+  background:rgba(55,45,20,.62);border-color:rgba(255,210,120,.55);color:#ffe9b8;
+}
+#streak-chip{
+  background:rgba(55,30,22,.58);border-color:rgba(255,160,100,.45);color:#ffd8c0;
+}
+#weather-chip{
+  background:rgba(35,48,58,.58);border-color:rgba(160,200,220,.45);color:#d8eef8;
+}
+#weather-chip.mood-mist{background:rgba(40,50,58,.62);border-color:rgba(170,190,210,.55);color:#e0eaf0}
+#weather-chip.mood-rain{background:rgba(30,42,58,.65);border-color:rgba(140,180,230,.55);color:#c8e0ff}
+#weather-chip.mood-calm{background:rgba(55,42,28,.62);border-color:rgba(255,200,140,.55);color:#ffe8c8}
+#weather-chip.mood-clear{background:rgba(35,48,58,.58);border-color:rgba(160,200,220,.45);color:#d8eef8}
+#merit-chip.pulse,#stamp-chip.pulse,#time-chip.pulse,#fate-chip.pulse,#streak-chip.pulse,#weather-chip.pulse{
+  animation:merit-chip-pulse .5s ease-out;
+}
+#merit-chip.pulse{box-shadow:0 0 14px rgba(160,220,120,.4)}
+#stamp-chip.pulse{box-shadow:0 0 14px rgba(220,180,120,.45);border-color:rgba(255,210,150,.7)}
+#time-chip.pulse{box-shadow:0 0 14px rgba(180,160,220,.4);border-color:rgba(210,190,255,.7)}
+#time-chip.fest{
+  background:rgba(55,32,18,.72);border-color:rgba(255,180,100,.75);color:#ffe6c0;
+  box-shadow:0 0 14px rgba(255,150,70,.4);
+}
+#fate-chip.pulse{box-shadow:0 0 14px rgba(255,200,100,.5);border-color:rgba(255,220,140,.8)}
+#streak-chip.pulse{box-shadow:0 0 14px rgba(255,140,80,.45);border-color:rgba(255,180,120,.7)}
+#weather-chip.pulse{box-shadow:0 0 14px rgba(160,210,240,.4);border-color:rgba(190,230,255,.7)}
+@keyframes merit-chip-pulse{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.06)}
+  100%{transform:scale(1)}
+}
+#princess-chip.pulse{
+  animation:princess-chip-pulse .55s ease-out;
+  border-color:rgba(255,210,240,.85);
+  box-shadow:0 0 16px rgba(255,140,200,.45);
+}
+@keyframes princess-chip-pulse{
+  0%{transform:scale(1)}
+  40%{transform:scale(1.08)}
+  100%{transform:scale(1)}
+}
+#princess-fx{
+  position:absolute;inset:0;pointer-events:none;z-index:88;overflow:hidden;opacity:0;
+  transition:opacity .2s;
+}
+#princess-fx.on{opacity:1}
+#princess-fx .pfx{
+  position:absolute;font-size:1.25rem;animation:pfx-up 1.35s ease-out forwards;
+  text-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+@keyframes pfx-up{
+  0%{transform:translate(-50%,0) scale(.6);opacity:0}
+  15%{opacity:1;transform:translate(-50%,-10px) scale(1.1)}
+  100%{transform:translate(calc(-50% + var(--dx,0px)),-110px) scale(.85);opacity:0}
+}
 .sig-card{
   margin:10px auto;padding:14px 16px;border-radius:12px;max-width:320px;text-align:left;
   background:linear-gradient(135deg,rgba(80,40,120,.35),rgba(20,10,30,.55));
@@ -280,6 +377,15 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 }
 .panel h2{font-family:"Literata",Georgia,serif;color:#f7f0e6;font-size:1.3rem;font-weight:600;margin-bottom:8px;text-align:center}
 .panel p{font-size:.9rem;line-height:1.55;color:var(--muted);margin-bottom:12px;text-align:center}
+.panel.story-panel{width:min(440px,100%);max-height:min(82vh,680px)}
+.panel .story{
+  text-align:left;font-size:.88rem;line-height:1.62;color:rgba(243,235,224,.88);
+  margin:0 0 14px;white-space:pre-wrap;
+}
+.panel .story-tag{
+  display:inline-block;font-size:.68rem;letter-spacing:.06em;text-transform:uppercase;
+  color:#f0c070;border:1px solid rgba(240,192,112,.35);padding:3px 8px;border-radius:999px;margin-bottom:10px;
+}
 .panel .row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:12px}
 .choice{
   flex:1 1 120px;min-height:68px;border-radius:12px;border:1px solid var(--line);
@@ -318,6 +424,72 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 #bubbles{position:fixed;inset:0;pointer-events:none;z-index:5}
 .bubble3d{position:absolute;transform:translate(-50%,-100%);background:rgba(12,8,6,.72);border:1px solid var(--line);padding:5px 10px;border-radius:8px;font-size:.7rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .3s;backdrop-filter:blur(8px);color:rgba(243,235,224,.9)}
 .bubble3d.on{opacity:1}
+
+/* ——— Nghe nhạc · YouTube trên sân chùa ——— */
+#btn-music.music-on{
+  border-color:rgba(120,200,160,.7);background:rgba(30,70,50,.65);color:#d8ffe8;
+  box-shadow:0 0 12px rgba(80,180,120,.35);
+}
+#music-panel{
+  position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:flex-end;
+  background:rgba(6,10,8,.62);backdrop-filter:blur(6px);z-index:140;pointer-events:auto;
+  padding:calc(12px + var(--st)) 12px calc(14px + var(--sb));
+}
+#music-panel.open{display:flex}
+.music-sheet{
+  width:min(440px,100%);max-height:min(86vh,720px);display:flex;flex-direction:column;
+  background:rgba(16,22,18,.94);border:1px solid rgba(160,210,180,.28);border-radius:16px;
+  box-shadow:0 -12px 40px rgba(0,0,0,.5);overflow:hidden;
+}
+.music-sheet h2{
+  font-family:"Literata",Georgia,serif;font-size:1.2rem;font-weight:600;color:#e8fff2;
+  text-align:center;padding:16px 16px 4px;margin:0;
+}
+.music-sheet .music-sub{font-size:.78rem;color:rgba(220,240,228,.55);text-align:center;padding:0 16px 10px;line-height:1.4}
+.music-search-row{display:flex;gap:8px;padding:0 14px 10px}
+.music-search-row .input{margin:0;max-width:none;flex:1;text-align:left;font-size:.92rem}
+.music-search-row .btn{min-height:46px;padding:10px 14px;flex-shrink:0;background:rgba(180,230,200,.92)}
+.music-chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px;justify-content:center}
+.music-chip{
+  border:1px solid rgba(160,210,180,.35);background:rgba(255,255,255,.05);color:rgba(230,250,238,.9);
+  border-radius:999px;padding:7px 11px;font-size:.72rem;font-family:inherit;cursor:pointer;
+}
+.music-chip:active{background:rgba(160,210,180,.18)}
+.music-results{
+  flex:1;overflow-y:auto;padding:0 10px 8px;min-height:120px;max-height:min(42vh,360px);
+  -webkit-overflow-scrolling:touch;
+}
+.music-item{
+  display:flex;gap:10px;align-items:center;width:100%;text-align:left;cursor:pointer;
+  border:1px solid rgba(160,210,180,.18);background:rgba(255,255,255,.04);border-radius:12px;
+  padding:8px;margin-bottom:8px;color:inherit;font-family:inherit;
+}
+.music-item:active,.music-item:hover{border-color:rgba(180,230,200,.45);background:rgba(160,210,180,.12)}
+.music-item img{width:96px;height:54px;object-fit:cover;border-radius:8px;flex-shrink:0;background:#1a2820}
+.music-item .mi-body{flex:1;min-width:0}
+.music-item .mi-title{font-size:.82rem;line-height:1.35;color:#f2fff8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.music-item .mi-meta{font-size:.68rem;color:rgba(220,240,228,.5);margin-top:3px}
+.music-empty,.music-loading{text-align:center;font-size:.82rem;color:rgba(220,240,228,.5);padding:24px 12px}
+.music-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:8px 14px 14px}
+.music-actions .btn{min-height:44px;padding:10px 16px}
+.music-actions .btn.secondary{margin-top:0}
+#yt-yard{
+  position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.01);
+  width:min(520px,72vw);aspect-ratio:16/9;z-index:8;pointer-events:none;opacity:0;
+  border-radius:6px;overflow:hidden;border:2px solid rgba(40,30,20,.85);
+  box-shadow:0 8px 28px rgba(0,0,0,.55),0 0 24px rgba(80,180,120,.15);
+  transition:opacity .25s;background:#050805;
+}
+#yt-yard.on{opacity:1;pointer-events:auto}
+#yt-yard iframe{width:100%;height:100%;border:0;display:block;background:#000}
+#yt-yard-bar{
+  position:absolute;left:0;right:0;bottom:0;display:flex;gap:6px;justify-content:flex-end;
+  padding:6px;background:linear-gradient(transparent,rgba(0,0,0,.75));pointer-events:auto;
+}
+#yt-yard-bar button{
+  border:1px solid rgba(243,235,224,.3);background:rgba(12,8,6,.7);color:#fff;
+  border-radius:8px;padding:6px 10px;font-size:.68rem;font-family:inherit;cursor:pointer;
+}
 </style>
 </head>
 <body>
@@ -341,7 +513,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <ol class="steps">
         <li><span class="n">1</span><span>Điện thoại kiểu Free Fire: trái kéo đi · phải kéo xoay nhìn. Máy tính: WASD + chuột.</span></li>
         <li><span class="n">2</span><span>Nút Chạy để tăng tốc. Tới gần lư hương, chuông, mõ rồi bấm hành động.</span></li>
-        <li><span class="n">3</span><span>Gặp BTS gần cổng: ôm / chữ ký / selfie. Bấm Hủy hoặc Esc để thoát tương tác.</span></li>
+        <li><span class="n">3</span><span>Gặp BTS gần cổng: ôm / hôn / bế / làm chồng · thử <strong>Chế độ Công Chúa</strong>. Bấm Hủy hoặc Esc để thoát.</span></li>
       </ol>
       <p class="tiny" style="margin:0 0 10px;text-align:center">Chọn góc nhìn khi vào chùa</p>
       <div class="row" style="margin-bottom:14px">
@@ -359,13 +531,23 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
         <strong id="online-count">0</strong> đang online
         · <strong id="visitor-count">0</strong> lượt hôm nay
       </div>
+      <div class="chip" id="merit-chip" aria-live="polite">🪷 Thiện Nam · 0</div>
+      <div class="chip" id="streak-chip" aria-live="polite">🔥 Chuỗi 0</div>
+      <div class="chip" id="time-chip" aria-live="polite">☀️ Ban ngày</div>
+      <div class="chip" id="weather-chip" aria-live="polite">🌤️ Trong trẻo</div>
+      <div class="chip" id="stamp-chip" aria-live="polite">📷 Ấn 0/3</div>
+      <div class="chip" id="fate-chip" aria-live="polite">✦ Theo vận</div>
+      <div class="chip" id="princess-chip" aria-live="polite">👑 Công Chúa</div>
     </div>
     <div id="hud-btns">
       <button class="icon-btn" id="btn-view" title="Đổi góc nhìn">3rd</button>
       <button class="icon-btn" id="btn-mute" title="Âm thanh">Âm</button>
+      <button class="icon-btn" id="btn-music" title="Nghe nhạc trên sân (M)">Nhạc</button>
       <button class="icon-btn" id="btn-book" title="Sổ cầu an">Sổ</button>
+      <button class="icon-btn" id="btn-street" title="Đến cổng Phố An Lạc (P)">Phố</button>
       <button class="icon-btn" id="btn-share" title="Chia sẻ">Chia</button>
     </div>
+    <button type="button" id="btn-street-fab" title="Đến cổng Phố An Lạc">🛤️ Phố An Lạc<span class="sub">bấm để tới cổng</span></button>
     <button id="action-btn" type="button"></button>
     <div id="combat-bar">
       <button class="combat-btn" data-act="chao" type="button">Chào</button>
@@ -379,11 +561,13 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button class="bts-btn" type="button" data-bts="kiss">Hôn</button>
       <button class="bts-btn" type="button" data-bts="carry">Bế</button>
       <button class="bts-btn" type="button" data-bts="marry">Làm chồng</button>
+      <button class="bts-btn" type="button" data-bts="princess" id="bts-princess-btn">Chế độ Công Chúa</button>
       <button class="bts-btn" type="button" data-bts="sign">Chữ ký</button>
       <button class="bts-btn" type="button" data-bts="selfie">Selfie</button>
       <button class="bts-btn" type="button" data-bts="chat">Hỏi vui</button>
       <button class="bts-btn" type="button" data-bts="cancel">Hủy</button>
     </div>
+    <div id="princess-fx" aria-hidden="true"></div>
     <div id="selfie-flash"></div>
     <div id="weapon-bar">
       <button class="weapon-btn on" type="button" data-gun="">Tay không</button>
@@ -422,6 +606,32 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
     <div id="mg-feedback"></div>
   </div>
   <div class="modal" id="modal"><div class="panel" id="modal-body"></div></div>
+  <div id="music-panel" aria-hidden="true">
+    <div class="music-sheet">
+      <h2>🎵 Nghe nhạc trên sân</h2>
+      <p class="music-sub">Tìm video YouTube · chọn · phát trên màn hình sân chùa (cạnh tháp)</p>
+      <div class="music-search-row">
+        <input class="input" id="music-q" maxlength="80" placeholder="Tìm trên YouTube hoặc dán link…" autocomplete="off"/>
+        <button type="button" class="btn" id="music-search-btn">Tìm</button>
+      </div>
+      <div class="music-chips" id="music-chips"></div>
+      <div class="music-results" id="music-results">
+        <div class="music-empty">Gõ từ khóa hoặc chọn gợi ý bên trên</div>
+      </div>
+      <div class="music-actions">
+        <button type="button" class="btn secondary" id="music-close">Đóng</button>
+        <button type="button" class="btn secondary" id="music-stop" style="display:none">Tắt nhạc sân</button>
+        <button type="button" class="btn" id="music-goto">Đến màn hình sân</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="yt-yard" aria-hidden="true">
+  <div id="yt-yard-frame"></div>
+  <div id="yt-yard-bar">
+    <button type="button" id="yt-yard-search">Đổi bài</button>
+    <button type="button" id="yt-yard-close">Tắt</button>
+  </div>
 </div>
 <div id="bubbles"></div>
 
@@ -477,7 +687,27 @@ const S = {
   day: new Date().toDateString(),
   sticks: [], ribbons: [], floats: [], lanterns: [],
   smoke: null, fireflies: null, petals: null,
-  dusk: 0.55, shake: 0, fortuneMode: false, busy: false,
+  dusk: 0.2, timeOfDay: 0.12, timePhase: 'day',
+  congDuc: 0, meritTier: 'thien',
+  stampGate: false, stampPond: false, stampHall: false,
+  nearStamp: null,
+  fateRuns: [], nearFate: null, fateStreak: 0,
+  coopRituals: [], coopStreak: 0, nearCoop: null, _coopCueAt: 0,
+  pilgrimQuests: [], pilgrimSessionDone: 0, thienDuyen: false,
+  nearPilgrim: null, nearPilgrimTarget: null, _pilgrimTipAt: 0,
+  festivalMoments: [], festivalActive: false, festivalUntil: 0,
+  festivalActs: 0, festivalReleased: 0, festivalCycle: -1, _todCycle: 0, _prevTod: 0.12,
+  khachHoi: false, nearFestival: null, _festivalTipAt: 0, _festivalPilgrimTip: 0,
+  festivalCrowd: null, festivalMarker: null,
+  dailyStreak: 0, lastDailyDay: '', dailyGoalsDay: '',
+  dailyGoals: [], dailyCleared: false, dailyLog: [],
+  streakFlair: '', _dailyHintShown: false, _streakBreakPending: 0,
+  weatherMood: 'clear', weatherUntil: 0, weatherSeen: {}, weatherLog: [],
+  weatherBonus: {}, _weatherEnterAt: 0, rain: null,
+  nearGossip: null, _gossipTipAt: 0, _streetEntered: false,
+  nearShop: null, _shopTipAt: 0, shopVisited: {}, shopLog: [], khachPho: false,
+  streetShops: null,
+  shake: 0, fortuneMode: false, busy: false,
   groupTimer: 40,
   uid: null, online: false, nearPlayer: null, onlineCount: 0,
   netVisit: null, seenWishes: Object.create(null),
@@ -487,7 +717,24 @@ const S = {
   hp: 100, targetHpUntil: 0,
   nearBts: null, btsSigs: 0, btsSelfies: 0, btsHugs: 0, btsKisses: 0, btsQuotes: [],
   btsHusbandId: '', btsCarryId: '',
+  btsPrincessMode: false, btsRoyalRing: false, btsPrincessTitle: '',
+  btsPrincessNextBow: 0, btsPrincessNextServe: 0, btsPrincessNextCmd: 0,
+  btsSecretLotus: false, btsSecretLantern: false, btsSecretCrown: false,
+  btsCrownBuff: false,
+  btsParadeUntil: 0, btsParadeCooldown: 0,
+  btsPrincessHintedSecrets: false,
+  nearPrincessSecret: null,
   interactOpen: false,
+  // Sen Bay — đài sen bay sân chùa (không liên quan phố)
+  senBayBestTier: '', senBayRides: 0, senBayLog: [], senBayTierSeen: {},
+  khachSenBay: false, nearSenBay: null, senBayRide: null,
+  senBayUnlocked: false, senBayDuyen: false,
+  _senBayTipAt: 0, _senBayDiscoverAt: 0, _senBaySessionRides: 0,
+  senBayRoot: null,
+  // Nghe nhạc — màn YouTube trên sân chùa (cạnh tháp)
+  musicMode: false, musicPlaying: false, musicVideoId: '', musicTitle: '',
+  musicPlays: 0, musicLog: [], nearMusic: null, musicRoot: null,
+  musicScreenAnchor: null, musicFaceNormal: null, _musicTipAt: 0,
 };
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
@@ -584,6 +831,11 @@ function loadSave() {
     if (typeof d.bestCalm === 'number') S.bestCalm = d.bestCalm;
     if (Array.isArray(d.prayers)) S.prayers = d.prayers.slice(-40);
     if (Array.isArray(d.fortunes)) S.fortunes = d.fortunes.slice(-40);
+    if (Array.isArray(d.fateRuns)) S.fateRuns = d.fateRuns.slice(-20);
+    if (Array.isArray(d.coopRituals)) S.coopRituals = d.coopRituals.slice(-15);
+    if (Array.isArray(d.pilgrimQuests)) S.pilgrimQuests = d.pilgrimQuests.slice(-12);
+    if (Array.isArray(d.festivalMoments)) S.festivalMoments = d.festivalMoments.slice(-12);
+    if (typeof d.thienDuyen === 'boolean') S.thienDuyen = d.thienDuyen;
     if (d.day === S.day && typeof d.visitExtra === 'number') S.visitExtra = d.visitExtra;
     if (typeof d.btsSigs === 'number') S.btsSigs = d.btsSigs;
     if (typeof d.btsSelfies === 'number') S.btsSelfies = d.btsSelfies;
@@ -591,6 +843,74 @@ function loadSave() {
     if (typeof d.btsKisses === 'number') S.btsKisses = d.btsKisses;
     if (typeof d.btsHusbandId === 'string') S.btsHusbandId = d.btsHusbandId;
     if (Array.isArray(d.btsQuotes)) S.btsQuotes = d.btsQuotes.slice(-20);
+    // Royal persist (existing) — do not auto-enable Princess Mode
+    if (typeof d.btsPrincessTitle === 'string') S.btsPrincessTitle = d.btsPrincessTitle.slice(0, 40);
+    if (typeof d.btsRoyalRing === 'boolean') S.btsRoyalRing = d.btsRoyalRing;
+    if (typeof d.btsSecretLotus === 'boolean') S.btsSecretLotus = d.btsSecretLotus;
+    if (typeof d.btsSecretLantern === 'boolean') S.btsSecretLantern = d.btsSecretLantern;
+    if (typeof d.btsSecretCrown === 'boolean') S.btsSecretCrown = d.btsSecretCrown;
+    if (S.btsSecretCrown) S.btsCrownBuff = true;
+    // Global temple progression
+    if (typeof d.congDuc === 'number') S.congDuc = Math.max(0, d.congDuc | 0);
+    if (typeof d.stampGate === 'boolean') S.stampGate = d.stampGate;
+    if (typeof d.stampPond === 'boolean') S.stampPond = d.stampPond;
+    if (typeof d.stampHall === 'boolean') S.stampHall = d.stampHall;
+    if (typeof d.dailyStreak === 'number') S.dailyStreak = Math.max(0, d.dailyStreak | 0);
+    if (typeof d.lastDailyDay === 'string') S.lastDailyDay = d.lastDailyDay.slice(0, 12);
+    if (typeof d.dailyGoalsDay === 'string') S.dailyGoalsDay = d.dailyGoalsDay.slice(0, 12);
+    if (Array.isArray(d.dailyGoals)) S.dailyGoals = d.dailyGoals.slice(0, 6).map(g => ({
+      id: String(g.id || ''),
+      done: !!g.done,
+      optional: !!g.optional,
+    })).filter(g => g.id);
+    if (typeof d.dailyCleared === 'boolean') S.dailyCleared = d.dailyCleared;
+    if (Array.isArray(d.dailyLog)) S.dailyLog = d.dailyLog.slice(-12);
+    if (typeof d.streakFlair === 'string') S.streakFlair = d.streakFlair.slice(0, 24);
+    if (d.weatherSeen && typeof d.weatherSeen === 'object') {
+      S.weatherSeen = {};
+      ['clear', 'mist', 'rain', 'calm'].forEach(k => { if (d.weatherSeen[k]) S.weatherSeen[k] = true; });
+    }
+    if (Array.isArray(d.weatherLog)) {
+      S.weatherLog = d.weatherLog.slice(-8).map(w => ({
+        id: String(w.id || 'clear').slice(0, 12),
+        text: String(w.text || '').slice(0, 80),
+        at: w.at | 0,
+      })).filter(w => w.text);
+    }
+    if (d.shopVisited && typeof d.shopVisited === 'object') {
+      S.shopVisited = {};
+      ['cafe', 'pho', 'hair', 'tea'].forEach(k => { if (d.shopVisited[k]) S.shopVisited[k] = true; });
+    }
+    if (Array.isArray(d.shopLog)) {
+      S.shopLog = d.shopLog.slice(-12).map(w => ({
+        id: String(w.id || '').slice(0, 12),
+        text: String(w.text || '').slice(0, 80),
+        at: w.at | 0,
+      })).filter(w => w.text);
+    }
+    if (typeof d.khachPho === 'boolean') S.khachPho = d.khachPho;
+    if (typeof d.senBayBestTier === 'string') S.senBayBestTier = String(d.senBayBestTier).slice(0, 12);
+    if (typeof d.senBayRides === 'number') S.senBayRides = Math.max(0, d.senBayRides | 0);
+    if (d.senBayTierSeen && typeof d.senBayTierSeen === 'object') {
+      S.senBayTierSeen = {};
+      ['van', 'nguyet', 'tinh'].forEach(k => { if (d.senBayTierSeen[k]) S.senBayTierSeen[k] = true; });
+    }
+    if (Array.isArray(d.senBayLog)) {
+      S.senBayLog = d.senBayLog.slice(-12).map(w => ({
+        text: String(w.text || '').slice(0, 80),
+        tier: String(w.tier || '').slice(0, 12),
+        at: w.at | 0,
+      })).filter(w => w.text);
+    }
+    if (typeof d.khachSenBay === 'boolean') S.khachSenBay = d.khachSenBay;
+    if (typeof d.musicPlays === 'number') S.musicPlays = Math.max(0, d.musicPlays | 0);
+    if (Array.isArray(d.musicLog)) {
+      S.musicLog = d.musicLog.slice(-12).map(w => ({
+        text: String(w.text || '').slice(0, 90),
+        id: String(w.id || '').slice(0, 20),
+        at: w.at | 0,
+      })).filter(w => w.text);
+    }
   } catch (_) {}
 }
 function saveAll() {
@@ -598,15 +918,816 @@ function saveAll() {
     localStorage.setItem(KEY, JSON.stringify({
       name: S.name, incense: S.incense, bestCalm: S.bestCalm,
       prayers: S.prayers.slice(-40), fortunes: S.fortunes.slice(-40),
+      fateRuns: S.fateRuns.slice(-20),
+      coopRituals: (S.coopRituals || []).slice(-15),
+      pilgrimQuests: (S.pilgrimQuests || []).slice(-12),
+      festivalMoments: (S.festivalMoments || []).slice(-12),
+      thienDuyen: !!S.thienDuyen,
       day: S.day, visitExtra: S.visitExtra,
       btsSigs: S.btsSigs, btsSelfies: S.btsSelfies, btsHugs: S.btsHugs,
       btsKisses: S.btsKisses, btsHusbandId: S.btsHusbandId,
       btsQuotes: S.btsQuotes.slice(-20),
+      btsPrincessTitle: S.btsPrincessTitle || '',
+      btsRoyalRing: !!S.btsRoyalRing,
+      btsSecretLotus: !!S.btsSecretLotus,
+      btsSecretLantern: !!S.btsSecretLantern,
+      btsSecretCrown: !!S.btsSecretCrown,
+      congDuc: S.congDuc | 0,
+      stampGate: !!S.stampGate,
+      stampPond: !!S.stampPond,
+      stampHall: !!S.stampHall,
+      dailyStreak: S.dailyStreak | 0,
+      lastDailyDay: S.lastDailyDay || '',
+      dailyGoalsDay: S.dailyGoalsDay || '',
+      dailyGoals: (S.dailyGoals || []).slice(0, 6),
+      dailyCleared: !!S.dailyCleared,
+      dailyLog: (S.dailyLog || []).slice(-12),
+      streakFlair: S.streakFlair || '',
+      weatherSeen: S.weatherSeen || {},
+      weatherLog: (S.weatherLog || []).slice(-8),
+      shopVisited: S.shopVisited || {},
+      shopLog: (S.shopLog || []).slice(-12),
+      khachPho: !!S.khachPho,
+      senBayBestTier: S.senBayBestTier || '',
+      senBayRides: S.senBayRides | 0,
+      senBayTierSeen: S.senBayTierSeen || {},
+      senBayLog: (S.senBayLog || []).slice(-12),
+      khachSenBay: !!S.khachSenBay,
+      musicPlays: S.musicPlays | 0,
+      musicLog: (S.musicLog || []).slice(-12),
     }));
   } catch (_) {}
 }
 loadSave();
 if (S.name) document.getElementById('name-input').value = S.name;
+
+/* ========== CÔNG ĐỨC / DANH HIỆU CHÙA ========== */
+const MERIT_TIERS = [
+  { id: 'thien', min: 0, title: 'Thiện Nam', emoji: '🪷' },
+  { id: 'tutap', min: 25, title: 'Tu Tập', emoji: '🌸' },
+  { id: 'hopphap', min: 70, title: 'Hộ Pháp', emoji: '🔔' },
+];
+function meritTierFor(xp) {
+  let t = MERIT_TIERS[0];
+  for (const m of MERIT_TIERS) if (xp >= m.min) t = m;
+  return t;
+}
+function nextMeritTier(xp) {
+  for (const m of MERIT_TIERS) if (xp < m.min) return m;
+  return null;
+}
+function templeFlairSuffix() {
+  const parts = [];
+  if (S.thienDuyen) parts.push('Thiện Duyên');
+  if (S.khachHoi) parts.push('Khách Hội');
+  if (S.khachPho) parts.push('Khách Phố');
+  if (S.khachSenBay) parts.push('Khách Sen Bay');
+  if (S.streakFlair === 'nhatTu') parts.push('Nhật Tu');
+  else if (S.streakFlair === 'chuyenCan') parts.push('Chuyên Cần');
+  return parts.length ? ` · ${parts.join(' · ')}` : '';
+}
+function getTempleTitle() {
+  return meritTierFor(S.congDuc | 0).title + templeFlairSuffix();
+}
+function getTempleTitleLabel() {
+  const t = meritTierFor(S.congDuc | 0);
+  return `${t.emoji} ${t.title}${templeFlairSuffix()}`;
+}
+function stampCount() {
+  return (S.stampGate ? 1 : 0) + (S.stampPond ? 1 : 0) + (S.stampHall ? 1 : 0);
+}
+function updateMeritHud() {
+  const chip = $('merit-chip');
+  if (!chip) return;
+  const xp = S.congDuc | 0;
+  const t = meritTierFor(xp);
+  const next = nextMeritTier(xp);
+  S.meritTier = t.id;
+  const flair = templeFlairSuffix();
+  chip.textContent = next
+    ? `${t.emoji} ${t.title}${flair} · ${xp}/${next.min}`
+    : `${t.emoji} ${t.title}${flair} · ${xp}`;
+  chip.title = next
+    ? `Công đức ${xp} · còn ${next.min - xp} nữa lên ${next.title}${flair}`
+    : `Công đức ${xp} · danh hiệu cao nhất${flair}`;
+  chip.classList.add('on');
+  const sc = $('stamp-chip');
+  if (sc) {
+    const n = stampCount();
+    sc.textContent = n >= 3 ? '📷 Ấn đủ 3/3 ✓' : `📷 Ấn ${n}/3 · tìm quanh sân`;
+    sc.title = n >= 3 ? 'Đã thu đủ bộ ấn chùa' : 'Tìm vòng sáng quanh Cổng / Hồ Sen / Chính Điện';
+    sc.classList.add('on');
+  }
+  if (typeof updateStreakHud === 'function') updateStreakHud();
+}
+function pulseHudChip(id) {
+  const chip = $(id);
+  if (!chip) return;
+  chip.classList.remove('pulse');
+  void chip.offsetWidth;
+  chip.classList.add('pulse');
+  clearTimeout(chip._pulseT);
+  chip._pulseT = setTimeout(() => chip.classList.remove('pulse'), 550);
+}
+function pulseMeritHud() { pulseHudChip('merit-chip'); }
+function pulseStampHud() { pulseHudChip('stamp-chip'); }
+function pulseTimeHud() { pulseHudChip('time-chip'); }
+function pulseStreakHud() { pulseHudChip('streak-chip'); }
+function pulseWeatherHud() { pulseHudChip('weather-chip'); }
+function gainCongDuc(amount, reason, quiet) {
+  const n = Math.max(0, amount | 0);
+  if (!n) return;
+  const before = meritTierFor(S.congDuc | 0);
+  S.congDuc = (S.congDuc | 0) + n;
+  const after = meritTierFor(S.congDuc);
+  saveAll();
+  updateMeritHud();
+  pulseMeritHud();
+  if (reason && !quiet) toast(`+${n} công đức · ${reason}`);
+  if (after.id !== before.id) {
+    setTimeout(() => toast(`${after.emoji} Danh hiệu mới: ${after.title}!`), 700);
+    publishPresence(true);
+  }
+}
+
+/* ========== CHUỖI NGÀY / MỤC TIÊU HÔM NAY ========== */
+const DAILY_GOAL_DEFS = {
+  incense: { id: 'incense', label: 'Thắp hương 1 lần', hint: 'Lư hương giữa sân' },
+  bell: { id: 'bell', label: 'Thỉnh chuông hoặc Cầu chung 1 lần', hint: 'Gác chuông / gõ mõ' },
+  fortune: { id: 'fortune', label: 'Xin quẻ hoặc hoàn thành 1 vận', hint: 'Ống quẻ · Theo vận trên sân' },
+  stamp: { id: 'stamp', label: 'Thu 1 ấn khám phá', hint: 'Vòng sáng Cổng / Hồ / Điện' },
+  pilgrim: { id: 'pilgrim', label: 'Giúp 1 hành hương', hint: 'NPC vòng xanh trong sân' },
+  wish: { id: 'wish', label: 'Viết 1 lời cầu an', hint: 'Cây bồ đề hoặc hồ sen' },
+  festival: { id: 'festival', label: '1 act Giờ hội (hoa / hương / chuông)', hint: 'Cuối ban ngày — thưởng thêm', optional: true },
+};
+const DAILY_REQUIRED_IDS = ['incense', 'bell', 'fortune', 'stamp', 'pilgrim', 'wish'];
+
+function localDayKey(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+function prevDayKey(key) {
+  const parts = String(key || '').split('-').map(Number);
+  if (parts.length !== 3 || parts.some(n => !n && n !== 0)) return '';
+  const dt = new Date(parts[0], parts[1] - 1, parts[2]);
+  dt.setDate(dt.getDate() - 1);
+  return localDayKey(dt);
+}
+function dayHash(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+function dailyGoalDef(id) {
+  return DAILY_GOAL_DEFS[id] || null;
+}
+function requiredDailyGoals() {
+  return (S.dailyGoals || []).filter(g => g && !g.optional);
+}
+function optionalDailyGoals() {
+  return (S.dailyGoals || []).filter(g => g && g.optional);
+}
+function dailyRequiredDoneCount() {
+  return requiredDailyGoals().filter(g => g.done).length;
+}
+function dailyRequiredTotal() {
+  return requiredDailyGoals().length;
+}
+function allRequiredDailyDone() {
+  const req = requiredDailyGoals();
+  return req.length > 0 && req.every(g => g.done);
+}
+function rollDailyGoalsForDay(dayKey) {
+  const h = dayHash(`chua-daily-${dayKey}`);
+  // Skip stamp if bộ ấn already full — day must stay offline-completable
+  const pool = DAILY_REQUIRED_IDS.filter(id => !(id === 'stamp' && stampCount() >= 3));
+  let seed = h || 1;
+  const rand = () => {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = (rand() * (i + 1)) | 0;
+    const tmp = pool[i]; pool[i] = pool[j]; pool[j] = tmp;
+  }
+  const n = Math.min(pool.length, 2 + (h % 2)); // 2 or 3 required
+  const picked = pool.slice(0, Math.max(2, n)).map(id => ({ id, done: false, optional: false }));
+  picked.push({ id: 'festival', done: false, optional: true });
+  return picked;
+}
+function applyStreakFlairFromStreak() {
+  const n = S.dailyStreak | 0;
+  if (n >= 7) S.streakFlair = 'nhatTu';
+  else if (n >= 3) S.streakFlair = 'chuyenCan';
+  else S.streakFlair = '';
+}
+function updateStreakHud() {
+  const chip = $('streak-chip');
+  if (!chip) return;
+  ensureDailyGoals(false);
+  const streak = S.dailyStreak | 0;
+  const done = dailyRequiredDoneCount();
+  const total = dailyRequiredTotal() || 1;
+  const cleared = !!S.dailyCleared;
+  chip.textContent = streak > 0
+    ? `🔥 Chuỗi ${streak} · ${cleared ? '✓' : `${done}/${total}`}`
+    : `🔥 Mục tiêu ${done}/${total}`;
+  chip.title = cleared
+    ? `Nhật khóa hôm nay xong · chuỗi ${streak} ngày`
+    : `Mục tiêu hôm nay ${done}/${total} · chuỗi ${streak} ngày — mở Sổ để xem`;
+  chip.classList.add('on');
+}
+function ensureDailyGoals(announceBreak) {
+  const today = localDayKey();
+  if (S.dailyGoalsDay === today && Array.isArray(S.dailyGoals) && S.dailyGoals.length) {
+    // Refresh defs integrity
+    S.dailyGoals = S.dailyGoals.map(g => ({
+      id: g.id,
+      done: !!g.done,
+      optional: !!(g.optional || dailyGoalDef(g.id)?.optional),
+    })).filter(g => dailyGoalDef(g.id));
+    if (!S.dailyGoals.some(g => !g.optional)) {
+      S.dailyGoals = rollDailyGoalsForDay(today);
+      S.dailyCleared = false;
+      saveAll();
+    }
+    return false;
+  }
+  // New calendar day — soft-reset streak if missed a day after a clear
+  const yesterday = prevDayKey(today);
+  if ((S.dailyStreak | 0) > 0 && S.lastDailyDay && S.lastDailyDay !== today && S.lastDailyDay !== yesterday) {
+    const broken = S.dailyStreak | 0;
+    S.dailyStreak = 0;
+    S.streakFlair = '';
+    S._streakBreakPending = broken; // toast once from toastDailyGoalsHint
+  }
+  S.dailyGoalsDay = today;
+  S.dailyGoals = rollDailyGoalsForDay(today);
+  S.dailyCleared = (S.lastDailyDay === today);
+  // If somehow already cleared today (edge), mark goals done
+  if (S.dailyCleared) {
+    S.dailyGoals.forEach(g => { if (!g.optional) g.done = true; });
+  }
+  saveAll();
+  return true;
+}
+function recordDailyClearLine(streak) {
+  if (!Array.isArray(S.dailyLog)) S.dailyLog = [];
+  const me = S.name || 'Bạn';
+  const line = `${me} hoàn tất Nhật khóa · chuỗi ${streak} ngày`;
+  S.dailyLog.push({ text: line, streak: streak | 0, at: Date.now(), day: localDayKey() });
+  if (S.dailyLog.length > 12) S.dailyLog = S.dailyLog.slice(-12);
+}
+function maybeMilestoneStreakToast(prevStreak, nextStreak) {
+  if (nextStreak >= 7 && prevStreak < 7) {
+    setTimeout(() => toast('🕯️ Nhật Tu — chuỗi 7 ngày chuyên cần!'), 900);
+  } else if (nextStreak >= 3 && prevStreak < 3) {
+    setTimeout(() => toast('📿 Chuyên Cần — chuỗi 3 ngày!'), 900);
+  }
+}
+function onDailyDayCleared() {
+  if (S.dailyCleared) return;
+  const today = localDayKey();
+  const yesterday = prevDayKey(today);
+  const prev = S.dailyStreak | 0;
+  let next = 1;
+  if (S.lastDailyDay === yesterday) next = prev + 1;
+  else if (S.lastDailyDay === today) next = Math.max(1, prev);
+  else next = 1;
+  S.dailyStreak = next;
+  S.lastDailyDay = today;
+  S.dailyCleared = true;
+  applyStreakFlairFromStreak();
+  recordDailyClearLine(next);
+  saveAll();
+  updateStreakHud();
+  updateMeritHud();
+  pulseStreakHud();
+  const bonus = 12 + Math.min(10, Math.max(0, next - 1) * 2);
+  gainCongDuc(bonus, 'Nhật khóa hôm nay', true);
+  toast(`📒 Nhật khóa hoàn tất · chuỗi ${next} ngày · +${bonus} công đức`);
+  maybeMilestoneStreakToast(prev, next);
+  try { publishPresence(true); } catch (_) {}
+}
+function noteDailyProgress(kind) {
+  if (!kind || !S.playing) return false;
+  ensureDailyGoals(false);
+  const goal = (S.dailyGoals || []).find(g => g.id === kind);
+  if (!goal || goal.done) return false;
+  goal.done = true;
+  saveAll();
+  updateStreakHud();
+  pulseStreakHud();
+  const def = dailyGoalDef(kind);
+  const label = def?.label || kind;
+  if (goal.optional) {
+    gainCongDuc(5, 'Mục tiêu thưởng', true);
+    toast(`✨ Mục tiêu thưởng ✓ · ${label} · +5`);
+  } else {
+    gainCongDuc(6, 'Mục tiêu hôm nay', true);
+    toast(`✅ Mục tiêu ✓ · ${label} · +6`);
+  }
+  if (!goal.optional && allRequiredDailyDone()) {
+    setTimeout(() => onDailyDayCleared(), 650);
+  }
+  return true;
+}
+function toastDailyGoalsHint() {
+  ensureDailyGoals(true);
+  if (S._streakBreakPending > 0) {
+    const n = S._streakBreakPending;
+    S._streakBreakPending = 0;
+    toast(`🌫️ Hôm qua vắng mặt — chuỗi ${n} ngày khẽ nghỉ, chùa vẫn chờ bạn`);
+  }
+  if (S._dailyHintShown) return;
+  S._dailyHintShown = true;
+  updateStreakHud();
+  if (S.dailyCleared) {
+    toast(`🔥 Chuỗi ${S.dailyStreak | 0} ngày · Nhật khóa hôm nay đã xong`);
+    return;
+  }
+  const req = requiredDailyGoals();
+  const names = req.slice(0, 2).map(g => dailyGoalDef(g.id)?.label || g.id).join(' · ');
+  const streak = S.dailyStreak | 0;
+  toast(streak > 0
+    ? `📋 Mục tiêu hôm nay · chuỗi ${streak} ngày — ${names}`
+    : `📋 Mục tiêu hôm nay — ${names} (xem Sổ)`);
+}
+function dailyGoalsBookHtml() {
+  ensureDailyGoals(false);
+  const req = requiredDailyGoals();
+  const opt = optionalDailyGoals();
+  const rows = [...req, ...opt].map(g => {
+    const def = dailyGoalDef(g.id);
+    const mark = g.done ? '✅' : '⬜';
+    const optTag = g.optional ? ' <span class="tiny">(thưởng)</span>' : '';
+    return `<li>${mark} ${def?.label || g.id}${optTag}${def?.hint && !g.done ? `<br><span class="tiny">${def.hint}</span>` : ''}</li>`;
+  }).join('') || '<li>Chưa có mục tiêu</li>';
+  const streak = S.dailyStreak | 0;
+  const flair = S.streakFlair === 'nhatTu' ? ' · Nhật Tu' : (S.streakFlair === 'chuyenCan' ? ' · Chuyên Cần' : '');
+  const clearNote = S.dailyCleared ? ' · Nhật khóa ✓' : '';
+  return { rows, streak, flair, clearNote };
+}
+ensureDailyGoals(false);
+applyStreakFlairFromStreak();
+function updateTimeHud() {
+  const chip = $('time-chip');
+  if (!chip) return;
+  const map = {
+    day: '☀️ Ban ngày',
+    dusk: '🌇 Giờ vàng',
+    night: '🌙 Đêm thiền',
+    dawn: '🌅 Bình minh',
+  };
+  if (S.festivalActive) {
+    const left = Math.max(0, Math.ceil((S.festivalUntil - performance.now()) / 1000));
+    chip.textContent = `🎉 Giờ hội · ${left}s`;
+    chip.title = 'Giờ hội chùa — thắp hương, thỉnh chuông hoặc Thả hoa hội bên hồ sen';
+    chip.classList.add('fest');
+  } else {
+    chip.textContent = map[S.timePhase] || map.day;
+    chip.title = 'Chu kỳ ngày trên sân chùa (tự chuyển)';
+    chip.classList.remove('fest');
+  }
+  chip.classList.add('on');
+}
+function phaseFromTimeOfDay(tod) {
+  if (tod < 0.28) return 'day';
+  if (tod < 0.45) return 'dusk';
+  if (tod < 0.78) return 'night';
+  return 'dawn';
+}
+function duskFromTimeOfDay(tod) {
+  if (tod < 0.28) return 0.12 + (tod / 0.28) * 0.18;
+  if (tod < 0.45) return 0.3 + ((tod - 0.28) / 0.17) * 0.4;
+  if (tod < 0.78) return 0.7 + ((tod - 0.45) / 0.33) * 0.3;
+  return 1 - ((tod - 0.78) / 0.22) * 0.85;
+}
+
+/* ========== THỜI TIẾT / KHÔNG KHÍ CHÙA (world mood) ==========
+ * Layers gently on dusk lighting. Giờ hội warm/intensity still wins as fest bias;
+ * weather only nudges fog density/tint + hemi/sun multipliers + lantern calm glow.
+ */
+const WEATHER_MOODS = {
+  clear: {
+    id: 'clear', label: 'Trong trẻo', emoji: '🌤️',
+    enter: '🌤️ Trời trong trẻo trên sân chùa',
+    fogMul: 1, hemiMul: 1.05, sunMul: 1.08, fillMul: 0.95,
+    fogTint: [0.04, 0.03, 0.02], bgTint: [0.02, 0.015, 0.01],
+    lantern: 0, cool: 0,
+  },
+  mist: {
+    id: 'mist', label: 'Sương sớm', emoji: '🌫️',
+    enter: '🌫️ Sương sớm lan nhẹ quanh chùa',
+    fogMul: 1.85, hemiMul: 0.88, sunMul: 0.78, fillMul: 1.15,
+    fogTint: [-0.06, 0.02, 0.06], bgTint: [-0.03, 0.01, 0.04],
+    lantern: 0.08, cool: 0.12,
+  },
+  rain: {
+    id: 'rain', label: 'Mưa nhẹ', emoji: '🌧️',
+    enter: '🌧️ Mưa nhẹ rơi trên mái chùa',
+    fogMul: 1.45, hemiMul: 0.82, sunMul: 0.62, fillMul: 1.22,
+    fogTint: [-0.08, -0.02, 0.08], bgTint: [-0.05, -0.02, 0.05],
+    lantern: 0.12, cool: 0.18,
+  },
+  calm: {
+    id: 'calm', label: 'Không khí an', emoji: '✨',
+    enter: '✨ Không khí an — lòng sân dịu lại',
+    fogMul: 1.15, hemiMul: 0.95, sunMul: 0.9, fillMul: 1.05,
+    fogTint: [0.12, 0.05, -0.04], bgTint: [0.08, 0.03, -0.03],
+    lantern: 0.42, cool: -0.08,
+  },
+};
+function weatherDef(id) {
+  return WEATHER_MOODS[id] || WEATHER_MOODS.clear;
+}
+function weatherLabel(id) {
+  const w = weatherDef(id);
+  return `${w.emoji} ${w.label}`;
+}
+function weatherWeightsForPhase(phase) {
+  if (phase === 'dawn') return { clear: 2, mist: 5, rain: 2, calm: 1 };
+  if (phase === 'dusk') return { clear: 3, mist: 2, rain: 3, calm: 2 };
+  if (phase === 'night') return { clear: 2, mist: 4, rain: 2, calm: 2 };
+  return { clear: 5, mist: 2, rain: 3, calm: 1 }; // day
+}
+function pickWeatherMood(preferRare) {
+  const weights = { ...weatherWeightsForPhase(S.timePhase || 'day') };
+  if (preferRare) weights.calm = (weights.calm || 1) + 3;
+  if (S.festivalActive) {
+    // During hội: bias clear/calm, less rain washout
+    weights.clear = (weights.clear || 1) + 2;
+    weights.calm = (weights.calm || 1) + 1;
+    weights.rain = Math.max(1, (weights.rain || 1) - 1);
+  }
+  const cur = S.weatherMood || 'clear';
+  weights[cur] = Math.max(1, Math.floor((weights[cur] || 1) * 0.35)); // avoid sticky same mood
+  const keys = Object.keys(weights);
+  let total = 0;
+  keys.forEach(k => { total += Math.max(0, weights[k] | 0); });
+  let r = Math.random() * Math.max(1, total);
+  for (const k of keys) {
+    r -= Math.max(0, weights[k] | 0);
+    if (r <= 0) return k;
+  }
+  return 'clear';
+}
+function recordWeatherLog(id) {
+  const w = weatherDef(id);
+  if (!Array.isArray(S.weatherLog)) S.weatherLog = [];
+  S.weatherLog.push({ id: w.id, text: `${w.emoji} ${w.label}`, at: Date.now() });
+  if (S.weatherLog.length > 8) S.weatherLog = S.weatherLog.slice(-8);
+}
+function updateWeatherHud() {
+  const chip = $('weather-chip');
+  if (!chip) return;
+  const w = weatherDef(S.weatherMood || 'clear');
+  chip.textContent = `${w.emoji} ${w.label}`;
+  chip.title = S.festivalActive
+    ? `Không khí chùa: ${w.label} (Giờ hội vẫn ấm đèn — thời tiết phủ nhẹ)`
+    : `Không khí chùa: ${w.label} — trời riêng của phiên này`;
+  chip.classList.remove('mood-clear', 'mood-mist', 'mood-rain', 'mood-calm');
+  chip.classList.add(`mood-${w.id}`, 'on');
+}
+function setWeatherMood(id, opts = {}) {
+  const next = weatherDef(id).id;
+  const prev = S.weatherMood || 'clear';
+  const silent = !!opts.silent;
+  const dur = opts.durMs != null ? opts.durMs : (48000 + Math.random() * 36000);
+  S.weatherMood = next;
+  S.weatherUntil = performance.now() + dur;
+  S.weatherBonus = {}; // reset per-window soft ritual flags
+  if (S.rain) S.rain.visible = next === 'rain';
+  updateWeatherHud();
+  if (next !== prev) pulseWeatherHud();
+  if (!silent && S.playing) {
+    const w = weatherDef(next);
+    const first = !(S.weatherSeen && S.weatherSeen[next]);
+    if (!S.weatherSeen) S.weatherSeen = {};
+    if (first) {
+      S.weatherSeen[next] = true;
+      recordWeatherLog(next);
+      saveAll();
+      toast(`${w.enter} · lần đầu gặp`);
+      gainCongDuc(2, `Gặp ${w.label}`, true);
+      setTimeout(() => toast(`+2 công đức · lần đầu ${w.emoji} ${w.label}`), 650);
+    } else {
+      recordWeatherLog(next);
+      saveAll();
+      const now = performance.now();
+      if (now - (S._weatherEnterAt || 0) > 4000) toast(w.enter);
+    }
+    S._weatherEnterAt = performance.now();
+  } else if (!S.weatherSeen?.[next]) {
+    // Boot / silent: still mark when first real enter happens later
+  }
+}
+function ensureWeatherMood(force) {
+  if (!S.playing && !force) return;
+  const now = performance.now();
+  if (!force && S.weatherUntil > now) return;
+  const preferRare = !!S.festivalActive || (S.timePhase === 'dusk' && Math.random() < 0.22);
+  setWeatherMood(pickWeatherMood(preferRare));
+}
+function tickWeather(dt) {
+  if (!S.playing) return;
+  if (!S.weatherUntil) {
+    // First mood shortly after enter so player notices within ~15s
+    S.weatherUntil = performance.now() + 1800;
+    return;
+  }
+  if (performance.now() >= S.weatherUntil) ensureWeatherMood(true);
+}
+/** Soft “đúng lúc” flavor — once per mood window; never soft-locks. */
+function tryWeatherRitualBonus(act) {
+  const mood = S.weatherMood || 'clear';
+  if (mood === 'clear' || !S.playing) return 0;
+  if (!S.weatherBonus) S.weatherBonus = {};
+  const key = `${mood}:${act}`;
+  if (S.weatherBonus[key]) return 0;
+  let bonus = 0;
+  let line = '';
+  if (mood === 'rain' && act === 'incense') {
+    bonus = 2; line = '🌧️ Khói lẫn mưa trên sân chùa';
+  } else if (mood === 'mist' && (act === 'bell' || act === 'coop')) {
+    bonus = 2; line = '🌫️ Tiếng chuông xuyên sương — tâm lắng thêm';
+  } else if (mood === 'calm' && act === 'fortune') {
+    bonus = 3; line = '✨ Xin quẻ đúng Không khí an';
+  } else if (mood === 'calm' && act === 'pilgrim') {
+    bonus = 2; line = '✨ Giúp người trong Không khí an';
+  } else if (mood === 'mist' && act === 'pilgrim') {
+    bonus = 1; line = '🌫️ Sương sớm · duyên hành hương';
+  } else if (mood === 'rain' && act === 'bell') {
+    bonus = 1; line = '🌧️ Chuông trong mưa — ấm lòng';
+  }
+  if (!bonus) return 0;
+  S.weatherBonus[key] = true;
+  gainCongDuc(bonus, line, true);
+  toast(`${line} · +${bonus} công đức`);
+  return bonus;
+}
+
+/* ========== GIỜ HỘI CHÙA (festival window) ========== */
+const FESTIVAL_START_TOD = 0.18; // late day → early dusk spike
+const FESTIVAL_DUR_MS = 58000;
+const FESTIVAL_SPOT = { x: 5.6, z: -2.4, r: 2.4 };
+
+function buildFestivalFx() {
+  // Soft crowd silhouettes — cheap, hidden until hội
+  const crowd = new THREE.Group();
+  crowd.visible = false;
+  const spots = [
+    [-6.5, 3.2], [-3.8, 5.5], [2.8, 6.2], [6.2, 2.0],
+    [-7.2, -3.5], [1.5, -8.0], [-1.2, 4.0], [8.2, -1.5],
+  ];
+  for (let i = 0; i < spots.length; i++) {
+    const [x, z] = spots[i];
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({
+      color: i % 2 ? 0x4a3a55 : 0x3a4a58, roughness: 0.9, transparent: true, opacity: 0.55,
+    });
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.55, 3, 6), mat);
+    body.position.y = 0.85; g.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 5), mat);
+    head.position.y = 1.45; g.add(head);
+    g.position.set(x, 0, z);
+    g.userData.ph = Math.random() * 6.28;
+    crowd.add(g);
+  }
+  scene.add(crowd);
+  S.festivalCrowd = crowd;
+
+  // Marker bên hồ — Thả hoa hội
+  const marker = new THREE.Group();
+  marker.position.set(FESTIVAL_SPOT.x, 0.04, FESTIVAL_SPOT.z);
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.7, 22),
+    new THREE.MeshBasicMaterial({
+      color: 0xffa060, transparent: true, opacity: 0.38,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  marker.add(glow);
+  const bead = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.18, 0),
+    new THREE.MeshStandardMaterial({
+      color: 0xffb070, emissive: 0xff6622, emissiveIntensity: 0.85,
+      metalness: 0.35, roughness: 0.4, transparent: true, opacity: 0.95,
+    })
+  );
+  bead.position.y = 0.48;
+  marker.add(bead);
+  const tip = textPlane('🎉 Thả hoa hội', 320, 52, '#fff4e0', '#4a2010', 20);
+  tip.position.set(0, 1.25, 0);
+  tip.scale.set(1.85, 0.38, 1);
+  marker.add(tip);
+  marker.visible = false;
+  scene.add(marker);
+  S.festivalMarker = { mesh: marker, glow, bead, tip, pos: new THREE.Vector3(FESTIVAL_SPOT.x, 0, FESTIVAL_SPOT.z), r: FESTIVAL_SPOT.r };
+}
+
+function setFestivalAtmosphere(on) {
+  if (S.festivalCrowd) S.festivalCrowd.visible = !!on;
+  if (S.festivalMarker) S.festivalMarker.mesh.visible = !!on;
+  if (S.petals?.material) {
+    S.petals.material.opacity = on ? 0.95 : 0.7;
+    S.petals.material.size = on ? 0.22 : 0.16;
+    S.petals.material.color.setHex(on ? 0xffb070 : 0xff8899);
+  }
+  if (master && !S.muted) {
+    master.gain.setTargetAtTime(on ? 0.68 : 0.55, actx.currentTime, 0.2);
+  }
+  if (S._ambTone) {
+    try {
+      S._ambTone.o.frequency.setTargetAtTime(on ? 128 : 108, actx.currentTime, 0.4);
+      S._ambTone.o2.frequency.setTargetAtTime(on ? 192 : 162, actx.currentTime, 0.4);
+      S._ambTone.g.gain.setTargetAtTime(on ? 0.018 : 0.011, actx.currentTime, 0.3);
+    } catch (_) {}
+  }
+}
+
+function beginFestival() {
+  if (S.festivalActive) return;
+  S.festivalActive = true;
+  S.festivalUntil = performance.now() + FESTIVAL_DUR_MS;
+  S.festivalActs = 0;
+  S.festivalReleased = 0;
+  S.festivalCycle = S._todCycle | 0;
+  setFestivalAtmosphere(true);
+  updateTimeHud();
+  pulseTimeHud();
+  toast('🎉 Giờ hội chùa — sân đang rộn ràng!');
+  setTimeout(() => toast('Thắp hương · thỉnh chuông · hoặc Thả hoa hội bên hồ sen'), 1600);
+}
+
+/** Nếu vào game đúng khung hội (title screen đã trôi giờ) — bắt kịp cửa sổ */
+function maybeCatchUpFestival() {
+  if (S.festivalActive || !S.playing) return;
+  if ((S.festivalCycle | 0) === (S._todCycle | 0)) return;
+  const tod = S.timeOfDay || 0;
+  if (tod >= FESTIVAL_START_TOD && tod < 0.42) beginFestival();
+}
+
+function endFestival(silent) {
+  if (!S.festivalActive) return;
+  S.festivalActive = false;
+  S.festivalUntil = 0;
+  S.nearFestival = null;
+  setFestivalAtmosphere(false);
+  updateTimeHud();
+  if (!silent && S.playing) {
+    toast('Giờ hội tan — sân chùa trở lại thanh tĩnh');
+    pulseTimeHud();
+  }
+}
+
+function updateFestivalFx(dt, t) {
+  if (!S.festivalActive) return;
+  // Crowd bob
+  if (S.festivalCrowd) {
+    S.festivalCrowd.children.forEach((c, i) => {
+      c.position.y = Math.sin(t * 1.6 + (c.userData.ph || i)) * 0.04;
+      c.rotation.y = Math.sin(t * 0.4 + i) * 0.15;
+    });
+  }
+  // Marker pulse
+  const m = S.festivalMarker;
+  if (m?.mesh?.visible) {
+    if (m.glow?.material) m.glow.material.opacity = 0.28 + 0.22 * Math.abs(Math.sin(t * 2.8));
+    if (m.bead) {
+      m.bead.position.y = 0.48 + Math.sin(t * 2.4) * 0.1;
+      m.bead.rotation.y += dt * 1.4;
+    }
+    if (m.tip && camera) m.tip.quaternion.copy(camera.quaternion);
+  }
+  // Faster petal drift during hội
+  if (S.petals?.userData?.v) {
+    const pv = S.petals.userData.v;
+    for (let i = 0; i < pv.length; i++) {
+      pv[i].vx += (Math.random() - 0.5) * dt * 0.15;
+      pv[i].vz += (Math.random() - 0.5) * dt * 0.15;
+    }
+  }
+}
+
+function updateFestivalWindow(dt) {
+  const prev = S._prevTod ?? S.timeOfDay;
+  const tod = S.timeOfDay;
+  if (tod < prev) S._todCycle = (S._todCycle | 0) + 1;
+  S._prevTod = tod;
+
+  if (!S.playing) {
+    if (S.festivalActive) endFestival(true);
+    return;
+  }
+
+  // Start once per day-cycle when crossing late-day threshold
+  if (!S.festivalActive && (S.festivalCycle | 0) !== (S._todCycle | 0)) {
+    const crossed = prev < FESTIVAL_START_TOD && tod >= FESTIVAL_START_TOD;
+    if (crossed) beginFestival();
+  }
+
+  if (S.festivalActive) {
+    if (performance.now() >= S.festivalUntil) endFestival(false);
+    else if ((performance.now() / 1000 | 0) !== (S._festHudSec | 0)) {
+      S._festHudSec = performance.now() / 1000 | 0;
+      updateTimeHud();
+    }
+  }
+}
+
+function pickNearFestival() {
+  if (!S.festivalActive || !S.festivalMarker || !playerRoot) return null;
+  const p = S.festivalMarker.pos;
+  const d = Math.hypot(playerRoot.position.x - p.x, playerRoot.position.z - p.z);
+  if (d < (S.festivalMarker.r || FESTIVAL_SPOT.r)) return S.festivalMarker;
+  return null;
+}
+
+function recordFestivalMoment(kind, label) {
+  const me = S.name || 'Bạn';
+  const line = `${me} · ${label} trong giờ hội`;
+  if (!Array.isArray(S.festivalMoments)) S.festivalMoments = [];
+  S.festivalMoments.push({ text: line, kind, at: Date.now() });
+  if (S.festivalMoments.length > 12) S.festivalMoments = S.festivalMoments.slice(-12);
+  saveAll();
+}
+
+function grantKhachHoi() {
+  if (S.khachHoi) return;
+  S.khachHoi = true;
+  updateMeritHud();
+  pulseMeritHud();
+  try { publishPresence(true); } catch (_) {}
+  setTimeout(() => toast('🏮 Khách Hội — bạn đã kịp giờ hội chùa'), 700);
+}
+
+function noteFestivalAct(kind, label) {
+  if (!S.festivalActive || !S.playing) return 0;
+  S.festivalActs = (S.festivalActs | 0) + 1;
+  const n = S.festivalActs;
+  let bonus = 0;
+  if (n === 1) {
+    bonus = 14;
+    recordFestivalMoment(kind, label);
+    grantKhachHoi();
+    gainCongDuc(bonus, 'Giờ hội chùa', true);
+    toast(`🎉 ${label} · +${bonus} công đức giờ hội`);
+    noteDailyProgress('festival');
+  } else if (n === 2) {
+    bonus = 8;
+    gainCongDuc(bonus, 'Hội duyên', true);
+    toast(`✨ Hội duyên — thêm ${label} · +${bonus} công đức`);
+    recordFestivalMoment(kind, `${label} (Hội duyên)`);
+  } else if (n <= 3) {
+    bonus = 4;
+    gainCongDuc(bonus, 'Giờ hội', true);
+    toast(`+${bonus} công đức · còn trong giờ hội`);
+  }
+  return bonus;
+}
+
+function actFestivalRelease() {
+  if (!S.festivalActive || S.busy) return;
+  if ((S.festivalReleased | 0) >= 2) {
+    toast('Hoa hội đã thả đủ trong cửa sổ này — thử thắp hương / thỉnh chuông');
+    return;
+  }
+  S.busy = true;
+  S.festivalReleased = (S.festivalReleased | 0) + 1;
+  playWhoosh();
+  // Thả vài hoa đăng + cánh hoa quanh hồ
+  for (let i = 0; i < 3; i++) {
+    try { addFloat(false); } catch (_) {}
+  }
+  if (S.pond) {
+    for (let i = 0; i < 8; i++) {
+      emitSmoke(
+        S.pond.x + (Math.random() - 0.5) * 2.5,
+        0.6 + Math.random() * 0.4,
+        S.pond.z + (Math.random() - 0.5) * 2.5,
+        1
+      );
+    }
+  }
+  // Soft bow pose
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.x = -1.0; ud.armL.rotation.z = 0.45;
+    ud.armR.rotation.x = -1.0; ud.armR.rotation.z = -0.45;
+    setTimeout(() => {
+      ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+      S.busy = false;
+    }, 900);
+  } catch (_) { S.busy = false; }
+  noteFestivalAct('hoa', 'Thả hoa hội');
+}
 
 /* ========== ÂM THANH ========== */
 let actx = null, master = null, amb = [];
@@ -620,7 +1741,8 @@ function audio() {
 }
 function setMute(m) {
   S.muted = m;
-  if (master) master.gain.setTargetAtTime(m ? 0 : 0.55, actx.currentTime, 0.05);
+  const vol = S.festivalActive ? 0.68 : 0.55;
+  if (master) master.gain.setTargetAtTime(m ? 0 : vol, actx.currentTime, 0.05);
   document.getElementById('btn-mute').textContent = m ? 'Tắt' : 'Âm';
 }
 function noiseBuf(sec = 2) {
@@ -642,6 +1764,7 @@ function startAmbient() {
   const o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain();
   o.type = 'sine'; o2.type = 'triangle'; o.frequency.value = 108; o2.frequency.value = 162; g.gain.value = 0.011;
   o.connect(g); o2.connect(g); g.connect(master); o.start(); o2.start(); amb.push(o, o2);
+  S._ambTone = { o, o2, g };
   const chirp = () => {
     if (!actx || S.muted) { setTimeout(chirp, 5000); return; }
     const t = c.currentTime, os = c.createOscillator(), gg = c.createGain();
@@ -683,16 +1806,65 @@ function playWhoosh() {
 function playKnifeSwing() {
   playWhoosh();
   const ud = player?.userData;
-  if (!ud) return;
-  // Vung dao khổng lồ
-  ud.armR.rotation.set(-1.8, 0.3, -0.8);
-  if (ud.gun) ud.gun.rotation.set(-0.6, 0.5, -1.2);
-  setTimeout(() => {
-    if (S.gun === 'knife' && ud.gun) {
-      ud.armR.rotation.set(-0.4, 0.2, -1.1);
-      ud.gun.rotation.set(0.15, 0.2, -0.35);
+  // —— 3rd person: vung cánh tay + dao lớn ——
+  if (ud) {
+    ud.armR.rotation.set(-2.15, 0.55, -1.35);
+    if (ud.gun) {
+      ud.gun.rotation.set(-1.1, 0.85, -1.6);
+      ud.gun.position.set(0.75, 0.95, 0.55);
     }
-  }, 280);
+    setTimeout(() => {
+      if (S.gun !== 'knife' || !ud) return;
+      ud.armR.rotation.set(-0.4, 0.2, -1.1);
+      if (ud.gun) {
+        ud.gun.rotation.set(0.15, 0.2, -0.35);
+        ud.gun.position.set(0.55, 0.55, 0.15);
+      }
+    }, 320);
+  }
+  // —— FPS: vung dao trên camera (nhìn thấy rõ khi chém) ——
+  if (S.fpsGun && S.fpsGun.visible) {
+    const basePos = { x: 0.42, y: -0.42, z: -0.95 };
+    const baseRot = { x: -0.15, y: 0.35, z: -0.45 };
+    S.fpsGun.position.set(0.95, 0.15, -0.55);
+    S.fpsGun.rotation.set(-1.35, 1.1, 0.85);
+    S.fpsGun.scale.setScalar(1.15);
+    setTimeout(() => {
+      if (!S.fpsGun || S.gun !== 'knife') return;
+      S.fpsGun.position.set(basePos.x, basePos.y, basePos.z);
+      S.fpsGun.rotation.set(baseRot.x, baseRot.y, baseRot.z);
+      S.fpsGun.scale.setScalar(1.05);
+    }, 300);
+  }
+  spawnKnifeSlashVfx();
+}
+/** Quầng chém ngắn trước mặt — nhìn thấy khi chop */
+function spawnKnifeSlashVfx() {
+  if (!playerRoot || !player) return;
+  const face = player.rotation.y;
+  const fx = Math.sin(face), fz = Math.cos(face);
+  const g = new THREE.Mesh(
+    new THREE.TorusGeometry(1.15, 0.06, 6, 18, Math.PI * 0.85),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, depthWrite: false })
+  );
+  g.position.set(
+    playerRoot.position.x + fx * 1.35,
+    playerRoot.position.y + 1.15,
+    playerRoot.position.z + fz * 1.35
+  );
+  g.rotation.y = face;
+  g.rotation.z = -0.35;
+  scene.add(g);
+  const start = performance.now();
+  const tick = () => {
+    const u = (performance.now() - start) / 280;
+    if (u >= 1) { scene.remove(g); return; }
+    g.material.opacity = 0.85 * (1 - u);
+    g.scale.setScalar(1 + u * 0.55);
+    g.rotation.z = -0.35 + u * 0.9;
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 function playGunshot() {
   const c = audio(); if (c.state === 'suspended') c.resume();
@@ -956,10 +2128,10 @@ function attachWeapon(humanoid, type) {
     humanoid.userData.armR.rotation.set(-1.15, 0.1, -0.35);
     humanoid.userData.armL.rotation.set(-0.7, 0, 0.45);
   } else if (type === 'knife') {
-    // Cầm đứng — lưỡi cao bằng người
-    gun.position.set(0.55, 0.55, 0.15);
+    // Cầm đứng — lưỡi to, dễ thấy khi chém ở góc 3rd
+    gun.position.set(0.58, 0.58, 0.22);
     gun.rotation.set(0.15, 0.2, -0.35);
-    gun.scale.setScalar(1.0);
+    gun.scale.setScalar(1.15);
     humanoid.userData.armR.rotation.set(-0.4, 0.2, -1.1);
     humanoid.userData.armL.rotation.set(0.2, 0, 0.3);
   } else {
@@ -1158,6 +2330,51 @@ function buildSupermanStatue(x, z) {
   return g;
 }
 
+/** Tranh khung gỗ trên tường Chính điện — Ronaldo ôm Messi */
+function hangWallPoster(hallRoot, hz) {
+  const frame = new THREE.Group();
+  // Khung gỗ + viền vàng
+  box(2.55, 3.35, 0.14, M.woodD, 0, 0, 0, frame, false);
+  box(2.35, 3.15, 0.06, M.gold, 0, 0, 0.04, frame, false);
+  box(2.2, 3.0, 0.05, M.wood, 0, 0, 0.05, frame, false);
+
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x886655,
+    transparent: false,
+    side: THREE.DoubleSide,
+  });
+  const pic = new THREE.Mesh(new THREE.PlaneGeometry(2.05, 2.75), mat);
+  pic.position.z = 0.1;
+  frame.add(pic);
+
+  // Bên phải mặt tiền Chính điện — nhìn từ sân
+  frame.position.set(3.55, 2.55, hz + 3.78);
+  hallRoot.add(frame);
+
+  const caption = textPlane('Ronaldo ♡ Messi', 360, 56, '#fff8e0', '#5a2010', 26);
+  caption.position.set(3.55, 0.72, hz + 3.9);
+  caption.scale.set(2.1, 0.38, 1);
+  hallRoot.add(caption);
+
+  const loader = new THREE.TextureLoader();
+  loader.load(
+    'assets/ronaldo-messi-hug.jpg',
+    (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy?.() || 4);
+      mat.map = tex;
+      mat.color.set(0xffffff);
+      mat.needsUpdate = true;
+    },
+    undefined,
+    () => {
+      console.warn('Không tải được tranh Ronaldo–Messi');
+      toast?.('⚠️ Thiếu ảnh assets/ronaldo-messi-hug.jpg');
+    }
+  );
+  return frame;
+}
+
 /* ========== CẢNH CHÙA ========== */
 let hemi, sun, fillL;
 function buildScene() {
@@ -1205,24 +2422,27 @@ function buildScene() {
   [-3.6, 3.6].forEach(x => { const r = roof(3.0, 2.2, 1.0, M.tile); r.position.set(x, 5.15, gz); gateRoot.add(r); });
   const sign = textPlane('Chùa An Lạc', 320, 72, '#f5e6c8', '#8b1a1a', 32);
   sign.position.set(0, 3.85, gz + 0.55); sign.scale.set(3.6, 0.82, 1); gateRoot.add(sign);
-  // Va chạm theo trụ + tường hai bên — chừa 2 lối đi (trước bị 1 hộp 12×3.5 chặn cả cổng → kẹt/lag góc)
+  // Va chạm cổng trước (lối vào chùa — phố nằm bên phải, đối diện chuông)
   const gateCols = [
-    addCol(-5.5, gz, 2.5, 2.8, gateRoot), // tường trái
-    addCol(5.5, gz, 2.5, 2.8, gateRoot),  // tường phải
-    addCol(-3.6, gz, 1.05, 1.45, gateRoot), // trụ
-    addCol(0, gz, 1.05, 1.45, gateRoot),
-    addCol(3.6, gz, 1.05, 1.45, gateRoot),
+    addCol(-5.5, gz, 2.5, 2.8, gateRoot),
+    addCol(5.5, gz, 2.5, 2.8, gateRoot),
+    addCol(-3.6, gz, 0.85, 1.2, gateRoot),
+    addCol(3.6, gz, 0.85, 1.2, gateRoot),
   ];
   gateCols.forEach(c => { c.siblings = gateCols; });
 
-  // Hàng rào / tường bao sân trước (+ collider mỏng để không xuyên tường)
-  for (const side of [-1, 1]) {
-    box(0.35, 1.6, 10, M.plaster, side * 10.5, 0.85, 6);
-    addCol(side * 10.5, 6, 0.55, 10.2, null);
-    for (let z = 2; z <= 10; z += 2) {
-      box(0.45, 1.9, 0.45, M.stone, side * 10.5, 0.95, z);
-    }
-  }
+  // Hàng rào trái (phía chuông) nguyên vẹn; phải chừa lỗ cho cổng phố
+  // Trái x=-10.5
+  box(0.35, 1.6, 10, M.plaster, -10.5, 0.85, 6);
+  addCol(-10.5, 6, 0.55, 10.2, null);
+  for (let z = 2; z <= 10; z += 2) box(0.45, 1.9, 0.45, M.stone, -10.5, 0.95, z);
+  // Phải x=+10.5 — CHỈ đoạn thấp (gần hồ); MỞ TOÀN BỘ z≈5…11 cho cổng phố
+  // (trước đây collider z=8.4±2.1 chặn hết đường vàng → player không ra được cổng)
+  box(0.35, 1.6, 3.0, M.plaster, 10.5, 0.85, 2.0);
+  addCol(10.5, 2.0, 0.55, 3.2, null);
+  for (let z of [1, 3]) box(0.45, 1.9, 0.45, M.stone, 10.5, 0.95, z);
+
+  buildStreetSideGate();
 
   // ——— Chính điện ———
   const hz = -10;
@@ -1251,6 +2471,9 @@ function buildScene() {
   const hs = textPlane('Chính điện', 220, 52, '#f5e6c8', '#6b1510', 24);
   hs.position.set(0, 4.55, hz + 3.85); hs.scale.set(2.5, 0.58, 1); hallRoot.add(hs);
   addCol(0, hz - 0.4, 11, 6.2, hallRoot);
+
+  // Tranh tường: Ronaldo ôm Messi (AI poster)
+  hangWallPoster(hallRoot, hz);
 
   // Tượng Phật trang nghiêm hơn
   const bud = new THREE.Group();
@@ -1313,8 +2536,8 @@ function buildScene() {
     bush.position.set(x, 0.7, z); scene.add(bush);
   });
 
-  // Tượng Superman — bên phải lối vào, to và có đèn
-  buildSupermanStatue(5.5, 9.0);
+  // Tượng Superman — lệch khỏi lối Phố An Lạc (đường vàng z≈7.5)
+  buildSupermanStatue(4.2, 11.2);
 
   // ——— Cây bồ đề ———
   const tx = 8, tz = 2.2;
@@ -1400,8 +2623,627 @@ function buildScene() {
     pl.position.copy(L.position); scene.add(pl); L.userData.pl = pl;
   });
 
+  buildStreetDistrict();
   buildParticles();
   buildSky();
+}
+
+/** Cổng ra phố — trụ to + cổng sáng + biển 3 mặt + cột đèn trời (PC & mobile đều thấy) */
+function buildStreetSideGate() {
+  // Đúng mép phải sân, thẳng hàng phố (STREET_Z = 7.5)
+  const gx = 10.0, gz = 7.5;
+  S.gatePos = new THREE.Vector3(gx, 0, gz);
+  const root = new THREE.Group();
+  root.position.set(gx, 0, gz);
+  scene.add(root);
+  S.streetGateRoot = root;
+
+  // Nền đá rộng + thảm đỏ lối đi
+  box(5.2, 0.35, 7.2, M.stone, 0, 0.16, 0, root);
+  const carpet = new THREE.Mesh(
+    new THREE.PlaneGeometry(3.4, 8.5),
+    noFog(new THREE.MeshBasicMaterial({ color: 0xc41e1e, transparent: true, opacity: 0.85, depthWrite: false }))
+  );
+  carpet.rotation.x = -Math.PI / 2;
+  carpet.position.set(-1.2, 0.2, 0);
+  root.add(carpet);
+
+  // Hai trụ đỏ khổng lồ (lỗ giữa ~3.6m) — nhìn rõ từ mọi hướng
+  const posts = [-2.4, 2.4];
+  posts.forEach((pz) => {
+    box(1.6, 0.55, 1.6, M.stone, 0, 0.35, pz, root);
+    box(1.25, 6.4, 1.25, M.red, 0, 3.55, pz, root);
+    box(1.4, 0.32, 1.4, M.gold, 0, 6.9, pz, root);
+    box(1.15, 0.55, 1.15, M.tile, 0, 7.35, pz, root);
+    const lamp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.42, 12, 10),
+      noFog(new THREE.MeshStandardMaterial({
+        color: 0xff3344, emissive: 0xff2200, emissiveIntensity: 2.4, roughness: 0.35,
+      }))
+    );
+    lamp.position.set(0, 7.95, pz);
+    root.add(lamp);
+  });
+
+  // Xà + mái
+  box(1.35, 0.5, 5.6, M.wood, 0, 6.55, 0, root);
+  box(0.35, 0.9, 5.4, M.gold, 0, 7.0, 0, root);
+  const rg = roof(5.6, 7.6, 1.65, M.tile);
+  rg.position.set(0, 7.55, 0);
+  root.add(rg);
+
+  // Cổng sáng — mặt phẳng YZ (nhìn từ sân +X / từ phố −X)
+  const glowMat = noFog(new THREE.MeshBasicMaterial({
+    color: 0xffaa33, transparent: true, opacity: 0.45,
+    depthWrite: false, side: THREE.DoubleSide,
+  }));
+  const archGlow = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 5.6), glowMat);
+  archGlow.position.set(0, 3.0, 0);
+  archGlow.rotation.y = Math.PI / 2;
+  root.add(archGlow);
+  S.gateArchGlow = archGlow;
+
+  // Thêm mặt sáng nhìn từ cổng tam quan (hướng −Z) và từ chính điện (+Z)
+  const sideGlowMat = noFog(new THREE.MeshBasicMaterial({
+    color: 0xffcc66, transparent: true, opacity: 0.22,
+    depthWrite: false, side: THREE.DoubleSide,
+  }));
+  [-1, 1].forEach((sz) => {
+    const side = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 5.2), sideGlowMat);
+    side.position.set(-0.2, 2.9, sz * 0.15);
+    // plane default faces ±Z — good for approaching along Z
+    root.add(side);
+  });
+
+  const gateLight = new THREE.PointLight(0xff6622, 2.6, 28, 2);
+  gateLight.position.set(0, 4.2, 0);
+  root.add(gateLight);
+  const gateLight2 = new THREE.PointLight(0xffaa44, 1.4, 18, 2);
+  gateLight2.position.set(-3.5, 3.0, 0);
+  root.add(gateLight2);
+
+  // Biển 3 hướng — luôn đọc được khi đi quanh sân
+  const mkSign = (label, y, scaleX, scaleY, color, bg) => {
+    const s = textPlane(label, 480, 96, color, bg, 34);
+    if (s.material) { s.material.fog = false; s.material.depthWrite = false; }
+    s.scale.set(scaleX, scaleY, 1);
+    s.position.y = y;
+    return s;
+  };
+  // Mặt sân (−X)
+  const sWest = mkSign('🛤️ PHỐ AN LẠC', 4.2, 4.6, 1.0, '#fff8e0', '#b01020');
+  sWest.position.x = -2.35;
+  sWest.rotation.y = Math.PI / 2;
+  root.add(sWest);
+  const sWest2 = mkSign('→ ĐI THẲNG VÀO →', 3.1, 3.8, 0.75, '#1a1008', '#ffcc44');
+  sWest2.position.x = -2.3;
+  sWest2.rotation.y = Math.PI / 2;
+  root.add(sWest2);
+  // Mặt cổng tam quan (+Z phía trước sân — nhìn từ spawn)
+  const sSouth = mkSign('🛤️ PHỐ AN LẠC →', 5.0, 4.4, 0.95, '#fff8e0', '#b01020');
+  sSouth.position.set(-1.6, 5.0, 2.85);
+  root.add(sSouth);
+  // Mặt chính điện (−Z)
+  const sNorth = mkSign('🛤️ PHỐ AN LẠC →', 5.0, 4.4, 0.95, '#fff8e0', '#b01020');
+  sNorth.position.set(-1.6, 5.0, -2.85);
+  sNorth.rotation.y = Math.PI;
+  root.add(sNorth);
+
+  // Collider chỉ hai trụ
+  const cols = [
+    addCol(gx, gz - 2.4, 2.1, 1.7, root),
+    addCol(gx, gz + 2.4, 2.1, 1.7, root),
+  ];
+  cols.forEach(c => { c.siblings = cols; });
+
+  // Đường vàng từ gần spawn → cổng (rộng, sáng, không fog)
+  S.gatePathLights = [];
+  const pathPts = [
+    [0.2, 8.3], [1.6, 8.1], [3.2, 7.9], [4.8, 7.7], [6.4, 7.55], [8.0, 7.5], [9.2, 7.5],
+  ];
+  pathPts.forEach(([x, z], i) => {
+    const step = new THREE.Mesh(
+      new THREE.CircleGeometry(0.7 + (i % 2) * 0.12, 18),
+      noFog(new THREE.MeshBasicMaterial({
+        color: 0xffdd44, transparent: true, opacity: 0.9,
+        depthWrite: false, side: THREE.DoubleSide,
+      }))
+    );
+    step.rotation.x = -Math.PI / 2;
+    step.position.set(x, 0.09, z);
+    scene.add(step);
+    markIndestructible(step);
+    S.gatePathLights.push(step);
+  });
+
+  // Cột đèn trời — cao vượt tháp nhỏ, nhìn từ mọi góc PC/phone
+  const beacon = new THREE.Group();
+  cyl(0.28, 0.36, 8.5, M.woodD, 0, 4.3, 0, beacon, 8);
+  box(0.9, 0.2, 0.9, M.gold, 0, 8.6, 0, beacon);
+  const ball = new THREE.Mesh(
+    new THREE.SphereGeometry(0.85, 16, 12),
+    noFog(new THREE.MeshStandardMaterial({
+      color: 0xffcc33, emissive: 0xff6600, emissiveIntensity: 2.8, roughness: 0.3,
+    }))
+  );
+  ball.position.y = 9.5;
+  beacon.add(ball);
+  const beam = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.35, 1.4, 14, 12, 1, true),
+    noFog(new THREE.MeshBasicMaterial({
+      color: 0xffaa44, transparent: true, opacity: 0.22,
+      depthWrite: false, side: THREE.DoubleSide,
+    }))
+  );
+  beam.position.y = 16;
+  beacon.add(beam);
+  S.gateBeam = beam;
+  const bl = new THREE.PointLight(0xffaa33, 2.2, 32, 2);
+  bl.position.y = 9.5;
+  beacon.add(bl);
+  beacon.position.set(gx - 0.2, 0, gz);
+  scene.add(beacon);
+  S.gateBeacon = beacon;
+
+  // Biển billboard luôn quay theo camera
+  const mega = textPlane('➡ PHỐ AN LẠC — BẤM NÚT 「Phố」 / PHÍM P', 640, 100, '#1a1008', '#ffcc44', 30);
+  if (mega.material) { mega.material.fog = false; mega.material.depthWrite = false; }
+  mega.position.set(gx - 3.5, 9.2, gz);
+  mega.scale.set(6.5, 1.05, 1);
+  scene.add(mega);
+  S.gateMegaSign = mega;
+  S.gateArrow = mega;
+}
+
+
+/** Phố Việt ngoài cổng bên phải — đối diện chuông · quán có interact */
+const STREET_Z = 7.5;
+const STREET_SHOP_SPECS = [
+  {
+    id: 'cafe', x: 17.5, z: STREET_Z + 6.2, name: 'Cà phê Sài Gòn', color: 0x8b4518,
+    beat: 'Ly nâu đá · vị quen như Sài Gòn thu nhỏ ngoài cổng chùa.',
+    toast: '☕ Ly nâu đá — đắng nhẹ, tỉnh người',
+    verb: 'Ghé uống cà phê',
+    firstGain: 4, againGain: 1,
+  },
+  {
+    id: 'pho', x: 17.5, z: STREET_Z - 6.2, name: 'Phở Bà Tư', color: 0xa63d2a,
+    beat: 'Một tô ấm bụng · khói bay lên như lời chào phố.',
+    toast: '🍜 Một tô ấm bụng — Bà Tư gật đầu',
+    verb: 'Ngồi tô phở',
+    firstGain: 4, againGain: 2,
+  },
+  {
+    id: 'hair', x: 23.5, z: STREET_Z + 6.2, name: 'Tiệm tóc Mai', color: 0x4a3060,
+    beat: 'Soi gương một cái · mái vẫn ổn, chị Mai cười “đi lễ xong nên đẹp”.',
+    toast: '✂️ Soi gương · mái vẫn ổn',
+    verb: 'Soi gương tóc',
+    firstGain: 3, againGain: 1,
+  },
+  {
+    id: 'tea', x: 23.5, z: STREET_Z - 6.2, name: 'Trà đá vỉa hè', color: 0x2d5a3a,
+    beat: 'Ly mát · ngồi vỉa hè nghe xe qua, chùa còn vọng chuông phía cổng.',
+    toast: '🧊 Ly mát · ngồi vỉa hè',
+    verb: 'Uống trà đá',
+    firstGain: 3, againGain: 1,
+  },
+];
+
+function buildStreetDistrict() {
+  const streetX = 20.5;
+  const streetZ = STREET_Z;
+
+  const streetIsle = new THREE.Mesh(
+    new THREE.CircleGeometry(13, 40),
+    new THREE.MeshStandardMaterial({ color: 0xb8a070, roughness: 0.95, metalness: 0.04, emissive: 0x3a2a18, emissiveIntensity: 0.06 })
+  );
+  streetIsle.rotation.x = -Math.PI / 2;
+  streetIsle.position.set(19, -0.03, streetZ);
+  streetIsle.receiveShadow = true;
+  scene.add(streetIsle);
+  markIndestructible(streetIsle);
+
+  // Cầu nối cổng → phố (theo trục X)
+  const bridge = new THREE.Mesh(
+    new THREE.PlaneGeometry(7, 8),
+    new THREE.MeshStandardMaterial({ color: 0xb8a888, roughness: 0.92, metalness: 0.04 })
+  );
+  bridge.rotation.x = -Math.PI / 2;
+  bridge.position.set(15.2, 0.02, streetZ);
+  bridge.receiveShadow = true;
+  scene.add(bridge);
+  markIndestructible(bridge);
+
+  // Đường phố dài theo X
+  const road = new THREE.Mesh(
+    new THREE.PlaneGeometry(16, 12),
+    new THREE.MeshStandardMaterial({ color: 0x5a5a58, roughness: 0.95, metalness: 0.08 })
+  );
+  road.rotation.x = -Math.PI / 2;
+  road.position.set(streetX, 0.015, streetZ);
+  road.receiveShadow = true;
+  scene.add(road);
+  markIndestructible(road);
+
+  // Vỉa hè trên/ dưới đường (theo Z)
+  for (const side of [-1, 1]) {
+    const walk = new THREE.Mesh(
+      new THREE.PlaneGeometry(15, 2.8),
+      new THREE.MeshStandardMaterial({ color: 0xc9b89a, roughness: 0.9 })
+    );
+    walk.rotation.x = -Math.PI / 2;
+    walk.position.set(streetX, 0.03, streetZ + side * 5.5);
+    walk.receiveShadow = true;
+    scene.add(walk);
+    markIndestructible(walk);
+  }
+
+  const streetShops = [];
+  STREET_SHOP_SPECS.forEach((s) => {
+    const g = new THREE.Group();
+    box(3.2, 2.6, 2.6, mat(s.color, 0.85), 0, 1.3, 0, g);
+    box(3.4, 0.25, 2.8, M.tile, 0, 2.7, 0, g);
+    const face = s.z > streetZ ? -1 : 1;
+    box(1.2, 1.6, 0.08, M.woodD, 0, 1.1, face * 1.35, g);
+    const awning = box(3.3, 0.08, 1.0, mat(0xd4a017, 0.7), 0, 2.15, face * 1.45, g);
+    awning.rotation.x = face * 0.35;
+    g.position.set(s.x, 0, s.z);
+    scene.add(g);
+    addCol(s.x, s.z, 3.3, 2.7, g);
+    const tip = textPlane(s.name, 280, 48, '#fff8e8', '#3a2010', 16);
+    tip.position.set(s.x, 3.15, s.z);
+    tip.scale.set(2.2, 0.42, 1);
+    scene.add(tip);
+    // Vòng gần cửa — soft cue ghé quán
+    const glow = new THREE.Mesh(
+      new THREE.CircleGeometry(1.55, 20),
+      new THREE.MeshBasicMaterial({
+        color: 0xffcc66, transparent: true, opacity: 0.14,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
+    );
+    glow.rotation.x = -Math.PI / 2;
+    glow.position.set(s.x, 0.05, s.z + face * 1.7);
+    scene.add(glow);
+    streetShops.push({
+      ...s,
+      pos: new THREE.Vector3(s.x, 0, s.z + face * 1.55),
+      doorZ: s.z + face * 1.55,
+      tip,
+      glow,
+      mesh: g,
+      r: 2.6,
+    });
+  });
+  S.streetShops = streetShops;
+
+  for (const z of [streetZ - 4.2, streetZ + 4.2]) {
+    for (const x of [16.5, 20.5, 24.5]) {
+      cyl(0.08, 0.1, 3.2, M.dark, x, 1.6, z, scene, 6);
+      const bulb = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 8, 6),
+        new THREE.MeshStandardMaterial({ color: 0xffe0a0, emissive: 0xffaa44, emissiveIntensity: 0.7 })
+      );
+      bulb.position.set(x, 3.35, z);
+      scene.add(bulb);
+      const pl = new THREE.PointLight(0xffcc88, 0.45, 8, 2);
+      pl.position.set(x, 3.2, z);
+      scene.add(pl);
+    }
+  }
+
+  for (const [x, z] of [[18.2, streetZ + 4.8], [22.8, streetZ - 4.8]]) {
+    const bike = new THREE.Group();
+    box(1.4, 0.35, 0.45, mat(0x222222, 0.6, 0.4), 0, 0.45, 0, bike);
+    cyl(0.28, 0.28, 0.12, M.dark, -0.55, 0.28, 0, bike, 10);
+    cyl(0.28, 0.28, 0.12, M.dark, 0.55, 0.28, 0, bike, 10);
+    bike.position.set(x, 0, z);
+    bike.rotation.y = Math.PI / 2;
+    scene.add(bike);
+  }
+
+  buildGossipCircle();
+}
+
+/** Nhóm đánh ghen trên phố — 3 chị đối mặt 1 người đẹp */
+const GOSSIP_STORY = {
+  title: 'Đánh ghen trước cổng chùa',
+  tag: 'Chuyện phố · kịch tính',
+  body:
+`Chị Lan đứng giữa lòng phố, tay run nhưng mắt không chớp.
+
+Ba tháng trước, chồng chị — anh Hùng — bảo “đi công tác Đà Nẵng”. Đêm ấy, GPS trên điện thoại nhà lại chớp vị trí… quán cà phê góc Phố An Lạc. Chị không tin. Rồi tin nhắn hiện lên: “Em mặc váy đỏ nhé, anh đặt bàn trong.” Người gửi: Mỹ Duyên.
+
+Mai và Hạnh — hai người bạn thân từ thuở cấp ba — không để chị đi một mình. “Đánh ghen cũng phải có nhân chứng,” Mai nói. “Kẻ thứ ba không được phép cười trên nước mắt vợ chính thất.”
+
+Mỹ Duyên đứng đó, cao hơn một chút, tóc dài óng, son đỏ như dấu ấn. Váy ôm lấy vóc dáng khiến cả phố như chậm lại. Chị không hề run. “Tôi biết anh ấy có vợ,” giọng Mỹ Duyên lạnh như đá lạnh. “Nhưng anh ấy nói… hôn nhân chỉ còn trên giấy.”
+
+Lan bước tới một bước. “Trên giấy vẫn là vợ. Con tôi còn gọi anh ấy bằng ba. Em cướp chồng người ta giữa ban ngày, rồi đứng đây như không có chuyện gì?”
+
+Hạnh giơ điện thoại: ảnh Hùng hôn Mỹ Duyên trước biển, timestamp đúng đêm “đi công tác”. Mai thì thào: “Người ta bảo tiểu tam không sợ trời — chỉ sợ vợ lớn biết đường.”
+
+Không khí đặc lại. Quán trà đá bên kia đường im bặt. Mỹ Duyên cười một cái cười đẹp đến đau: “Vậy hôm nay chị đến… để lấy lại chồng? Hay để chứng minh chị cũng biết đau?”
+
+Lan nuốt nước mắt. “Tôi đến để nói một câu. Anh ấy có thể chọn em. Nhưng đừng bao giờ bảo với đời rằng tôi không đủ tư cách đứng đây. Tôi là vợ. Em chỉ là… đoạn giữa.”
+
+Ba người phụ nữ đứng thành một bức tường trước Mỹ Duyên. Phố An Lạc — ngay ngoài cổng chùa — chứng kiến một cuộc đánh ghen không đập phá, chỉ bằng sự thật sắc hơn dao.`,
+};
+
+let gossipCircle = null; // { center, members: [], talkRoot }
+
+function buildGossipWoman(def) {
+  const human = buildHumanoid({
+    robeColor: def.color,
+    scale: def.scale || 1,
+    withFace: true,
+  });
+  // Làm “người đẹp” nổi hơn: tóc dài + phụ kiện
+  if (def.glam) {
+    const longHair = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.12, 0.55, 3, 6),
+      new THREE.MeshStandardMaterial({ color: 0x1a1010, roughness: 0.55 })
+    );
+    longHair.position.set(0, 1.35, -0.12);
+    human.add(longHair);
+    const earring = new THREE.Mesh(
+      new THREE.SphereGeometry(0.035, 6, 5),
+      new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.3, emissive: 0xaa8800, emissiveIntensity: 0.25 })
+    );
+    earring.position.set(0.22, 1.48, 0.05);
+    human.add(earring);
+    const earring2 = earring.clone();
+    earring2.position.x = -0.22;
+    human.add(earring2);
+  }
+  human.position.set(def.x, 0, def.z);
+  human.rotation.y = def.rot;
+  scene.add(human);
+  const tip = textPlane(def.label, 300, 48, def.glam ? '#ffe8f4' : '#fff8e8', def.glam ? '#5a2040' : '#3a2818', 15);
+  tip.position.set(def.x, def.glam ? 2.35 : 2.15, def.z);
+  tip.scale.set(def.glam ? 2.15 : 1.9, 0.38, 1);
+  scene.add(tip);
+  return { ...def, mesh: human, tip, pos: new THREE.Vector3(def.x, 0, def.z) };
+}
+
+function buildGossipCircle() {
+  // Giữa phố bên phải (đối diện chuông) — theo STREET_Z
+  const cx = 20.2, cz = STREET_Z;
+  const defs = [
+    { id: 'lan', name: 'Chị Lan', label: 'Chị Lan · vợ', color: 0x8b1a2a, x: cx - 1.15, z: cz + 0.35, rot: 0.6, scale: 1.02 },
+    { id: 'mai', name: 'Mai', label: 'Mai · bạn', color: 0x3d5a80, x: cx - 1.35, z: cz - 0.85, rot: 0.2, scale: 0.98 },
+    { id: 'hanh', name: 'Hạnh', label: 'Hạnh · bạn', color: 0x4a6741, x: cx - 0.15, z: cz - 1.35, rot: -0.15, scale: 0.98 },
+    {
+      id: 'myduyen', name: 'Mỹ Duyên', label: 'Mỹ Duyên · ?',
+      color: 0xc45c7a, x: cx + 1.35, z: cz + 0.15, rot: -2.4, scale: 1.12, glam: true,
+    },
+  ];
+  // Vòng sáng chỗ “đang có chuyện”
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(2.4, 28),
+    new THREE.MeshBasicMaterial({
+      color: 0xff6688, transparent: true, opacity: 0.22,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.set(cx, 0.06, cz);
+  scene.add(glow);
+
+  const banner = textPlane('Có chuyện…', 260, 48, '#ffe0ea', '#5a1830', 18);
+  banner.position.set(cx, 2.85, cz);
+  banner.scale.set(2.0, 0.4, 1);
+  scene.add(banner);
+
+  const members = defs.map(buildGossipWoman);
+  gossipCircle = {
+    center: new THREE.Vector3(cx, 0, cz),
+    r: 3.2,
+    members,
+    glow,
+    banner,
+    talkPhase: 0,
+  };
+}
+
+function pickNearGossip() {
+  if (!gossipCircle || !playerRoot) return null;
+  const d = playerRoot.position.distanceTo(gossipCircle.center);
+  if (d > gossipCircle.r) return null;
+  return gossipCircle;
+}
+
+function openGossipAsk() {
+  S.busy = true;
+  openModal(`
+    <h2>Hỏi chuyện trên phố</h2>
+    <p>Ba người phụ nữ đang đối mặt một người đẹp hơn hẳn. Không khí căng như dây đàn.</p>
+    <p style="text-align:left;font-size:.86rem;line-height:1.5">
+      <b style="color:#f0c0c0">Chị Lan</b>: “Đừng xen vào… trừ khi muốn nghe sự thật.”<br/>
+      <b style="color:#a8c4e0">Mai</b>: “Chúng tôi đang giải quyết việc nhà.”<br/>
+      <b style="color:#ffb0c8">Mỹ Duyên</b>: “Việc nhà? Nghe sang thật.”
+    </p>
+    <div class="row">
+      <button class="btn" id="m-hear-story" type="button">Nghe chuyện đánh ghen</button>
+      <button class="btn secondary" id="m-gossip-bye" type="button">Xin lỗi, tôi đi</button>
+    </div>
+  `);
+  $('m-hear-story').onclick = () => openGossipStory();
+  $('m-gossip-bye').onclick = () => {
+    closeModal();
+    S.busy = false;
+    toast('Bạn lặng lẽ bước tránh… chuyện vẫn chưa kết');
+  };
+}
+
+function openGossipStory() {
+  S.busy = true;
+  const st = GOSSIP_STORY;
+  openModal(`
+    <span class="story-tag">${st.tag}</span>
+    <h2>${st.title}</h2>
+    <div class="story">${st.body}</div>
+    <p class="tiny">Lan · Mai · Hạnh đối mặt Mỹ Duyên. Phố An Lạc chứng kiến tất cả.</p>
+    <div class="row">
+      <button class="btn" id="m-story-ok" type="button">Đã đọc xong</button>
+    </div>
+  `);
+  $('modal-body')?.classList.add('story-panel');
+  $('m-story-ok').onclick = () => {
+    $('modal-body')?.classList.remove('story-panel');
+    closeModal();
+    S.busy = false;
+    toast('💔 “Tôi là vợ. Em chỉ là đoạn giữa.” — chị Lan');
+    try { gainCongDuc?.(2, 'Nghe chuyện phố', true); } catch (_) {}
+  };
+}
+
+function updateGossipCircle(dt, t) {
+  // Đường dẫn cổng nhấp nháy — dễ thấy từ sân
+  if (S.gateArchGlow?.material) {
+    S.gateArchGlow.material.opacity = 0.32 + 0.28 * Math.abs(Math.sin(t * 2.5));
+  }
+  if (S.gatePathLights) {
+    const op = 0.45 + 0.4 * Math.abs(Math.sin(t * 2.4));
+    S.gatePathLights.forEach((m, i) => {
+      if (m.material) m.material.opacity = op * (0.7 + 0.3 * Math.sin(t * 3 + i));
+    });
+  }
+  if (S.gateArrow) S.gateArrow.quaternion.copy(camera.quaternion);
+  if (S.gateMegaSign) S.gateMegaSign.quaternion.copy(camera.quaternion);
+  if (S.gateBeam?.material) {
+    S.gateBeam.material.opacity = 0.14 + 0.14 * Math.abs(Math.sin(t * 1.8));
+  }
+  if (S.gateBeacon) {
+    const b = S.gateBeacon.children?.find?.(c => c.isMesh && c.geometry?.type === 'SphereGeometry');
+    if (b?.material) b.material.emissiveIntensity = 1.6 + Math.abs(Math.sin(t * 3)) * 1.4;
+  }
+
+  if (!gossipCircle) return;
+  const g = gossipCircle;
+  g.talkPhase = (g.talkPhase || 0) + dt;
+  // Nhẹ nhàng “nói chuyện”: lắc tay / quay người
+  g.members.forEach((m, i) => {
+    const ud = m.mesh?.userData;
+    if (!ud) return;
+    const wave = Math.sin(t * 2.2 + i * 1.3);
+    if (ud.armR) ud.armR.rotation.x = wave * 0.25 * (m.glam ? 0.6 : 1);
+    if (ud.armL) ud.armL.rotation.x = -wave * 0.15;
+    m.tip.visible = true;
+    m.tip.quaternion.copy(camera.quaternion);
+  });
+  if (g.banner) g.banner.quaternion.copy(camera.quaternion);
+  if (g.glow) g.glow.material.opacity = 0.16 + 0.1 * Math.abs(Math.sin(t * 1.5));
+
+  // Toast khi lần đầu bước ra phố (cổng bên phải)
+  if (playerRoot && playerRoot.position.x > 14.5 && !S._streetEntered) {
+    S._streetEntered = true;
+    toast('🛤️ Phố An Lạc — ghé 4 quán · hoặc hỏi chuyện giữa phố');
+    // Soft tip: ghé 1 quán (không đụng daily goal hard)
+    if (shopVisitCount() < 4) {
+      setTimeout(() => toast('☕ Thử đứng gần biển hiệu quán — nút Ghé quán sẽ hiện'), 4200);
+    }
+  }
+
+  // Shop door glows + tip billboards
+  const shops = S.streetShops;
+  if (shops) {
+    shops.forEach((s, i) => {
+      if (s.tip && camera) s.tip.quaternion.copy(camera.quaternion);
+      if (s.glow?.material) {
+        const visited = !!(S.shopVisited && S.shopVisited[s.id]);
+        s.glow.material.opacity = visited
+          ? 0.06 + 0.04 * Math.abs(Math.sin(t * 1.2 + i))
+          : 0.12 + 0.1 * Math.abs(Math.sin(t * 2.1 + i));
+      }
+    });
+  }
+}
+
+/* ========== Ghé quán Phố An Lạc ========== */
+function shopVisitCount() {
+  const v = S.shopVisited || {};
+  return ['cafe', 'pho', 'hair', 'tea'].reduce((n, id) => n + (v[id] ? 1 : 0), 0);
+}
+function pickNearShop() {
+  const shops = S.streetShops;
+  if (!shops || !playerRoot) return null;
+  let best = null, bestD = 99;
+  for (const s of shops) {
+    const d = playerRoot.position.distanceTo(s.pos);
+    if (d < s.r && d < bestD) { bestD = d; best = s; }
+  }
+  return best;
+}
+function puffShopSteam(shop) {
+  if (!shop || !scene) return;
+  const puff = new THREE.Mesh(
+    new THREE.SphereGeometry(0.18, 6, 5),
+    new THREE.MeshBasicMaterial({ color: 0xfff5e0, transparent: true, opacity: 0.55, depthWrite: false })
+  );
+  puff.position.set(shop.pos.x, 1.4, shop.pos.z);
+  scene.add(puff);
+  const t0 = performance.now();
+  const tick = () => {
+    const u = (performance.now() - t0) / 700;
+    if (u >= 1) { scene.remove(puff); puff.geometry.dispose(); puff.material.dispose(); return; }
+    puff.position.y = 1.4 + u * 0.9;
+    puff.scale.setScalar(1 + u * 1.4);
+    puff.material.opacity = 0.55 * (1 - u);
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function tryUnlockKhachPho() {
+  if (S.khachPho) return;
+  if (shopVisitCount() < 4) return;
+  S.khachPho = true;
+  saveAll();
+  updateMeritHud();
+  pulseMeritHud();
+  setTimeout(() => {
+    toast('🛤️ Khách Phố · đã ghé đủ 4 quán Phố An Lạc!');
+    publishPresence?.(true);
+  }, 600);
+}
+function openShopVisit(shop) {
+  if (!shop || S.busy) return;
+  S.busy = true;
+  const first = !(S.shopVisited && S.shopVisited[shop.id]);
+  const n = shopVisitCount();
+  openModal(`
+    <h2>${shop.name}</h2>
+    <p style="text-align:left;font-size:.9rem;line-height:1.55">${shop.beat}</p>
+    <p class="tiny">${first ? `Lần đầu ghé · quán ${n + 1}/4` : `Đã ghé · tổng ${n}/4 quán`}</p>
+    <div class="row">
+      <button class="btn" id="m-shop-ok" type="button">${shop.verb || 'Ghé quán'}</button>
+      <button class="btn secondary" id="m-shop-bye" type="button">Để sau</button>
+    </div>
+  `);
+  const finish = (doVisit) => {
+    closeModal();
+    S.busy = false;
+    if (!doVisit) {
+      toast('Bạn nhìn biển hiệu rồi bước tiếp…');
+      return;
+    }
+    const gain = first ? (shop.firstGain | 0) || 3 : (shop.againGain | 0) || 1;
+    if (first) {
+      if (!S.shopVisited) S.shopVisited = {};
+      S.shopVisited[shop.id] = true;
+      S.shopLog = S.shopLog || [];
+      S.shopLog.push({ id: shop.id, text: `Ghé ${shop.name}`, at: Date.now() });
+      if (S.shopLog.length > 12) S.shopLog = S.shopLog.slice(-12);
+    }
+    saveAll();
+    gainCongDuc(gain, first ? `Ghé ${shop.name}` : shop.name, true);
+    toast(`${shop.toast} · +${gain}${first ? ` · quán ${shopVisitCount()}/4` : ''}`);
+    try { playWhoosh(); } catch (_) {}
+    puffShopSteam(shop);
+    updateMeritHud();
+    tryUnlockKhachPho();
+  };
+  $('m-shop-ok').onclick = () => finish(true);
+  $('m-shop-bye').onclick = () => finish(false);
 }
 
 function addRibbon(x, y, z, ai) {
@@ -1759,6 +3601,24 @@ function buildParticles() {
   pg.setAttribute('position', new THREE.BufferAttribute(pp, 3));
   S.petals = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xff8899, size: 0.16, transparent: true, opacity: 0.7, depthWrite: false }));
   S.petals.userData.v = pv; scene.add(S.petals);
+
+  // Mưa nhẹ — cheap streak points (only shown in rain mood)
+  const RN = 56;
+  const rg = new THREE.BufferGeometry();
+  const rp = new Float32Array(RN * 3), rv = [];
+  for (let i = 0; i < RN; i++) {
+    rp[i * 3] = (Math.random() - 0.5) * 30;
+    rp[i * 3 + 1] = Math.random() * 12;
+    rp[i * 3 + 2] = (Math.random() - 0.5) * 30;
+    rv.push({ vy: -7 - Math.random() * 5, vx: -0.4 - Math.random() * 0.5 });
+  }
+  rg.setAttribute('position', new THREE.BufferAttribute(rp, 3));
+  S.rain = new THREE.Points(rg, new THREE.PointsMaterial({
+    color: 0xa8c8e8, size: 0.07, transparent: true, opacity: 0.45, depthWrite: false, sizeAttenuation: true,
+  }));
+  S.rain.userData.v = rv;
+  S.rain.visible = false;
+  scene.add(S.rain);
 }
 function emitSmoke(x, y, z, n = 3) {
   const life = S.smoke.userData.life, pos = S.smoke.geometry.attributes.position.array;
@@ -1797,6 +3657,26 @@ function updateParticles(dt) {
     if (pp[i*3+1] < 0.1) { pp[i*3+1] = 4 + Math.random()*3; pp[i*3] = (Math.random()-0.5)*18; pp[i*3+2] = (Math.random()-0.5)*18; }
   }
   S.petals.geometry.attributes.position.needsUpdate = true;
+  // Mưa nhẹ
+  if (S.rain) {
+    if (S.weatherMood === 'rain') {
+      S.rain.visible = true;
+      const rp = S.rain.geometry.attributes.position.array, rv = S.rain.userData.v;
+      for (let i = 0; i < rv.length; i++) {
+        rp[i * 3] += rv[i].vx * dt;
+        rp[i * 3 + 1] += rv[i].vy * dt;
+        if (rp[i * 3 + 1] < 0) {
+          rp[i * 3 + 1] = 8 + Math.random() * 5;
+          rp[i * 3] = (Math.random() - 0.5) * 28;
+          rp[i * 3 + 2] = (Math.random() - 0.5) * 28;
+        }
+      }
+      S.rain.geometry.attributes.position.needsUpdate = true;
+      S.rain.material.opacity = 0.35 + 0.12 * Math.sin(performance.now() * 0.004);
+    } else {
+      S.rain.visible = false;
+    }
+  }
 }
 
 /* ========== NHÂN VẬT NGƯỜI CHƠI ========== */
@@ -1809,9 +3689,26 @@ function buildPlayer() {
   scene.add(playerRoot);
 }
 
+
+function goToStreetGate() {
+  if (!playerRoot) {
+    toast('Game chưa sẵn sàng — thử tải lại trang');
+    return;
+  }
+  const gx = S.gatePos?.x ?? 10.0;
+  const gz = S.gatePos?.z ?? 7.5;
+  // Đứng trong sân, nhìn thẳng vào vòm sáng (+X = phố)
+  playerRoot.position.set(gx - 3.2, 0, gz);
+  S.yaw = -Math.PI / 2;
+  S.pitch = 0.12;
+  if (player) player.rotation.y = -Math.PI / 2;
+  toast('🛤️ Cổng Phố An Lạc — đi thẳng vào vòm cam / theo thảm đỏ');
+}
+
 function tryMove(nx, nz) {
   const r = 0.35;
-  if (nx < -18 || nx > 18 || nz < -22 || nz > 15) return false;
+  // Phố Việt bên phải (+X), đối diện chuông (−X)
+  if (nx < -18 || nx > 31 || nz < -22 || nz > 18) return false;
   for (const c of colliders) {
     if (c.destroyed) continue; // công trình đã bị phá — đi xuyên được
     if (nx + r > c.a && nx - r < c.b && nz + r > c.c && nz - r < c.d) return false;
@@ -2342,6 +4239,1150 @@ function buildBtsCrew() {
   sign.position.set(cx + 1.6, 2.35, cz - 0.8);
   sign.scale.set(3.2, 0.55, 1);
   scene.add(sign);
+  buildPrincessSecrets();
+}
+
+/* —— Bí mật Công Chúa gần chùa (session) —— */
+let princessSecrets = []; // { id, mesh, glow, pos, r, label, foundKey }
+function buildPrincessSecrets() {
+  princessSecrets = [];
+  const spots = [
+    {
+      id: 'lotus', foundKey: 'btsSecretLotus',
+      x: 5.4, z: -1.6, r: 1.9,
+      label: 'Ánh sen bí mật',
+      hue: 0xff88cc,
+      hint: 'Nhẫn Hoàng Gia',
+    },
+    {
+      id: 'lantern', foundKey: 'btsSecretLantern',
+      x: -8.2, z: 3.6, r: 1.9,
+      label: 'Đèn lồng ẩn',
+      hue: 0xffd07a,
+      hint: 'Lời riêng công chúa',
+    },
+  ];
+  for (const s of spots) {
+    const root = new THREE.Group();
+    root.position.set(s.x, 0.05, s.z);
+    const glow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.55, 20),
+      new THREE.MeshBasicMaterial({
+        color: s.hue, transparent: true, opacity: 0.42,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
+    );
+    glow.rotation.x = -Math.PI / 2;
+    root.add(glow);
+    const bead = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 10, 8),
+      new THREE.MeshStandardMaterial({
+        color: s.hue, emissive: s.hue, emissiveIntensity: 0.85,
+        metalness: 0.35, roughness: 0.4, transparent: true, opacity: 0.95,
+      })
+    );
+    bead.position.y = 0.35;
+    root.add(bead);
+    const tip = textPlane(
+      s.id === 'lotus' ? '✦ Sen ẩn · Nhẫn HG' : '✦ Đèn ẩn · Lời idol',
+      320, 56, '#ffe8f4', '#4a1840', 20
+    );
+    tip.position.set(0, 1.15, 0);
+    tip.scale.set(1.85, 0.38, 1);
+    root.add(tip);
+    scene.add(root);
+    princessSecrets.push({
+      id: s.id, foundKey: s.foundKey, mesh: root, glow, bead, tip,
+      pos: new THREE.Vector3(s.x, 0, s.z), r: s.r, label: s.label, hint: s.hint, hue: s.hue,
+    });
+  }
+}
+function pickNearPrincessSecret() {
+  if (!playerRoot || !princessSecrets.length) return null;
+  let best = null, bestD = 99;
+  for (const s of princessSecrets) {
+    if (S[s.foundKey]) continue;
+    const d = Math.hypot(playerRoot.position.x - s.pos.x, playerRoot.position.z - s.pos.z);
+    if (d < s.r && d < bestD) { bestD = d; best = s; }
+  }
+  return best;
+}
+function collectPrincessSecret(sec) {
+  if (!sec || S[sec.foundKey]) return;
+  S[sec.foundKey] = true;
+  if (sec.id === 'lotus') {
+    S.btsRoyalRing = true;
+    if (!S.btsPrincessTitle) S.btsPrincessTitle = 'Công Chúa An Lạc';
+    S.btsQuotes.push({ who: 'Sen ẩn', text: '💍 Nhẫn Hoàng Gia — buổi này bạn được chiều hết mức', at: Date.now() });
+    toast('💍 Nhẫn Hoàng Gia! Idol sẽ gọi bạn tối thượng hơn');
+    spawnPrincessBurst();
+  } else {
+    S.btsQuotes.push({
+      who: 'Đèn ẩn',
+      text: '✨ “Dạ công chúa… đêm nay chùa này thuộc về mình.”',
+      at: Date.now(),
+    });
+    toast('✨ Lời riêng mở khóa — idol thì thầm riêng cho công chúa');
+    spawnPrincessBurst();
+  }
+  updatePrincessHud();
+  pulsePrincessHud();
+  // Ẩn điểm sáng đã nhặt
+  if (sec.mesh) sec.mesh.visible = false;
+  playBell?.(0.35, 1.4);
+  playWhoosh();
+  const both = S.btsSecretLotus && S.btsSecretLantern;
+  if (both) {
+    setTimeout(() => toast('👑 Bộ sưu tập đủ — công chúa tối thượng của chùa này!'), 900);
+  }
+}
+function updatePrincessSecretsVisual(t) {
+  for (const s of princessSecrets) {
+    if (S[s.foundKey]) { s.mesh.visible = false; continue; }
+    s.mesh.visible = true;
+    const pulse = 0.35 + 0.25 * Math.sin(t * 3.2 + s.pos.x);
+    if (s.glow?.material) s.glow.material.opacity = pulse;
+    if (s.bead) {
+      s.bead.position.y = 0.32 + Math.sin(t * 2.6 + s.pos.z) * 0.08;
+      s.bead.rotation.y += 0.02;
+    }
+    if (s.tip && camera) s.tip.quaternion.copy(camera.quaternion);
+  }
+}
+
+/* —— Ấn khám phá quanh chùa (global, không BTS) —— */
+let templeStamps = []; // { id, foundKey, mesh, glow, bead, tip, pos, r, label }
+function buildTempleStamps() {
+  templeStamps = [];
+  const spots = [
+    {
+      id: 'gate', foundKey: 'stampGate',
+      x: 4.8, z: 9.6, r: 2.0,
+      label: 'Ấn Cổng Tam Quan',
+      tip: '📷 Ấn Cổng',
+      hue: 0xffc878,
+    },
+    {
+      id: 'pond', foundKey: 'stampPond',
+      x: 4.0, z: -7.2, r: 2.0,
+      label: 'Ấn Hồ Sen',
+      tip: '📷 Ấn Hồ Sen',
+      hue: 0x78d0a8,
+    },
+    {
+      id: 'hall', foundKey: 'stampHall',
+      x: -5.6, z: -4.2, r: 2.0,
+      label: 'Ấn Chính Điện',
+      tip: '📷 Ấn Điện',
+      hue: 0xd0a0ff,
+    },
+  ];
+  for (const s of spots) {
+    const root = new THREE.Group();
+    root.position.set(s.x, 0.04, s.z);
+    const glow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.62, 22),
+      new THREE.MeshBasicMaterial({
+        color: s.hue, transparent: true, opacity: 0.4,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
+    );
+    glow.rotation.x = -Math.PI / 2;
+    root.add(glow);
+    const bead = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.16, 0),
+      new THREE.MeshStandardMaterial({
+        color: s.hue, emissive: s.hue, emissiveIntensity: 0.9,
+        metalness: 0.4, roughness: 0.35, transparent: true, opacity: 0.95,
+      })
+    );
+    bead.position.y = 0.42;
+    root.add(bead);
+    const tip = textPlane(s.tip, 300, 52, '#fff8e8', '#3a2810', 20);
+    tip.position.set(0, 1.2, 0);
+    tip.scale.set(1.7, 0.36, 1);
+    root.add(tip);
+    if (S[s.foundKey]) root.visible = false;
+    scene.add(root);
+    templeStamps.push({
+      id: s.id, foundKey: s.foundKey, mesh: root, glow, bead, tip,
+      pos: new THREE.Vector3(s.x, 0, s.z), r: s.r, label: s.label, hue: s.hue,
+    });
+  }
+}
+function pickNearStamp() {
+  if (!playerRoot || !templeStamps.length) return null;
+  let best = null, bestD = 99;
+  for (const s of templeStamps) {
+    if (S[s.foundKey]) continue;
+    const d = Math.hypot(playerRoot.position.x - s.pos.x, playerRoot.position.z - s.pos.z);
+    if (d < s.r && d < bestD) { bestD = d; best = s; }
+  }
+  return best;
+}
+function collectTempleStamp(sec) {
+  if (!sec || S[sec.foundKey]) return;
+  S[sec.foundKey] = true;
+  if (sec.mesh) sec.mesh.visible = false;
+  playWhoosh();
+  playBell?.(0.3, 1.25);
+  const n = stampCount();
+  gainCongDuc(15, sec.label, true);
+  toast(`📷 Thu thập ${sec.label} · +15 (${n}/3)`);
+  if (sec.id === 'gate') tryCompletePilgrimBySpot('stampGate');
+  else if (sec.id === 'pond') tryCompletePilgrimBySpot('stampPond');
+  noteDailyProgress('stamp');
+  updateMeritHud();
+  pulseStampHud();
+  if (n >= 3) {
+    setTimeout(() => {
+      gainCongDuc(30, 'Đủ bộ ấn chùa', true);
+      toast('🌸 Bộ ấn đủ 3/3 — +30 công đức bùng nổ!');
+      pulseStampHud();
+    }, 850);
+  }
+  publishPresence(true);
+}
+function updateTempleStampsVisual(t) {
+  for (const s of templeStamps) {
+    if (S[s.foundKey]) { s.mesh.visible = false; continue; }
+    s.mesh.visible = true;
+    const pulse = 0.32 + 0.28 * Math.sin(t * 2.8 + s.pos.z);
+    if (s.glow?.material) s.glow.material.opacity = pulse;
+    if (s.bead) {
+      s.bead.position.y = 0.38 + Math.sin(t * 2.4 + s.pos.x) * 0.1;
+      s.bead.rotation.y += 0.025;
+      s.bead.rotation.x = Math.sin(t * 1.5) * 0.2;
+    }
+    if (s.tip && camera) s.tip.quaternion.copy(camera.quaternion);
+  }
+}
+
+/* —— Sen Bay: sen khổng lồ bay trên sân chùa (IRL-impossible) —— */
+const SEN_BAY_SPOT = { x: 0, z: -1.35, r: 2.35 };
+const SEN_BAY_TIERS = {
+  van:   { id: 'van',   label: 'Vân',   height: 4.6, spin: 0.22, merit: 6,  firstMerit: 10 },
+  nguyet:{ id: 'nguyet',label: 'Nguyệt', height: 6.2, spin: 0.34, merit: 8,  firstMerit: 14 },
+  tinh:  { id: 'tinh',  label: 'Tịnh',  height: 7.8, spin: 0.48, merit: 10, firstMerit: 18 },
+};
+const SEN_BAY_ORDER = ['van', 'nguyet', 'tinh'];
+
+function senBayTierLabel(id) {
+  return SEN_BAY_TIERS[id]?.label || '—';
+}
+function senBayTierRank(id) {
+  const i = SEN_BAY_ORDER.indexOf(id);
+  return i < 0 ? -1 : i;
+}
+function pickSenBayTier() {
+  const n = (S._senBaySessionRides | 0) + 1;
+  let idx = n >= 3 ? 2 : n >= 2 ? 1 : 0;
+  if (S.senBayDuyen) idx = Math.min(2, idx + 1);
+  return SEN_BAY_ORDER[idx];
+}
+
+function buildSenBay() {
+  const g = new THREE.Group();
+  g.position.set(SEN_BAY_SPOT.x, 0.02, SEN_BAY_SPOT.z);
+  const petalMat = new THREE.MeshStandardMaterial({
+    color: 0xffc8d8, roughness: 0.55, metalness: 0.08,
+    emissive: 0xff88aa, emissiveIntensity: 0.18,
+  });
+  const coreMat = new THREE.MeshStandardMaterial({
+    color: 0xffe8a0, roughness: 0.4, metalness: 0.2,
+    emissive: 0xffcc66, emissiveIntensity: 0.35,
+  });
+  const pad = new THREE.Mesh(new THREE.CylinderGeometry(1.55, 1.7, 0.22, 16), petalMat);
+  pad.position.y = 0.18; g.add(pad);
+  for (let i = 0; i < 10; i++) {
+    const petal = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.95, 5), petalMat);
+    const a = (i / 10) * Math.PI * 2;
+    petal.position.set(Math.cos(a) * 1.35, 0.42, Math.sin(a) * 1.35);
+    petal.rotation.z = Math.PI; petal.rotation.y = -a;
+    g.add(petal);
+  }
+  for (let i = 0; i < 8; i++) {
+    const petal = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.7, 5), petalMat);
+    const a = (i / 8) * Math.PI * 2 + 0.2;
+    petal.position.set(Math.cos(a) * 0.85, 0.55, Math.sin(a) * 0.85);
+    petal.rotation.z = Math.PI; petal.rotation.y = -a;
+    g.add(petal);
+  }
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.38, 10, 8), coreMat);
+  core.position.y = 0.55; core.scale.y = 0.55; g.add(core);
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(1.85, 28),
+    new THREE.MeshBasicMaterial({
+      color: 0xffb0c8, transparent: true, opacity: 0.28,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2; glow.position.y = 0.04; g.add(glow);
+  const tip = textPlane('🪷 Sen Bay', 280, 52, '#fff5f8', '#4a2030', 22);
+  tip.position.set(0, 1.55, 0); tip.scale.set(1.65, 0.34, 1); g.add(tip);
+  const light = new THREE.PointLight(0xffaacc, 0.35, 8, 2);
+  light.position.set(0, 1.2, 0); g.add(light);
+  // Đã từng ngồi trước đó → hiện sẵn; không thì chờ discover
+  g.visible = !!(S.senBayRides | 0) || !!S.khachSenBay || !!S.senBayBestTier;
+  if (g.visible) S.senBayUnlocked = true;
+  scene.add(g);
+  S.senBayRoot = g;
+  g.userData = { glow, tip, light, petalMat, coreMat, baseY: 0.02, ph: Math.random() * 6.28 };
+}
+
+function unlockSenBay(reason) {
+  if (S.senBayUnlocked) return;
+  S.senBayUnlocked = true;
+  if (S.senBayRoot) S.senBayRoot.visible = true;
+  const line = reason === 'duyen'
+    ? '🪷 Đóa sen mở sau duyên hương/chuông…'
+    : '🪷 Đóa sen đang chờ bạn…';
+  toast(line);
+  setTimeout(() => toast('Ngồi Sen Bay gần đài sen giữa sân'), 900);
+}
+
+function noteSenBayDuyen() {
+  if (!S.playing) return;
+  S.senBayDuyen = true;
+  if (!S.senBayUnlocked) unlockSenBay('duyen');
+}
+
+function pickNearSenBay() {
+  if (!S.senBayUnlocked || !playerRoot || S.senBayRide) return null;
+  const d = Math.hypot(playerRoot.position.x - SEN_BAY_SPOT.x, playerRoot.position.z - SEN_BAY_SPOT.z);
+  if (d < SEN_BAY_SPOT.r) return { id: 'senBay', pos: SEN_BAY_SPOT, label: 'Ngồi Sen Bay' };
+  return null;
+}
+
+function burstSenBayPetals(cx, cy, cz) {
+  if (!S.petals?.geometry) return;
+  const n = IS_MOBILE ? 6 : 12;
+  const pp = S.petals.geometry.attributes.position.array;
+  const pv = S.petals.userData.v;
+  let placed = 0;
+  for (let i = 0; i < pv.length && placed < n; i++) {
+    const idx = (i * 7 + (placed * 3)) % pv.length;
+    pp[idx * 3] = cx + (Math.random() - 0.5) * 2.2;
+    pp[idx * 3 + 1] = cy + Math.random() * 1.4;
+    pp[idx * 3 + 2] = cz + (Math.random() - 0.5) * 2.2;
+    pv[idx].vy = -0.15 - Math.random() * 0.25;
+    pv[idx].vx = (Math.random() - 0.5) * 0.55;
+    pv[idx].vz = (Math.random() - 0.5) * 0.55;
+    placed++;
+  }
+  S.petals.geometry.attributes.position.needsUpdate = true;
+  if (S.petals.material) {
+    S.petals.material.opacity = 0.92;
+    S.petals.material.size = IS_MOBILE ? 0.18 : 0.22;
+    S.petals.material.color.setHex(0xffa0b8);
+  }
+}
+
+function startSenBayRide() {
+  if (S.busy || S.senBayRide || !S.senBayUnlocked) return;
+  const tierId = pickSenBayTier();
+  const tier = SEN_BAY_TIERS[tierId];
+  S.busy = true;
+  S.senBayRide = {
+    tier: tierId,
+    phase: 'rise',
+    t: 0,
+    riseT: 3.2,
+    hoverT: 10 + Math.random() * 4,
+    downT: 2.8,
+    height: tier.height,
+    spin: tier.spin,
+    homeX: SEN_BAY_SPOT.x,
+    homeZ: SEN_BAY_SPOT.z,
+    first: !S.senBayTierSeen?.[tierId],
+    early: false,
+  };
+  playerRoot.position.x = SEN_BAY_SPOT.x;
+  playerRoot.position.z = SEN_BAY_SPOT.z;
+  playerRoot.position.y = 0;
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(-0.55, 0, 0.55);
+    ud.armR.rotation.set(-0.55, 0, -0.55);
+    ud.legL.rotation.set(0.85, 0, 0.12);
+    ud.legR.rotation.set(0.85, 0, -0.12);
+  } catch (_) {}
+  playWhoosh();
+  toast(`🪷 Sen nâng bạn lên trời chùa · tầng ${tier.label}`);
+  burstSenBayPetals(SEN_BAY_SPOT.x, 1.2, SEN_BAY_SPOT.z);
+}
+
+function finishSenBayRide(early) {
+  const ride = S.senBayRide;
+  if (!ride) return;
+  const tier = SEN_BAY_TIERS[ride.tier] || SEN_BAY_TIERS.van;
+  const root = S.senBayRoot;
+  if (root) {
+    root.position.y = root.userData.baseY || 0.02;
+    root.rotation.y = 0;
+  }
+  playerRoot.position.set(ride.homeX, 0, ride.homeZ + 0.15);
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+    ud.legL.rotation.set(0, 0, 0); ud.legR.rotation.set(0, 0, 0);
+  } catch (_) {}
+
+  S.senBayRides = (S.senBayRides | 0) + 1;
+  S._senBaySessionRides = (S._senBaySessionRides | 0) + 1;
+  if (senBayTierRank(ride.tier) > senBayTierRank(S.senBayBestTier)) {
+    S.senBayBestTier = ride.tier;
+  }
+  const first = !S.senBayTierSeen?.[ride.tier];
+  if (!S.senBayTierSeen) S.senBayTierSeen = {};
+  S.senBayTierSeen[ride.tier] = true;
+  if (!S.khachSenBay) {
+    S.khachSenBay = true;
+    setTimeout(() => toast('🪷 Danh hiệu nhẹ: Khách Sen Bay'), 750);
+  }
+  const duyênBonus = S.senBayDuyen ? 1 : 0;
+  const gain = (first ? tier.firstMerit : tier.merit) + duyênBonus;
+  const line = early
+    ? `Hạ sen sớm · tầng ${tier.label}`
+    : `Ngồi Sen Bay · tầng ${tier.label}`;
+  S.senBayLog = (S.senBayLog || []).concat([{
+    text: `${line}${first ? ' · lần đầu tầng' : ''}${S.senBayDuyen ? ' · duyên sen' : ''}`,
+    tier: ride.tier,
+    at: Date.now(),
+  }]).slice(-12);
+  S.senBayDuyen = false;
+  S.senBayRide = null;
+  S.busy = false;
+  saveAll();
+  gainCongDuc(gain, first ? `Sen Bay · lần đầu ${tier.label}` : `Sen Bay · ${tier.label}`, true);
+  toast(early
+    ? `🪷 Sen hạ nhẹ xuống sân · +${gain}`
+    : `🪷 Sen nâng bạn lên trời chùa · +${gain}${first ? ` · stamp ${tier.label}` : ''}`);
+  burstSenBayPetals(ride.homeX, 1.4, ride.homeZ);
+  updateMeritHud();
+  try { publishPresence(true); } catch (_) {}
+}
+
+function cancelSenBayRide() {
+  if (!S.senBayRide) return;
+  // Soft early exit → descend phase
+  if (S.senBayRide.phase === 'down') return;
+  S.senBayRide.early = true;
+  S.senBayRide.phase = 'down';
+  S.senBayRide.t = 0;
+  toast('🪷 Sen đang hạ…');
+}
+
+function updateSenBay(dt, t) {
+  // Discover ~18–28s after entering play, or sooner via duyên
+  if (S.playing && !S.senBayUnlocked) {
+    if (!S._senBayDiscoverAt) S._senBayDiscoverAt = performance.now() + 18000 + Math.random() * 10000;
+    if (performance.now() >= S._senBayDiscoverAt) unlockSenBay('time');
+  }
+  const root = S.senBayRoot;
+  if (!root) return;
+
+  const nightOrCalm = S.timePhase === 'night' || S.weatherMood === 'calm';
+  const warm = nightOrCalm ? 1 : 0;
+  if (root.userData.petalMat) {
+    root.userData.petalMat.emissiveIntensity = 0.16 + warm * 0.22 + (S.senBayRide ? 0.2 : 0);
+  }
+  if (root.userData.coreMat) {
+    root.userData.coreMat.emissiveIntensity = 0.3 + warm * 0.35 + (S.senBayRide ? 0.25 : 0);
+  }
+  if (root.userData.light) {
+    root.userData.light.intensity = 0.28 + warm * 0.45 + (S.senBayRide ? 0.55 : 0);
+    root.userData.light.color.setHex(nightOrCalm ? 0xffd0a0 : 0xffaacc);
+  }
+  if (root.userData.glow?.material && !S.senBayRide) {
+    root.userData.glow.material.opacity = 0.22 + 0.16 * Math.sin(t * 2.4 + root.userData.ph);
+    root.userData.glow.material.color.setHex(nightOrCalm ? 0xffd8a8 : 0xffb0c8);
+  }
+  if (root.userData.tip && camera) root.userData.tip.quaternion.copy(camera.quaternion);
+
+  // Soft tip when near
+  if (S.nearSenBay && !S.senBayRide) {
+    const now = performance.now();
+    if (now - (S._senBayTipAt || 0) > 16000) {
+      S._senBayTipAt = now;
+      toast('🪷 Ngồi Sen Bay — sen sẽ nâng bạn lên trời chùa');
+    }
+  }
+
+  const ride = S.senBayRide;
+  if (!ride) {
+    if (root.visible) {
+      root.position.y = (root.userData.baseY || 0.02) + Math.sin(t * 1.6) * 0.04;
+      root.rotation.y += dt * 0.15;
+    }
+    return;
+  }
+
+  ride.t += dt;
+  let h = 0;
+  if (ride.phase === 'rise') {
+    const u = Math.min(1, ride.t / ride.riseT);
+    const ease = 1 - Math.pow(1 - u, 2.4);
+    h = ride.height * ease;
+    root.rotation.y += dt * ride.spin * (0.4 + u);
+    if (u >= 1) {
+      ride.phase = 'hover'; ride.t = 0;
+      // Once/session: peak “look down” wow — tell-a-friend beat
+      if (!S._senBayWowAt) {
+        S._senBayWowAt = performance.now();
+        setTimeout(() => toast('🪷 Nhìn xuống sân chùa — chỉ có trong mơ'), 420);
+      }
+    }
+  } else if (ride.phase === 'hover') {
+    h = ride.height + Math.sin(ride.t * 1.4) * 0.18;
+    root.rotation.y += dt * ride.spin;
+    if (ride.t >= ride.hoverT) { ride.phase = 'down'; ride.t = 0; }
+  } else {
+    const u = Math.min(1, ride.t / ride.downT);
+    const ease = u * u;
+    h = ride.height * (1 - ease);
+    root.rotation.y += dt * ride.spin * (1 - u * 0.7);
+    if (u >= 1) {
+      finishSenBayRide(!!ride.early);
+      return;
+    }
+  }
+  root.position.y = (root.userData.baseY || 0.02) + h;
+  playerRoot.position.x = ride.homeX;
+  playerRoot.position.z = ride.homeZ;
+  playerRoot.position.y = h + 0.55;
+  // Cheap petal dust while rising
+  if (!IS_MOBILE && ride.phase === 'rise' && Math.random() < 0.12) {
+    emitSmoke(ride.homeX + (Math.random() - 0.5), h + 0.8, ride.homeZ + (Math.random() - 0.5), 1);
+  }
+}
+
+/* —— Hành hương NPC + chuyện ngắn (global, không BTS) —— */
+const PILGRIM_DEFS = [
+  { id: 'baNam', name: 'Bà Năm', x: 2.4, z: 6.8, robe: 0x4a6b8a, scale: 0.92 },
+  { id: 'chuTu', name: 'Chú Tư', x: -6.2, z: 2.4, robe: 0x6b4c3a, scale: 0.98 },
+  { id: 'coHanh', name: 'Cô Hạnh', x: 7.0, z: -1.4, robe: 0x4a6b52, scale: 0.94 },
+];
+const PILGRIM_QUEST_VARIANTS = [
+  {
+    id: 'sandal',
+    ask: 'Ối… dép bà rớt đâu đó gần cổng tam quan. Nhờ cháu tìm giúp một vòng được không?',
+    tip: 'Tìm quanh Cổng Tam Quan',
+    done: 'Đã nhặt dép giúp hành hương',
+    target: { kind: 'pos', x: 4.8, z: 9.6, r: 2.3, label: 'Cổng' },
+    merit: 10, rare: false,
+  },
+  {
+    id: 'incense_help',
+    ask: 'Bà đếm nhầm nén hương rồi… nhờ cháu ra lư hương thắp giúp 1 nén thành tâm nhé?',
+    tip: 'Tới lư hương · thắp hoặc chạm hoàn thành',
+    done: 'Đã thắp hương giúp hành hương',
+    target: { kind: 'spot', spotId: 'incense', r: 2.4, label: 'Lư hương' },
+    merit: 12, rare: false,
+  },
+  {
+    id: 'bell_slip',
+    ask: 'Phiếu cầu nhỏ này… nhờ bạn mang tới gác chuông giúp mình được không? Tay mình run quá.',
+    tip: 'Mang phiếu tới chuông',
+    done: 'Đã giao phiếu cầu bên chuông',
+    target: { kind: 'spot', spotId: 'bell', r: 2.6, label: 'Chuông' },
+    merit: 12, rare: false,
+  },
+  {
+    id: 'photo_gate',
+    ask: 'Chụp hộ một góc cổng đẹp với! Đứng gần cổng là được — điện thoại mình hết pin.',
+    tip: 'Đứng gần Cổng Tam Quan',
+    done: 'Đã “chụp” cổng giúp hành hương',
+    target: { kind: 'pos', x: 4.6, z: 9.4, r: 2.2, label: 'Cổng' },
+    merit: 10, rare: false,
+  },
+  {
+    id: 'quiet_pond',
+    ask: 'Tâm đang loạn… tìm giúp chỗ yên gần hồ sen được không? Chỉ cần đứng đó một nhịp.',
+    tip: 'Tìm chỗ yên bên Hồ Sen',
+    done: 'Đã dẫn chỗ yên bên hồ sen',
+    target: { kind: 'pos', x: 4.0, z: -7.2, r: 2.3, label: 'Hồ Sen' },
+    merit: 14, rare: true,
+  },
+  {
+    id: 'fortune_ask',
+    ask: 'Xin hộ một quẻ rồi kể lại cho mình nghe được không? Mình ngại đứng ống quẻ đông người.',
+    tip: 'Tới chỗ xin quẻ',
+    done: 'Đã xin quẻ giúp hành hương',
+    target: { kind: 'spot', spotId: 'fortune', r: 2.3, label: 'Xin quẻ' },
+    merit: 14, rare: true,
+  },
+];
+let pilgrimNpcs = []; // { def, mesh, glow, tip, questId, done }
+let pilgrimQuest = null; // active { questId, pilgrimId, variant, marker, expiresAt, startedAt }
+let pilgrimQuestUsed = Object.create(null);
+
+function pilgrimTargetPos(variant) {
+  if (!variant?.target) return null;
+  if (variant.target.kind === 'spot') {
+    const s = SPOTS.find(x => x.id === variant.target.spotId);
+    return s ? { x: s.pos.x, z: s.pos.z, r: variant.target.r || s.r, label: variant.target.label || s.label } : null;
+  }
+  return {
+    x: variant.target.x, z: variant.target.z,
+    r: variant.target.r || 2.2, label: variant.target.label || 'Điểm',
+  };
+}
+
+function pickPilgrimQuestVariant(preferRare) {
+  const pool = PILGRIM_QUEST_VARIANTS.filter(q => !pilgrimQuestUsed[q.id]);
+  const rarePool = pool.filter(q => q.rare);
+  const normalPool = pool.filter(q => !q.rare);
+  let pickFrom = pool;
+  if (preferRare && rarePool.length) pickFrom = rarePool;
+  else if (normalPool.length) pickFrom = normalPool;
+  if (!pickFrom.length) {
+    // Reset session pool if exhausted
+    pilgrimQuestUsed = Object.create(null);
+    pickFrom = preferRare
+      ? (PILGRIM_QUEST_VARIANTS.filter(q => q.rare).length ? PILGRIM_QUEST_VARIANTS.filter(q => q.rare) : PILGRIM_QUEST_VARIANTS)
+      : PILGRIM_QUEST_VARIANTS.filter(q => !q.rare);
+  }
+  return pickFrom[(Math.random() * pickFrom.length) | 0];
+}
+
+function buildPilgrimMarker(pos, tipText, hue) {
+  const root = new THREE.Group();
+  root.position.set(pos.x, 0.04, pos.z);
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.55, 20),
+    new THREE.MeshBasicMaterial({
+      color: hue, transparent: true, opacity: 0.42,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  root.add(glow);
+  const bead = new THREE.Mesh(
+    new THREE.SphereGeometry(0.12, 8, 6),
+    new THREE.MeshStandardMaterial({
+      color: hue, emissive: hue, emissiveIntensity: 0.85,
+      metalness: 0.25, roughness: 0.4, transparent: true, opacity: 0.95,
+    })
+  );
+  bead.position.y = 0.4;
+  root.add(bead);
+  const tip = textPlane(tipText, 320, 52, '#fff8e8', '#2a3a28', 18);
+  tip.position.set(0, 1.15, 0);
+  tip.scale.set(1.8, 0.38, 1);
+  root.add(tip);
+  scene.add(root);
+  return { mesh: root, glow, bead, tip, pos: new THREE.Vector3(pos.x, 0, pos.z) };
+}
+
+function buildPilgrimNpcs() {
+  pilgrimNpcs = [];
+  pilgrimQuestUsed = Object.create(null);
+  const duskish = S.timePhase === 'dusk' || S.timePhase === 'night';
+  PILGRIM_DEFS.forEach((def, i) => {
+    const preferRare = duskish && i === 2;
+    const variant = pickPilgrimQuestVariant(preferRare);
+    if (variant) pilgrimQuestUsed[variant.id] = 1;
+    const human = buildHumanoid({ robeColor: def.robe, scale: def.scale || 1, withFace: true });
+    human.position.set(def.x, 0, def.z);
+    // Face somewhat toward yard center
+    human.rotation.y = Math.atan2(-def.x, -def.z) + Math.PI;
+    scene.add(human);
+    const glow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.7, 22),
+      new THREE.MeshBasicMaterial({
+        color: 0x9ecf8a, transparent: true, opacity: 0.38,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
+    );
+    glow.rotation.x = -Math.PI / 2;
+    glow.position.set(def.x, 0.05, def.z);
+    scene.add(glow);
+    const tip = textPlane(`Hành hương · ${def.name}`, 360, 52, '#e8f5d8', '#243828', 18);
+    tip.position.set(def.x, 2.15, def.z);
+    tip.scale.set(2.05, 0.4, 1);
+    scene.add(tip);
+    pilgrimNpcs.push({
+      id: def.id, name: def.name, def, mesh: human, glow, tip,
+      pos: new THREE.Vector3(def.x, 0, def.z),
+      questId: variant?.id || null,
+      variant: variant || null,
+      done: false, thankUntil: 0,
+    });
+  });
+}
+
+function clearPilgrimQuest(silent) {
+  if (!pilgrimQuest) return;
+  if (pilgrimQuest.marker?.mesh) scene.remove(pilgrimQuest.marker.mesh);
+  pilgrimQuest = null;
+  S.nearPilgrimTarget = null;
+  if (!silent) toast('Việc giúp hành hương đã thôi — nói chuyện lại khi sẵn sàng');
+}
+
+function acceptPilgrimQuest(p) {
+  if (!p || !p.variant || p.done) return;
+  if (pilgrimQuest) clearPilgrimQuest(true);
+  const variant = p.variant;
+  const tp = pilgrimTargetPos(variant);
+  if (!tp) return;
+  const marker = buildPilgrimMarker(tp, `Giúp · ${tp.label}`, 0xa8d878);
+  const windowMs = 75000;
+  pilgrimQuest = {
+    questId: variant.id,
+    pilgrimId: p.id,
+    pilgrimName: p.name,
+    variant,
+    marker,
+    target: tp,
+    expiresAt: performance.now() + windowMs,
+    startedAt: performance.now(),
+  };
+  S.busy = false;
+  toast(`🌿 ${p.name}: ${variant.tip}`);
+  setTimeout(() => {
+    if (pilgrimQuest?.questId === variant.id) {
+      toast('Làm xong trong ~1 phút · chạm nút tại điểm đích');
+    }
+  }, 1600);
+}
+
+function openPilgrimTalk(p) {
+  if (!p || S.busy) return;
+  if (p.done) {
+    S.busy = true;
+    openModal(`
+      <h2>Hành hương · ${p.name}</h2>
+      <p>Cảm ơn bạn nhiều lắm. Chùa này có người tốt như bạn thì lòng dịu hẳn.</p>
+      <div class="row"><button class="btn" id="m-ok">Đóng</button></div>
+    `);
+    $('m-ok').onclick = () => { closeModal(); S.busy = false; };
+    return;
+  }
+  if (!p.variant) return;
+  if (pilgrimQuest && pilgrimQuest.pilgrimId === p.id) {
+    S.busy = true;
+    openModal(`
+      <h2>Hành hương · ${p.name}</h2>
+      <p>Đang nhờ bạn: <em>${p.variant.tip}</em></p>
+      <div class="row">
+        <button class="choice" id="m-cancel-q">Thôi giúp</button>
+        <button class="btn secondary" id="m-ok">Đang làm</button>
+      </div>
+    `);
+    $('m-cancel-q').onclick = () => { closeModal(); clearPilgrimQuest(false); S.busy = false; };
+    $('m-ok').onclick = () => { closeModal(); S.busy = false; };
+    return;
+  }
+  S.busy = true;
+  openModal(`
+    <h2>Hành hương · ${p.name}</h2>
+    <p>${p.variant.ask}</p>
+    <div class="row">
+      <button class="choice" id="m-help">Giúp</button>
+      <button class="btn secondary" id="m-later">Để sau</button>
+    </div>
+  `);
+  $('m-help').onclick = () => { closeModal(); acceptPilgrimQuest(p); };
+  $('m-later').onclick = () => { closeModal(); S.busy = false; toast('Có thể quay lại nói chuyện với hành hương bất cứ lúc nào'); };
+}
+
+function completePilgrimQuest(reasonSpot) {
+  if (!pilgrimQuest) return false;
+  const pq = pilgrimQuest;
+  const variant = pq.variant;
+  if (reasonSpot && variant.target?.kind === 'spot' && variant.target.spotId !== reasonSpot) return false;
+  if (pq.marker?.mesh) scene.remove(pq.marker.mesh);
+  pilgrimQuest = null;
+  S.nearPilgrimTarget = null;
+
+  const p = pilgrimNpcs.find(x => x.id === pq.pilgrimId);
+  if (p) {
+    p.done = true;
+    p.thankUntil = performance.now() + 12000;
+    // Soft thank bubble via tip recolor
+    if (p.tip) {
+      scene.remove(p.tip);
+      p.tip = textPlane(`Cảm ơn · ${p.name}`, 320, 52, '#fff8e0', '#3a4828', 18);
+      p.tip.position.set(p.pos.x, 2.15, p.pos.z);
+      p.tip.scale.set(1.9, 0.38, 1);
+      scene.add(p.tip);
+    }
+    if (p.glow?.material) {
+      p.glow.material.color.setHex(0xe8c878);
+      p.glow.material.opacity = 0.25;
+    }
+  }
+
+  let gain = variant.merit | 0;
+  if (S.timePhase === 'dusk' || S.timePhase === 'night') gain += 2;
+  if (variant.rare) gain += 2;
+  const me = S.name || 'Bạn';
+  const line = `${me} vừa giúp hành hương · ${pq.pilgrimName} — ${variant.done}`;
+  if (!Array.isArray(S.pilgrimQuests)) S.pilgrimQuests = [];
+  S.pilgrimQuests.push({ text: line, questId: variant.id, who: pq.pilgrimName, at: Date.now() });
+  if (S.pilgrimQuests.length > 12) S.pilgrimQuests = S.pilgrimQuests.slice(-12);
+  S.pilgrimSessionDone = (S.pilgrimSessionDone | 0) + 1;
+  saveAll();
+  gainCongDuc(gain, 'Giúp hành hương', true);
+  playWhoosh();
+  playBell?.(0.28, 1.3);
+  spawnCoopBurst(playerRoot.position.x, playerRoot.position.z);
+  toast(`🌿 ${variant.done} · +${gain} công đức`);
+  noteDailyProgress('pilgrim');
+  setTimeout(() => tryWeatherRitualBonus('pilgrim'), 700);
+  if (S.pilgrimSessionDone === 2 && !S.thienDuyen) {
+    S.thienDuyen = true;
+    saveAll();
+    setTimeout(() => toast('🪷 Thiện Duyên — giúp 2 hành hương trong phiên này!'), 900);
+  } else if (S.pilgrimSessionDone >= 2 && S.thienDuyen) {
+    setTimeout(() => toast(`🪷 Chuỗi thiện duyên · ${S.pilgrimSessionDone} việc giúp`), 800);
+  }
+  try {
+    publishPresence(true);
+    if (S.online && typeof publishWish === 'function') {
+      publishWish({
+        text: `${me} vừa giúp hành hương · ${pq.pilgrimName}`.slice(0, 80),
+        way: 'ribbon',
+        at: Date.now(),
+        name: me,
+      });
+    }
+  } catch (_) {}
+  return true;
+}
+
+/** Hook từ hoạt động sẵn có (hương / chuông / quẻ / ấn) */
+function tryCompletePilgrimBySpot(spotId) {
+  if (!pilgrimQuest) return;
+  const v = pilgrimQuest.variant;
+  if (v?.target?.kind === 'spot' && v.target.spotId === spotId) {
+    completePilgrimQuest(spotId);
+    return;
+  }
+  // Ấn cổng / hồ cũng khớp các errand đứng gần đó
+  if (spotId === 'stampGate' && (v?.id === 'sandal' || v?.id === 'photo_gate')) {
+    completePilgrimQuest();
+  } else if (spotId === 'stampPond' && v?.id === 'quiet_pond') {
+    completePilgrimQuest();
+  }
+}
+
+function pickNearPilgrim() {
+  if (!playerRoot || !pilgrimNpcs.length) return null;
+  let best = null, bestD = 99;
+  for (const p of pilgrimNpcs) {
+    const d = Math.hypot(playerRoot.position.x - p.pos.x, playerRoot.position.z - p.pos.z);
+    if (d < 2.35 && d < bestD) { bestD = d; best = p; }
+  }
+  return best;
+}
+
+function pickNearPilgrimTarget() {
+  if (!pilgrimQuest || !playerRoot) return null;
+  const tp = pilgrimQuest.target;
+  if (!tp) return null;
+  const d = Math.hypot(playerRoot.position.x - tp.x, playerRoot.position.z - tp.z);
+  if (d < (tp.r || 2.2)) return pilgrimQuest;
+  return null;
+}
+
+function updatePilgrimNpcs(dt, t) {
+  for (const p of pilgrimNpcs) {
+    if (p.glow?.material) {
+      const base = p.done ? 0.18 : 0.28;
+      p.glow.material.opacity = base + 0.16 * Math.sin(t * 2.2 + p.pos.x);
+    }
+    if (p.tip && camera) p.tip.quaternion.copy(camera.quaternion);
+    // Idle sway
+    if (p.mesh && !p.done) {
+      p.mesh.position.y = Math.sin(t * 1.4 + p.pos.z) * 0.015;
+    }
+  }
+  if (pilgrimQuest) {
+    if (performance.now() >= pilgrimQuest.expiresAt) {
+      clearPilgrimQuest(false);
+    } else if (pilgrimQuest.marker) {
+      const m = pilgrimQuest.marker;
+      const pulse = 0.34 + 0.28 * Math.sin(t * 3.0);
+      if (m.glow?.material) m.glow.material.opacity = pulse;
+      if (m.bead) {
+        m.bead.position.y = 0.36 + Math.sin(t * 2.6) * 0.1;
+        m.bead.rotation.y += 0.03;
+      }
+      if (m.tip && camera) m.tip.quaternion.copy(camera.quaternion);
+    }
+  }
+}
+
+/* —— Vận mệnh ngắn trên sân (sau xin quẻ) —— */
+const FATE_YARD_SPOTS = [
+  { x: 1.2, z: 5.4 },
+  { x: -2.8, z: 7.0 },
+  { x: 6.2, z: 3.0 },
+  { x: -7.0, z: 2.2 },
+  { x: 2.4, z: -2.8 },
+  { x: -1.6, z: -5.6 },
+  { x: 7.0, z: -3.6 },
+  { x: -8.2, z: -5.0 },
+  { x: 0.4, z: 0.6 },
+  { x: 5.0, z: 6.8 },
+];
+const FATE_RANK_TABLE = {
+  'Đại Cát':   { steps: 2, merit: 22, hue: 0xffe08a, tip: '✦ Đại vận', flavor: 'Đại vận mở cửa — sen vàng gọi bạn ra sân.' },
+  'Thượng Cát': { steps: 2, merit: 16, hue: 0xffd4a0, tip: '✦ Thượng vận', flavor: 'Thượng cát dẫn lối — bước theo ánh vàng.' },
+  'Trung Cát':  { steps: 2, merit: 12, hue: 0xf0c878, tip: '✦ Trung cát', flavor: 'Trung cát thì thầm: đi theo dấu sen.' },
+  'Tiểu Cát':   { steps: 1, merit: 8,  hue: 0xe8c070, tip: '✦ Tiểu cát', flavor: 'Tiểu cát cũng đáng theo — một bước là đủ.' },
+  'Trung Bình': { steps: 1, merit: 5,  hue: 0xd0b878, tip: '✦ Vận thường', flavor: 'Vận trung bình vẫn mở một khe cửa nhỏ.' },
+  'Tiểu Hung':  { steps: 1, merit: 4,  hue: 0xc8a888, tip: '✦ Giải vận', flavor: 'Tiểu hung hoá lành nếu bạn dám bước ra sân.' },
+};
+let fateEvent = null; // { markers[], step, total, rank, title, n, merit, expiresAt, startedAt }
+
+function fateRankInfo(rank) {
+  return FATE_RANK_TABLE[rank] || FATE_RANK_TABLE['Trung Bình'];
+}
+function clearFateEvent(silent) {
+  if (!fateEvent) return;
+  for (const m of fateEvent.markers || []) {
+    if (m.mesh) scene.remove(m.mesh);
+  }
+  fateEvent = null;
+  S.nearFate = null;
+  updateFateHud();
+  if (!silent) toast('Vận đã khép lại — xin quẻ lại khi muốn theo tiếp');
+}
+function fateCompassArrow() {
+  if (!fateEvent || !playerRoot) return '✦';
+  const m = fateEvent.markers[fateEvent.step];
+  if (!m) return '✦';
+  const dx = m.pos.x - playerRoot.position.x;
+  const dz = m.pos.z - playerRoot.position.z;
+  const dist = Math.hypot(dx, dz);
+  if (dist < 2.2) return '◎';
+  const fx = -Math.sin(S.yaw), fz = -Math.cos(S.yaw);
+  const ang = Math.atan2(dx * fz - dz * fx, dx * fx + dz * fz);
+  const sector = ((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8;
+  return ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'][sector];
+}
+function updateFateHud() {
+  const chip = $('fate-chip');
+  if (!chip) return;
+  if (!fateEvent) {
+    chip.classList.remove('on', 'pulse');
+    chip.textContent = '✦ Theo vận';
+    return;
+  }
+  const left = Math.max(0, Math.ceil((fateEvent.expiresAt - performance.now()) / 1000));
+  const step = fateEvent.total > 1 ? ` ${fateEvent.step + 1}/${fateEvent.total}` : '';
+  const arrow = fateCompassArrow();
+  chip.textContent = `${arrow} Theo vận${step} · ${left}s`;
+  chip.title = 'Hướng theo góc nhìn — tìm dấu sáng vàng trên sân';
+  chip.classList.add('on');
+}
+function pickFateSpots(n) {
+  const pool = FATE_YARD_SPOTS.slice();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, Math.max(1, n));
+}
+function buildFateMarker(spot, tip, hue, stepIdx) {
+  const root = new THREE.Group();
+  root.position.set(spot.x, 0.05, spot.z);
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.72, 24),
+    new THREE.MeshBasicMaterial({
+      color: hue, transparent: true, opacity: 0.48,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  root.add(glow);
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.55, 0.78, 28),
+    new THREE.MeshBasicMaterial({
+      color: hue, transparent: true, opacity: 0.55,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.02;
+  root.add(ring);
+  const bead = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.2, 0),
+    new THREE.MeshStandardMaterial({
+      color: hue, emissive: hue, emissiveIntensity: 1.15,
+      metalness: 0.55, roughness: 0.28, transparent: true, opacity: 0.98,
+    })
+  );
+  bead.position.y = 0.55;
+  root.add(bead);
+  const label = textPlane(tip, 320, 52, '#fff8e0', '#4a3010', 20);
+  label.position.set(0, 1.35, 0);
+  label.scale.set(1.85, 0.38, 1);
+  root.add(label);
+  scene.add(root);
+  return {
+    mesh: root, glow, ring, bead, tip: label,
+    pos: new THREE.Vector3(spot.x, 0, spot.z),
+    r: 2.15, stepIdx,
+  };
+}
+function startFateRun(que) {
+  if (!que) return;
+  clearFateEvent(true);
+  const info = fateRankInfo(que.rank);
+  const steps = info.steps | 0;
+  const spots = pickFateSpots(steps);
+  const markers = spots.map((sp, i) =>
+    buildFateMarker(sp, i === 0 ? info.tip : `✦ Bước ${i + 1}`, info.hue, i)
+  );
+  // Chỉ hiện marker bước hiện tại
+  for (let i = 1; i < markers.length; i++) markers[i].mesh.visible = false;
+  const ttl = 55 + Math.random() * 25; // ~55–80s
+  fateEvent = {
+    markers,
+    step: 0,
+    total: steps,
+    rank: que.rank,
+    title: que.title,
+    n: que.n,
+    merit: info.merit,
+    flavor: info.flavor,
+    hue: info.hue,
+    expiresAt: performance.now() + ttl * 1000,
+    startedAt: performance.now(),
+  };
+  const where = steps > 1 ? 'theo 2 dấu sáng trên sân' : 'đến dấu sáng trên sân';
+  toast(`✦ Đi theo vận — ${where} (${Math.round(ttl)}s)`);
+  updateFateHud();
+  pulseHudChip('fate-chip');
+}
+function pickNearFate() {
+  if (!fateEvent || !playerRoot) return null;
+  const m = fateEvent.markers[fateEvent.step];
+  if (!m || !m.mesh.visible) return null;
+  const d = Math.hypot(playerRoot.position.x - m.pos.x, playerRoot.position.z - m.pos.z);
+  if (d < m.r) return m;
+  return null;
+}
+function spawnFateBurst(x, z, juicy) {
+  const root = new THREE.Group();
+  root.position.set(x, 1.1, z);
+  const sparks = [];
+  const n = juicy ? 20 : 12;
+  const gold = fateEvent?.hue || 0xffe08a;
+  for (let i = 0; i < n; i++) {
+    const sp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05 + Math.random() * 0.05, 6, 4),
+      new THREE.MeshBasicMaterial({
+        color: Math.random() > 0.45 ? gold : 0xfff0c8,
+        transparent: true, opacity: 1, depthWrite: false,
+      })
+    );
+    const a = Math.random() * Math.PI * 2;
+    const elev = (Math.random() - 0.05) * Math.PI * 0.65;
+    const spd = 1.8 + Math.random() * (juicy ? 3.2 : 2.2);
+    sparks.push({
+      mesh: sp,
+      vx: Math.cos(a) * Math.cos(elev) * spd,
+      vy: Math.sin(elev) * spd + 1.4,
+      vz: Math.sin(a) * Math.cos(elev) * spd,
+    });
+    root.add(sp);
+  }
+  scene.add(root);
+  S.bursts.push({
+    root, sparks, core: null, fire: null, ring: null, light: null,
+    t: 0, life: juicy ? 1.05 : 0.75, big: false, princess: true,
+  });
+}
+function completeFateStep() {
+  if (!fateEvent) return;
+  const cur = fateEvent.markers[fateEvent.step];
+  if (!cur) return;
+  playWhoosh();
+  if (cur.mesh) cur.mesh.visible = false;
+  fateEvent.step += 1;
+  if (fateEvent.step < fateEvent.total) {
+    const next = fateEvent.markers[fateEvent.step];
+    if (next) next.mesh.visible = true;
+    toast(`✦ Vận dẫn tiếp — tìm dấu sáng tiếp theo (${fateEvent.step + 1}/${fateEvent.total})`);
+    playBell?.(0.28, 1.35);
+    updateFateHud();
+    pulseHudChip('fate-chip');
+    return;
+  }
+  finishFateRun();
+}
+function finishFateRun() {
+  if (!fateEvent) return;
+  const ev = fateEvent;
+  const juicy = ev.rank === 'Đại Cát' || ev.rank === 'Thượng Cát';
+  const last = ev.markers[ev.markers.length - 1];
+  const px = last?.pos.x ?? playerRoot.position.x;
+  const pz = last?.pos.z ?? playerRoot.position.z;
+  spawnFateBurst(px, pz, juicy);
+  if (juicy) spawnFateBurst(px + 0.4, pz - 0.3, true);
+  playBell?.(0.45, juicy ? 0.95 : 1.2);
+  playWhoosh();
+  S.fateStreak = (S.fateStreak | 0) + 1;
+  const streakBonus = Math.min(8, Math.max(0, (S.fateStreak - 1) * 2));
+  const gain = (ev.merit | 0) + streakBonus;
+  const line = `Vận ${ev.n} · ${ev.rank} · ${ev.title} — theo dấu trên sân (+${gain})`;
+  S.fateRuns.push({ text: line, rank: ev.rank, title: ev.title, at: Date.now() });
+  if (S.fateRuns.length > 20) S.fateRuns = S.fateRuns.slice(-20);
+  saveAll();
+  gainCongDuc(gain, `Theo vận · ${ev.rank}`, true);
+  noteDailyProgress('fortune');
+  const streakNote = S.fateStreak > 1 ? ` · chuỗi ${S.fateStreak}` : '';
+  toast(`✨ ${ev.flavor} +${gain} công đức${streakNote}`);
+  if (juicy) {
+    setTimeout(() => toast(`🌸 Đại vận khép lại — sổ cầu an đã ghi dấu`), 700);
+  }
+  // Soft online presence blip (deed, not idol)
+  try {
+    publishPresence(true);
+    if (S.online && typeof publishWish === 'function') {
+      publishWish({
+        text: `${S.name || 'Ai đó'} vừa đi theo vận · ${ev.rank}`,
+        way: 'ribbon',
+        at: Date.now(),
+        name: S.name || 'Ai đó',
+      });
+    }
+  } catch (_) {}
+  clearFateEvent(true);
+}
+function updateFateEvent(dt, t) {
+  if (!fateEvent) return;
+  if (performance.now() >= fateEvent.expiresAt) {
+    clearFateEvent(false);
+    return;
+  }
+  updateFateHud();
+  const active = fateEvent.markers[fateEvent.step];
+  for (const m of fateEvent.markers) {
+    if (!m.mesh.visible) continue;
+    const pulse = 0.38 + 0.32 * Math.sin(t * 3.2 + m.pos.x);
+    if (m.glow?.material) m.glow.material.opacity = pulse;
+    if (m.ring?.material) m.ring.material.opacity = 0.35 + 0.3 * Math.sin(t * 2.6 + m.pos.z);
+    if (m.ring) m.ring.rotation.z += dt * 0.8;
+    if (m.bead) {
+      m.bead.position.y = 0.5 + Math.sin(t * 2.8 + m.pos.z) * 0.14;
+      m.bead.rotation.y += 0.04;
+      m.bead.rotation.x = Math.sin(t * 1.7) * 0.25;
+    }
+    if (m.tip && camera) m.tip.quaternion.copy(camera.quaternion);
+  }
+  // Hint pulse when close
+  if (active && playerRoot) {
+    const d = Math.hypot(playerRoot.position.x - active.pos.x, playerRoot.position.z - active.pos.z);
+    if (d < 4.5 && active.glow?.material) {
+      active.glow.material.opacity = Math.min(0.85, (active.glow.material.opacity || 0.4) + 0.15);
+    }
+  }
 }
 
 function findBtsById(id) {
@@ -2351,7 +5392,18 @@ function setBtsLabel(b, prefix) {
   if (!b?.label) return;
   const ring = b.member.id === S.btsHusbandId ? '💍 ' : '';
   const carry = b.member.id === S.btsCarryId ? '🧺 ' : '';
-  b.label.innerHTML = `<img src="${b.member.photo}" alt=""/><span>${carry}${ring}${prefix || '🎤'} ${b.member.name}</span>`;
+  const crown = S.btsPrincessMode ? '👑 ' : '';
+  b.label.innerHTML = `<img src="${b.member.photo}" alt=""/><span>${carry}${ring}${crown}${prefix || '🎤'} ${b.member.name}</span>`;
+}
+
+function projectBtsLabel(b, y = 2.55) {
+  _v.set(b.mesh.position.x, y, b.mesh.position.z);
+  _v.project(camera);
+  if (_v.z < 1) {
+    b.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
+    b.label.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
+    b.label.classList.add('on');
+  } else b.label.classList.remove('on');
 }
 
 function updateBts(dt, t) {
@@ -2360,10 +5412,21 @@ function updateBts(dt, t) {
   const face = player?.rotation.y ?? S.yaw ?? 0;
   const fx = Math.sin(face), fz = Math.cos(face);
   const rx = Math.cos(face), rz = -Math.sin(face);
+  const now = performance.now();
+
+  // Escort slots (alive, not carried) — soft circle around princess
+  const escorts = [];
+  if (S.btsPrincessMode && playerRoot) {
+    for (const b of btsCrew) {
+      if (!btsAlive(b)) continue;
+      if (S.btsCarryId && b.member.id === S.btsCarryId) continue;
+      escorts.push(b);
+    }
+  }
 
   for (const b of btsCrew) {
     if (b.deadUntil) {
-      if (performance.now() < b.deadUntil) {
+      if (now < b.deadUntil) {
         b.body.rotation.z = 1.35;
         b.label.classList.remove('on');
         if (b.portrait) b.portrait.visible = false;
@@ -2390,20 +5453,21 @@ function updateBts(dt, t) {
         player.userData.armR.rotation.set(-1.05, 0, -0.75);
       }
       setBtsLabel(b, '🧺');
-      _v.set(b.mesh.position.x, 2.2, b.mesh.position.z);
-      _v.project(camera);
-      if (_v.z < 1) {
-        b.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
-        b.label.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
-        b.label.classList.add('on');
-      } else b.label.classList.remove('on');
+      projectBtsLabel(b, 2.2);
       continue;
     }
 
-    // —— Chồng / follow ——
-    if (S.btsHusbandId && b.member.id === S.btsHusbandId && playerRoot && S.btsCarryId !== b.member.id) {
+    // —— Chồng / follow (vẫn ưu tiên khi không phải princess escort ring riêng) ——
+    if (S.btsHusbandId && b.member.id === S.btsHusbandId && playerRoot && S.btsCarryId !== b.member.id
+        && !(S.btsPrincessMode && escorts.length > 1)) {
       b.mesh.position.y = 0;
-      b.body.rotation.set(0, 0, 0);
+      // Bow pose override ngắn
+      if (b.bowUntil && now < b.bowUntil) {
+        b.body.rotation.set(0.55, 0, 0);
+      } else {
+        b.body.rotation.set(0, 0, 0);
+        b.bowUntil = 0;
+      }
       const tx = px - fx * 1.35 + rx * 0.25;
       const tz = pz - fz * 1.35 + rz * 0.25;
       const dx = tx - b.mesh.position.x, dz = tz - b.mesh.position.z;
@@ -2423,7 +5487,7 @@ function updateBts(dt, t) {
       const bob = Math.sin(t * 8) * (dist > 0.2 ? 0.04 : 0.01);
       b.body.position.y = bob;
       const ud = b.body.userData;
-      if (ud) {
+      if (ud && !(b.bowUntil && now < b.bowUntil)) {
         const walk = dist > 0.25 ? Math.sin(t * 10) * 0.45 : 0;
         ud.legL.rotation.x = walk; ud.legR.rotation.x = -walk;
         ud.armL.rotation.x = -walk * 0.6; ud.armR.rotation.x = walk * 0.6;
@@ -2433,13 +5497,64 @@ function updateBts(dt, t) {
         b.portrait.quaternion.copy(camera.quaternion);
       }
       setBtsLabel(b, '💍');
-      _v.set(b.mesh.position.x, 2.55, b.mesh.position.z);
-      _v.project(camera);
-      if (_v.z < 1) {
-        b.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
-        b.label.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
-        b.label.classList.add('on');
-      } else b.label.classList.remove('on');
+      projectBtsLabel(b);
+      continue;
+    }
+
+    // —— Princess escort formation ——
+    if (S.btsPrincessMode && playerRoot && escorts.includes(b)) {
+      const idx = escorts.indexOf(b);
+      const n = escorts.length || 1;
+      const ang = (idx / n) * Math.PI * 2 + t * 0.12;
+      const radius = b.member.id === S.btsHusbandId ? 1.55 : 2.05;
+      const tx = px + Math.sin(ang) * radius;
+      const tz = pz + Math.cos(ang) * radius;
+      b.mesh.position.y = 0;
+      const dx = tx - b.mesh.position.x, dz = tz - b.mesh.position.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > 0.1) {
+        const sp = Math.min(4.8, 1.8 + dist * 1.6) * dt;
+        const nx = b.mesh.position.x + (dx / dist) * sp;
+        const nz = b.mesh.position.z + (dz / dist) * sp;
+        if (tryMove(nx, nz) || dist > 4) {
+          b.mesh.position.x = nx;
+          b.mesh.position.z = nz;
+        }
+      }
+      // Quay mặt về công chúa
+      const lookDx = px - b.mesh.position.x, lookDz = pz - b.mesh.position.z;
+      b.mesh.rotation.y = Math.atan2(lookDx, lookDz);
+      if (b.bowUntil && now < b.bowUntil) {
+        b.body.rotation.set(0.58, 0, 0);
+        b.body.position.y = 0.02;
+      } else if (b.serveUntil && now < b.serveUntil) {
+        b.body.rotation.set(0.12, 0, 0);
+        b.body.position.y = Math.sin(t * 6) * 0.03;
+        const ud = b.body.userData;
+        if (ud) {
+          ud.armR.rotation.set(-1.35, 0, -0.35);
+          ud.armL.rotation.set(-0.4, 0, 0.35);
+        }
+      } else {
+        b.bowUntil = 0; b.serveUntil = 0;
+        const bob = Math.sin(t * 7 + b.phase) * (dist > 0.25 ? 0.04 : 0.015);
+        b.body.position.y = bob;
+        b.body.rotation.set(0, 0, 0);
+        const ud = b.body.userData;
+        if (ud) {
+          const walk = dist > 0.3 ? Math.sin(t * 9 + b.phase) * 0.4 : 0;
+          ud.legL.rotation.x = walk; ud.legR.rotation.x = -walk;
+          ud.armL.rotation.x = -0.25 - walk * 0.5;
+          ud.armR.rotation.x = -0.25 + walk * 0.5;
+          ud.armL.rotation.z = 0.25; ud.armR.rotation.z = -0.25;
+        }
+      }
+      if (b.portrait) {
+        b.portrait.position.set(0, 2.35, 0);
+        b.portrait.quaternion.copy(camera.quaternion);
+      }
+      setBtsLabel(b, b.member.id === S.btsHusbandId ? '💍' : '👑');
+      projectBtsLabel(b);
       continue;
     }
 
@@ -2466,14 +5581,11 @@ function updateBts(dt, t) {
       }
     }
     setBtsLabel(b, '🎤');
-    _v.set(b.mesh.position.x, 2.55, b.mesh.position.z);
-    _v.project(camera);
-    if (_v.z < 1) {
-      b.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
-      b.label.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
-      b.label.classList.add('on');
-    } else b.label.classList.remove('on');
+    projectBtsLabel(b);
   }
+
+  if (S.btsPrincessMode) tickPrincessService(now);
+  updatePrincessSecretsVisual(t);
 }
 
 function pickNearBts() {
@@ -2486,8 +5598,10 @@ function pickNearBts() {
   let best = null, bestD = 2.8;
   for (const b of btsCrew) {
     if (!btsAlive(b)) continue;
-    // Chồng theo sau: tầm tương tác rộng hơn
-    const maxD = b.member.id === S.btsHusbandId ? 3.6 : 2.8;
+    // Chồng / Princess escort: tầm tương tác rộng hơn
+    let maxD = 2.8;
+    if (b.member.id === S.btsHusbandId) maxD = 3.6;
+    if (S.btsPrincessMode) maxD = Math.max(maxD, 4.2);
     const d = Math.hypot(playerRoot.position.x - b.mesh.position.x, playerRoot.position.z - b.mesh.position.z);
     if (d < Math.min(bestD, maxD)) { bestD = d; best = b; }
   }
@@ -2506,44 +5620,6 @@ function cancelNpcInteract() {
     player.userData.armR.rotation.set(0, 0, 0);
   }
   toast('Đã hủy tương tác');
-}
-
-function openBtsMenu(member) {
-  const m = member || BTS_MEMBERS[(Math.random() * BTS_MEMBERS.length) | 0];
-  S.busy = true;
-  S.interactOpen = true;
-  const isHubby = S.btsHusbandId === m.id;
-  const carrying = S.btsCarryId === m.id;
-  const hubbyName = BTS_MEMBERS.find(x => x.id === S.btsHusbandId)?.name;
-  openModal(`
-    <h2>🎤 Fanmeet BTS</h2>
-    ${btsPhotoHtml(m)}
-    <p><strong>${m.name}</strong> (${m.full}) đang cầu an tại chùa thiên đường.<br/>Xin gì nào, ARMY?</p>
-    ${hubbyName ? `<p class="tiny">💍 Chồng hiện tại: <strong>${hubbyName}</strong>${carrying ? ' · đang bế' : ' · đang theo sau'}</p>` : ''}
-    <div class="row">
-      <button class="choice" id="bts-kiss">💋 Hôn</button>
-      <button class="choice" id="bts-hug">🤗 Ôm</button>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <button class="choice" id="bts-carry">${carrying ? '🧺 Đặt xuống' : '🧺 Bế lên'}</button>
-      <button class="choice" id="bts-marry">${isHubby ? '💔 Tha chồng' : '💍 Làm chồng'}</button>
-    </div>
-    <div class="row" style="margin-top:8px">
-      <button class="choice" id="bts-sign">✍️ Chữ ký</button>
-      <button class="choice" id="bts-selfie">📸 Selfie</button>
-      <button class="choice" id="bts-chat">💬 Hỏi vui</button>
-    </div>
-    <p class="tiny">${S.btsSigs} chữ ký · ${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm</p>
-    <div class="row" style="margin-top:12px"><button class="btn secondary" id="m-cancel" type="button">Hủy / Đóng</button></div>
-  `);
-  $('bts-kiss').onclick = () => { closeModal(); kissBts(m); };
-  $('bts-hug').onclick = () => { closeModal(); hugBts(m); };
-  $('bts-carry').onclick = () => { closeModal(); carryBts(m); };
-  $('bts-marry').onclick = () => { closeModal(); marryBts(m); };
-  $('bts-sign').onclick = () => { closeModal(); askBtsSignature(m); };
-  $('bts-selfie').onclick = () => { closeModal(); takeBtsSelfie(m); };
-  $('bts-chat').onclick = () => { closeModal(); chatBts(m); };
-  $('m-cancel').onclick = () => cancelNpcInteract();
 }
 
 const BTS_KISS_LINES = [
@@ -2675,6 +5751,257 @@ function marryBts(m) {
   $('m-ok').onclick = () => { closeModal(); S.busy = false; S.interactOpen = false; $('bts-bar')?.classList.remove('show'); toast(`${m.name} đang theo bạn 💍`); };
   $('m-cancel').onclick = () => cancelNpcInteract();
   toast(`💍 ${m.name} là chồng — sẽ follow bạn!`);
+}
+
+/* ========== CHẾ ĐỘ CÔNG CHÚA ========== */
+const PRINCESS_BOW_LINES = [
+  'dạ công chúa 👑',
+  'công chúa muốn gì ạ?',
+  'xin hầu hạ công chúa…',
+  'dạ, trà chân công chúa',
+  'công chúa xinh quá — cúi chào!',
+  'ARMY… à không, công chúa ơi~',
+  'công chúa bước tới là cả chùa im ạ',
+  'xin phép… nhìn công chúa thêm 3 giây',
+  'hôm nay chỉ có một công chúa thôi!',
+];
+const PRINCESS_SERVE_LINES = [
+  '🍵 trà sen cho công chúa',
+  '🪭 quạt mát cho công chúa',
+  '🍡 bánh nhỏ — công chúa dùng ạ',
+  '🌸 hoa sen dâng công chúa',
+  '🧃 nước dừa “VIP công chúa” đây ạ',
+  '🪞 gương nhỏ — công chúa check tóc đã?',
+  '🎀 ruy băng hồng buộc tay công chúa~',
+];
+const PRINCESS_RING_LINES = [
+  '💍 nhẫn sáng — công chúa tối thượng!',
+  'dạ công chúa mang Nhẫn Hoàng Gia…',
+  'nhẫn sáng thế — cả sân cúi chào công chúa!',
+];
+
+function updatePrincessHud() {
+  const chip = $('princess-chip');
+  const btn = $('bts-princess-btn');
+  if (chip) {
+    if (S.btsPrincessMode || S.btsRoyalRing) {
+      const title = S.btsPrincessTitle || 'Công Chúa';
+      const secrets = (S.btsSecretLotus ? 1 : 0) + (S.btsSecretLantern ? 1 : 0);
+      let text = S.btsRoyalRing
+        ? `👑 ${title} · 💍 Nhẫn Hoàng Gia`
+        : `👑 ${title}`;
+      if (S.btsPrincessMode && secrets < 2) {
+        text += secrets === 0 ? ' · tìm sen/đèn ẩn' : ' · còn 1 bí mật';
+      }
+      chip.textContent = text;
+      chip.classList.add('on');
+    } else {
+      chip.classList.remove('on');
+      chip.classList.remove('pulse');
+    }
+  }
+  if (btn) {
+    btn.textContent = S.btsPrincessMode ? 'Tắt Công Chúa' : 'Chế độ Công Chúa';
+    btn.classList.toggle('princess-on', !!S.btsPrincessMode);
+  }
+}
+function pulsePrincessHud() {
+  const chip = $('princess-chip');
+  if (!chip || !chip.classList.contains('on')) return;
+  chip.classList.remove('pulse');
+  // reflow so animation can replay
+  void chip.offsetWidth;
+  chip.classList.add('pulse');
+  clearTimeout(pulsePrincessHud._t);
+  pulsePrincessHud._t = setTimeout(() => chip.classList.remove('pulse'), 600);
+}
+
+function spawnPrincessBurst() {
+  const fx = $('princess-fx');
+  if (!fx) return;
+  fx.innerHTML = '';
+  fx.classList.add('on');
+  const glyphs = ['💖', '✨', '💗', '👑', '💜', '🌸', '💫', '💕'];
+  const n = 18;
+  for (let i = 0; i < n; i++) {
+    const el = document.createElement('span');
+    el.className = 'pfx';
+    el.textContent = glyphs[i % glyphs.length];
+    const x = 18 + Math.random() * 64;
+    const y = 42 + Math.random() * 40;
+    el.style.left = x + 'vw';
+    el.style.top = y + 'vh';
+    el.style.setProperty('--dx', ((Math.random() - 0.5) * 80).toFixed(1) + 'px');
+    el.style.animationDelay = (Math.random() * 0.35).toFixed(2) + 's';
+    fx.appendChild(el);
+  }
+  // Soft pink spheres around player (3D)
+  if (playerRoot && scene) {
+    const root = new THREE.Group();
+    root.position.copy(playerRoot.position);
+    root.position.y = 1.2;
+    const sparks = [];
+    for (let i = 0; i < 16; i++) {
+      const sp = new THREE.Mesh(
+        new THREE.SphereGeometry(0.06 + Math.random() * 0.05, 6, 4),
+        new THREE.MeshBasicMaterial({
+          color: Math.random() > 0.5 ? 0xff88cc : 0xffd0ee,
+          transparent: true, opacity: 1, depthWrite: false,
+        })
+      );
+      const a = Math.random() * Math.PI * 2;
+      const elev = (Math.random() - 0.1) * Math.PI * 0.7;
+      const spd = 2.2 + Math.random() * 3;
+      sparks.push({
+        mesh: sp,
+        vx: Math.cos(a) * Math.cos(elev) * spd,
+        vy: Math.sin(elev) * spd + 1.5,
+        vz: Math.sin(a) * Math.cos(elev) * spd,
+      });
+      root.add(sp);
+    }
+    scene.add(root);
+    S.bursts.push({
+      root, sparks, core: null, fire: null, ring: null, light: null,
+      t: 0, life: 0.9, big: false, princess: true,
+    });
+  }
+  clearTimeout(spawnPrincessBurst._t);
+  spawnPrincessBurst._t = setTimeout(() => {
+    fx.classList.remove('on');
+    fx.innerHTML = '';
+  }, 1600);
+  playWhoosh();
+}
+
+function tickPrincessService(now) {
+  const alive = btsCrew.filter(b => btsAlive(b) && b.member.id !== S.btsCarryId);
+  if (!alive.length) return;
+
+  if (now >= (S.btsPrincessNextBow || 0)) {
+    S.btsPrincessNextBow = now + 5500 + Math.random() * 2500;
+    const b = alive[(Math.random() * alive.length) | 0];
+    b.bowUntil = now + 1400;
+    let line = PRINCESS_BOW_LINES[(Math.random() * PRINCESS_BOW_LINES.length) | 0];
+    if (S.btsRoyalRing && Math.random() > 0.55) {
+      line = PRINCESS_RING_LINES[(Math.random() * PRINCESS_RING_LINES.length) | 0];
+    }
+    if (S.btsSecretLantern && Math.random() > 0.7) {
+      line = 'dạ công chúa… đêm nay chùa này thuộc về mình';
+    }
+    toast(`${b.member.name}: “${line}”`);
+    S.btsQuotes.push({ who: b.member.name, text: `👑 ${line}`, at: Date.now() });
+    pulsePrincessHud();
+  }
+
+  if (now >= (S.btsPrincessNextServe || 0)) {
+    S.btsPrincessNextServe = now + 10000 + Math.random() * 4000;
+    const b = alive[(Math.random() * alive.length) | 0];
+    b.serveUntil = now + 2200;
+    const line = PRINCESS_SERVE_LINES[(Math.random() * PRINCESS_SERVE_LINES.length) | 0];
+    toast(`${b.member.name} ${line}`);
+    S.btsQuotes.push({ who: b.member.name, text: line, at: Date.now() });
+    spawnPrincessServeProp(b);
+    pulsePrincessHud();
+  }
+}
+
+function spawnPrincessServeProp(b) {
+  if (!b?.mesh || !scene) return;
+  const isTea = Math.random() > 0.45;
+  const prop = new THREE.Mesh(
+    isTea
+      ? new THREE.CylinderGeometry(0.06, 0.05, 0.1, 8)
+      : new THREE.BoxGeometry(0.22, 0.02, 0.12),
+    new THREE.MeshStandardMaterial({
+      color: isTea ? 0xf5e6c8 : 0xffb6d9,
+      emissive: isTea ? 0xc4a574 : 0xff88aa,
+      emissiveIntensity: 0.35,
+      roughness: 0.45,
+    })
+  );
+  prop.position.set(0.38, 1.05, 0.2);
+  b.body.add(prop);
+  setTimeout(() => {
+    try { b.body.remove(prop); prop.geometry?.dispose?.(); prop.material?.dispose?.(); } catch (_) {}
+  }, 2200);
+}
+
+function togglePrincessMode() {
+  S.btsPrincessMode = !S.btsPrincessMode;
+  if (S.btsPrincessMode) {
+    S.btsPrincessTitle = S.btsPrincessTitle || (S.name ? `Công Chúa ${S.name}` : 'Công Chúa');
+    S.btsPrincessNextBow = performance.now() + 900;
+    S.btsPrincessNextServe = performance.now() + 2800;
+    S.btsQuotes.push({ who: 'Fanmeet', text: '👑 Chế độ Công Chúa — BTS hầu hạ', at: Date.now() });
+    spawnPrincessBurst();
+    toast('👑 Chế độ Công Chúa — dạ, công chúa!');
+    playBell?.(0.45, 1.1);
+    // Discovery nudge: secrets near courtyard (once per session)
+    const secretsLeft = (!S.btsSecretLotus ? 1 : 0) + (!S.btsSecretLantern ? 1 : 0);
+    if (secretsLeft > 0 && !S.btsPrincessHintedSecrets) {
+      S.btsPrincessHintedSecrets = true;
+      setTimeout(() => {
+        if (!S.btsPrincessMode) return;
+        toast(secretsLeft === 2
+          ? '✨ Bí mật: tìm Ánh sen (đông sân) & Đèn ẩn (gần chuông) để nâng cấp vương miện'
+          : '✨ Còn 1 bí mật quanh sân — nhặt để mở thêm lời idol');
+      }, 2200);
+    }
+  } else {
+    toast('Tắt Chế độ Công Chúa');
+    for (const b of btsCrew) {
+      b.bowUntil = 0;
+      b.serveUntil = 0;
+    }
+  }
+  updatePrincessHud();
+  if (S.btsPrincessMode) pulsePrincessHud();
+  // Không chặn kiss/bế/chồng — chỉ đóng modal nếu đang mở menu
+}
+
+function openBtsMenu(member) {
+  const m = member || BTS_MEMBERS[(Math.random() * BTS_MEMBERS.length) | 0];
+  S.busy = true;
+  S.interactOpen = true;
+  const isHubby = S.btsHusbandId === m.id;
+  const carrying = S.btsCarryId === m.id;
+  const hubbyName = BTS_MEMBERS.find(x => x.id === S.btsHusbandId)?.name;
+  const princessBtn = S.btsPrincessMode ? '👑 Tắt Công Chúa' : '👑 Chế độ Công Chúa';
+  openModal(`
+    <h2>🎤 Fanmeet BTS</h2>
+    ${btsPhotoHtml(m)}
+    <p><strong>${m.name}</strong> (${m.full}) đang cầu an tại chùa thiên đường.<br/>Xin gì nào, ARMY?</p>
+    ${hubbyName ? `<p class="tiny">💍 Chồng hiện tại: <strong>${hubbyName}</strong>${carrying ? ' · đang bế' : ' · đang theo sau'}</p>` : ''}
+    ${S.btsPrincessMode ? '<p class="tiny">👑 Đang bật <strong>Chế độ Công Chúa</strong> — idol hầu quanh bạn</p>' : ''}
+    <div class="row">
+      <button class="choice" id="bts-kiss">💋 Hôn</button>
+      <button class="choice" id="bts-hug">🤗 Ôm</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="choice" id="bts-carry">${carrying ? '🧺 Đặt xuống' : '🧺 Bế lên'}</button>
+      <button class="choice" id="bts-marry">${isHubby ? '💔 Tha chồng' : '💍 Làm chồng'}</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="choice" id="bts-princess">${princessBtn}</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="choice" id="bts-sign">✍️ Chữ ký</button>
+      <button class="choice" id="bts-selfie">📸 Selfie</button>
+      <button class="choice" id="bts-chat">💬 Hỏi vui</button>
+    </div>
+    <p class="tiny">${S.btsSigs} chữ ký · ${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
+    <div class="row" style="margin-top:12px"><button class="btn secondary" id="m-cancel" type="button">Hủy / Đóng</button></div>
+  `);
+  $('bts-kiss').onclick = () => { closeModal(); kissBts(m); };
+  $('bts-hug').onclick = () => { closeModal(); hugBts(m); };
+  $('bts-carry').onclick = () => { closeModal(); carryBts(m); };
+  $('bts-marry').onclick = () => { closeModal(); marryBts(m); };
+  $('bts-princess').onclick = () => { closeModal(); togglePrincessMode(); S.busy = false; S.interactOpen = false; $('bts-bar')?.classList.remove('show'); };
+  $('bts-sign').onclick = () => { closeModal(); askBtsSignature(m); };
+  $('bts-selfie').onclick = () => { closeModal(); takeBtsSelfie(m); };
+  $('bts-chat').onclick = () => { closeModal(); chatBts(m); };
+  $('m-cancel').onclick = () => cancelNpcInteract();
 }
 
 const BTS_HUG_LINES = [
@@ -2862,7 +6189,11 @@ function toast(msg) {
   clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2400);
 }
 function openModal(html) { $('modal-body').innerHTML = html; $('modal').classList.add('open'); }
-function closeModal() { $('modal').classList.remove('open'); $('modal-body').innerHTML = ''; }
+function closeModal() {
+  $('modal').classList.remove('open');
+  $('modal-body')?.classList.remove('story-panel');
+  $('modal-body').innerHTML = '';
+}
 function updateVisitorUI() {
   const local = S.visitBase + S.visitExtra + AI_N;
   $('visitor-count').textContent = S.netVisit != null ? S.netVisit : local;
@@ -2941,21 +6272,86 @@ function startPlay() {
   toast(S.fpsMode
     ? `FPS: kéo phải xoay · trái đi · Chạy để tăng tốc`
     : `PUBG-style: trái đi · phải xoay nhìn · Chạy · phím V = FPS`);
-  setTimeout(() => toast('💜 BTS đang fanmeet gần cổng — lại xin chữ ký & selfie!'), 2800);
+  ensureDailyGoals(false);
+  updateMeritHud();
+  updateStreakHud();
+  updateTimeHud();
+  updateWeatherHud();
+  S.weatherUntil = performance.now() + 1600; // first mood ~1.6s into play
+  S.meritTier = meritTierFor(S.congDuc | 0).id;
+  setTimeout(() => maybeCatchUpFestival(), 400);
+  setTimeout(() => toastDailyGoalsHint(), 1600);
+  setTimeout(() => toast('🪷 Thắp hương / thỉnh chuông để tích công đức · tìm 3 ấn quanh chùa'), 3200);
+  setTimeout(() => toast('🌿 Trong sân có hành hương cần giúp — tìm vòng sáng xanh'), 5200);
+  S._senBayDiscoverAt = performance.now() + 18000 + Math.random() * 10000;
+  setTimeout(() => {
+    if (!S.festivalActive) toast('🎉 Cuối ban ngày có Giờ hội chùa — đèn & hoa rộn ràng');
+  }, 6400);
+  setTimeout(() => toast('🛤️ Bấm nút 「Phố」(góc phải) để tới cổng Phố An Lạc ngay'), 2500);
 }
 
 $('btn-view').onclick = () => toggleFpsMode();
 $('btn-mute').onclick = () => setMute(!S.muted);
 $('btn-book').onclick = () => openBook();
+const _warpStreet = (e) => { e?.preventDefault?.(); goToStreetGate(); };
+$('btn-street') && ($('btn-street').onclick = _warpStreet);
+$('btn-street-fab') && ($('btn-street-fab').onclick = _warpStreet);
 $('btn-share').onclick = () => doShare();
 $('action-btn').onclick = () => {
+  if (S.senBayRide) { cancelSenBayRide(); return; }
   if (S.busy && S.interactOpen) { cancelNpcInteract(); return; }
   if (S.busy) return;
+  if (S.nearSenBay) {
+    startSenBayRide();
+    return;
+  }
   if (S.nearBts) {
     S.interactOpen = true;
     $('bts-bar').classList.add('show');
     $('combat-bar').classList.remove('show');
+    updatePrincessHud();
     openBtsMenu(S.nearBts.member);
+    return;
+  }
+  if (S.nearPrincessSecret) {
+    collectPrincessSecret(S.nearPrincessSecret);
+    return;
+  }
+  if (S.nearFate) {
+    completeFateStep();
+    return;
+  }
+  if (S.nearFestival) {
+    actFestivalRelease();
+    return;
+  }
+  if (S.nearStamp) {
+    collectTempleStamp(S.nearStamp);
+    return;
+  }
+  // Pilgrim errand destination — finish short help quest
+  if (S.nearPilgrimTarget) {
+    completePilgrimQuest();
+    return;
+  }
+  if (S.nearPilgrim) {
+    openPilgrimTalk(S.nearPilgrim);
+    return;
+  }
+  if (S.nearGossip) {
+    openGossipAsk();
+    return;
+  }
+  if (S.nearShop) {
+    openShopVisit(S.nearShop);
+    return;
+  }
+  // At chuông with coop partner/helper — open ritual menu (before combat)
+  if (S.near?.id === 'bell' && S.nearCoop) {
+    $('combat-bar').classList.remove('show');
+    $('bts-bar').classList.remove('show');
+    S.interactOpen = false;
+    openBellMenu();
     return;
   }
   if (S.nearPlayer) {
@@ -2973,6 +6369,10 @@ $('bts-bar').addEventListener('click', e => {
   const btn = e.target.closest('.bts-btn');
   if (!btn) return;
   if (btn.dataset.bts === 'cancel') { cancelNpcInteract(); return; }
+  if (btn.dataset.bts === 'princess') {
+    togglePrincessMode();
+    return;
+  }
   // Bế / tha khi đang ôm theo — vẫn dùng gần chồng
   let m = S.nearBts?.member;
   if (!m && (btn.dataset.bts === 'carry' || btn.dataset.bts === 'marry') && S.btsHusbandId) {
@@ -2980,6 +6380,10 @@ $('bts-bar').addEventListener('click', e => {
   }
   if (!m && S.btsCarryId && btn.dataset.bts === 'carry') {
     m = BTS_MEMBERS.find(x => x.id === S.btsCarryId);
+  }
+  // Princess escort: vẫn cho phép action với idol gần nhất / chồng
+  if (!m && S.btsPrincessMode && btsCrew.length) {
+    m = pickNearBts()?.member || BTS_MEMBERS.find(x => x.id === S.btsHusbandId) || btsCrew.find(b => btsAlive(b))?.member;
   }
   if (!m) return;
   if (btn.dataset.bts === 'hug') hugBts(m);
@@ -3001,7 +6405,14 @@ $('mg-close').onclick = () => endMinigame(false);
 $('modal').addEventListener('click', e => {
   if (e.target !== $('modal')) return;
   if (S.interactOpen) cancelNpcInteract();
-  else { closeModal(); S.busy = false; }
+  else if (S._pendingFateQue) {
+    const q = S._pendingFateQue;
+    S._pendingFateQue = null;
+    closeModal();
+    S.busy = false;
+    startFateRun(q);
+    toast('✦ Vận đã mở trên sân — theo dấu sáng trước khi khép lại');
+  } else { closeModal(); S.busy = false; }
 });
 
 // Bàn phím (bỏ qua khi đang gõ ô nhập đang hiện)
@@ -3029,6 +6440,7 @@ addEventListener('keydown', e => {
   // Esc = hủy tương tác NPC / BTS / modal
   if (e.code === 'Escape') {
     e.preventDefault();
+    if (S.senBayRide) { cancelSenBayRide(); return; }
     if (S.interactOpen || $('modal')?.classList.contains('open') || $('bts-bar')?.classList.contains('show') || $('combat-bar')?.classList.contains('show')) {
       cancelNpcInteract();
       return;
@@ -3041,6 +6453,7 @@ addEventListener('keydown', e => {
   if (!e.repeat) {
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') toggleAiming();
     if (e.code === 'KeyV') toggleFpsMode();
+    if (e.code === 'KeyP') goToStreetGate();
   }
   if (S.busy || S.interactOpen) return;
   if (e.code === 'KeyF' || e.code === 'Space') { if (S.gun) fireWeapon(); }
@@ -3218,10 +6631,236 @@ addEventListener('resize', () => {
 function startActivity(id) {
   if (S.busy) return;
   if (id === 'incense') actIncense();
-  else if (id === 'bell') actBell();
+  else if (id === 'bell') openBellMenu();
   else if (id === 'mok') actMok();
   else if (id === 'wish') actWish();
   else if (id === 'fortune') actFortune();
+}
+
+/* ========== CẦU CHUNG (co-op chuông) ========== */
+let coopRitual = null;
+
+function bellSpotPos() {
+  const s = SPOTS.find(x => x.id === 'bell');
+  return s ? s.pos : new THREE.Vector3(-9.5, 0, -2);
+}
+
+function findRemoteCoopPartner() {
+  const bell = bellSpotPos();
+  let best = null, bestD = 5.2;
+  for (const [id, rp] of remotePlayers) {
+    if (!rp?.mesh?.visible) continue;
+    const dMe = playerRoot.position.distanceTo(rp.mesh.position);
+    const dBell = Math.hypot(rp.mesh.position.x - bell.x, rp.mesh.position.z - bell.z);
+    if (dMe < 5.2 && dBell < 6.5 && dMe < bestD) {
+      bestD = dMe;
+      best = { kind: 'remote', id, name: rp.name || 'Bạn đạo', dist: dMe };
+    }
+  }
+  return best;
+}
+
+/** Soft NPC pilgrim helper — optionally pull nearest alive AI toward chuông */
+function ensureNpcCoopHelper(pull = false) {
+  if (!aiData?.length) return null;
+  const bell = bellSpotPos();
+  let bestI = -1, bestD = 999;
+  for (let i = 0; i < AI_N; i++) {
+    const a = aiData[i];
+    if (!aiAlive(a)) continue;
+    const d = Math.hypot(a.x - bell.x, a.z - bell.z);
+    if (d < bestD) { bestD = d; bestI = i; }
+  }
+  if (bestI < 0) return null;
+  const a = aiData[bestI];
+  if (pull && bestD > 4.8) {
+    a.onPagoda = false;
+    a.groundY = 0;
+    a.tx = bell.x + 1.35;
+    a.tz = bell.z + 1.1;
+    a.state = 'walk';
+    a.timer = 6;
+  }
+  return { kind: 'npc', id: 'ai_' + bestI, name: a.name || 'Khách hành hương', aiIndex: bestI, dist: bestD };
+}
+
+function pickCoopPartner(pullNpc = false) {
+  return findRemoteCoopPartner() || ensureNpcCoopHelper(pullNpc);
+}
+
+function openBellMenu() {
+  const partner = pickCoopPartner(true);
+  if (!partner) { actBell(); return; }
+  S.busy = true;
+  const who = partner.kind === 'npc'
+    ? `<strong>${partner.name}</strong> <span class="tiny">(hành hương)</span>`
+    : `<strong>${partner.name}</strong>`;
+  openModal(`
+    <h2>Bên chuông</h2>
+    <p>Có thể <strong>cầu chung</strong> với ${who} — đồng nhịp trong vài giây.</p>
+    <div class="row">
+      <button class="choice" id="m-coop">Cầu chung</button>
+      <button class="choice" id="m-solo">Thỉnh một mình</button>
+    </div>
+    <div class="row" style="margin-top:16px"><button class="btn secondary" id="m-cancel">Đóng</button></div>
+  `);
+  $('m-coop').onclick = () => { closeModal(); startCoopRitual(partner); };
+  $('m-solo').onclick = () => { closeModal(); actBell(); };
+  $('m-cancel').onclick = () => { closeModal(); S.busy = false; };
+}
+
+function spawnCoopBurst(x, z) {
+  const root = new THREE.Group();
+  root.position.set(x, 1.15, z);
+  const sparks = [];
+  for (let i = 0; i < 16; i++) {
+    const sp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05 + Math.random() * 0.05, 6, 4),
+      new THREE.MeshBasicMaterial({
+        color: Math.random() > 0.4 ? 0xe8c87a : 0xfff3d0,
+        transparent: true, opacity: 1, depthWrite: false,
+      })
+    );
+    const a = Math.random() * Math.PI * 2;
+    const elev = (Math.random() - 0.05) * Math.PI * 0.6;
+    const spd = 2 + Math.random() * 2.4;
+    sparks.push({
+      mesh: sp,
+      vx: Math.cos(a) * Math.cos(elev) * spd,
+      vy: Math.sin(elev) * spd + 1.5,
+      vz: Math.sin(a) * Math.cos(elev) * spd,
+    });
+    root.add(sp);
+  }
+  scene.add(root);
+  S.bursts.push({
+    root, sparks, core: null, fire: null, ring: null, light: null,
+    t: 0, life: 0.95, big: false, princess: true,
+  });
+}
+
+function startCoopRitual(partner) {
+  if (!partner || S.busy && coopRitual) return;
+  S.busy = true;
+  const windowMs = 5800;
+  coopRitual = {
+    partner,
+    startedAt: performance.now(),
+    endsAt: performance.now() + windowMs,
+    beatPlayer: false,
+    beatPartner: false,
+    partnerTimer: 0,
+  };
+  openMinigame('Cầu chung', `Cùng ${partner.name} · chạm đồng nhịp (≤6s)`);
+  $('ring-wrap').style.display = 'none';
+  $('mg-tap').style.display = 'block';
+  $('mg-tap').textContent = 'Đồng nhịp';
+  $('mg-feedback').textContent = 'Nhịp của bạn…';
+  $('mg-feedback').style.color = '#e8c87a';
+  mg = { type: 'coop', running: true, t: 0 };
+  $('mg-tap').onclick = () => onCoopPlayerBeat();
+  if (partner.kind === 'remote' && fbDb && S.uid) {
+    try {
+      push(ref(fbDb, `inbox/${partner.id}`), {
+        type: 'coop_ritual', fromName: S.name || 'Ai đó', from: S.uid, t: Date.now(),
+      });
+    } catch (_) {}
+  }
+}
+
+function onCoopPlayerBeat() {
+  if (!coopRitual || !mg.running || mg.type !== 'coop') return;
+  if (coopRitual.beatPlayer) return;
+  coopRitual.beatPlayer = true;
+  playBell(0.55, 1);
+  shakeScreen(0.06);
+  if (S.bell) {
+    S.bell.rotation.z = 0.16;
+    setTimeout(() => { if (S.bell) S.bell.rotation.z = 0; }, 380);
+  }
+  $('mg-feedback').textContent = `Đợi nhịp · ${coopRitual.partner.name}…`;
+  $('mg-tap').textContent = 'Đang đợi…';
+  // NPC / nearby partner: auto second beat so offline + soft-online both work
+  const delay = coopRitual.partner.kind === 'npc' ? 0.85 + Math.random() * 0.55 : 1.05 + Math.random() * 0.45;
+  coopRitual.partnerTimer = delay;
+}
+
+function completeCoopPartnerBeat() {
+  if (!coopRitual || coopRitual.beatPartner) return;
+  if (performance.now() > coopRitual.endsAt + 80) return;
+  coopRitual.beatPartner = true;
+  playBell(0.72, 0.9);
+  shakeScreen(0.1);
+  if (S.bell) {
+    S.bell.rotation.z = -0.14;
+    setTimeout(() => { if (S.bell) S.bell.rotation.z = 0; }, 420);
+  }
+  $('mg-feedback').textContent = 'Đồng lòng!';
+  $('mg-feedback').style.color = '#c8e8a0';
+  finishCoopRitual(true);
+}
+
+function updateCoopRitual(dt) {
+  if (!coopRitual || !mg.running || mg.type !== 'coop') return;
+  const left = Math.max(0, (coopRitual.endsAt - performance.now()) / 1000);
+  if (!coopRitual.beatPlayer) {
+    $('mg-hint').textContent = `Cùng ${coopRitual.partner.name} · ${left.toFixed(1)}s`;
+  } else if (!coopRitual.beatPartner) {
+    $('mg-hint').textContent = `Đợi nhịp · ${left.toFixed(1)}s`;
+    if (coopRitual.partnerTimer > 0) {
+      coopRitual.partnerTimer -= dt;
+      if (coopRitual.partnerTimer <= 0) {
+        completeCoopPartnerBeat();
+        return;
+      }
+    }
+  }
+  if (!coopRitual) return;
+  if (performance.now() >= coopRitual.endsAt && !(coopRitual.beatPlayer && coopRitual.beatPartner)) {
+    finishCoopRitual(false);
+  }
+}
+
+function finishCoopRitual(ok) {
+  const partner = coopRitual?.partner;
+  coopRitual = null;
+  endMinigame(false);
+  if (!ok || !partner) {
+    toast('Chưa kịp đồng nhịp — thử cầu chung lại nhé');
+    return;
+  }
+  S.coopStreak = (S.coopStreak | 0) + 1;
+  let gain = 16;
+  if (S.coopStreak >= 2) gain += Math.min(8, (S.coopStreak - 1) * 3);
+  if (S.timePhase === 'dusk' || S.timePhase === 'night') gain += 2;
+  const me = S.name || 'Bạn';
+  const line = `${me} và ${partner.name} vừa cầu chung bên chuông`;
+  if (!Array.isArray(S.coopRituals)) S.coopRituals = [];
+  S.coopRituals.push({ text: line, partner: partner.name, at: Date.now(), streak: S.coopStreak });
+  if (S.coopRituals.length > 15) S.coopRituals = S.coopRituals.slice(-15);
+  saveAll();
+  gainCongDuc(gain, 'Cầu chung', true);
+  const px = playerRoot.position.x, pz = playerRoot.position.z;
+  spawnCoopBurst(px, pz);
+  spawnCoopBurst(px + 0.55, pz - 0.25);
+  playWhoosh();
+  const streakNote = S.coopStreak > 1 ? ` · chuỗi ${S.coopStreak}` : '';
+  const phaseNote = (S.timePhase === 'dusk' || S.timePhase === 'night') ? ' · giờ thiền' : '';
+  toast(`🔔 ${line} · +${gain} công đức${streakNote}${phaseNote}`);
+  tryCompletePilgrimBySpot('bell');
+  noteDailyProgress('bell');
+  setTimeout(() => tryWeatherRitualBonus('coop'), 550);
+  try {
+    publishPresence(true);
+    if (S.online && typeof publishWish === 'function') {
+      publishWish({
+        text: line.slice(0, 80),
+        way: 'ribbon',
+        at: Date.now(),
+        name: me,
+      });
+    }
+  } catch (_) {}
 }
 
 function actIncense() {
@@ -3259,6 +6898,13 @@ function plantIncense(n) {
   }
   S.incense += n; saveAll();
   toast(n === 1 ? 'Đã thắp 1 nén hương' : 'Đã thắp 3 nén hương');
+  const baseGain = n * 4 + (S.festivalActive ? 3 : 0);
+  gainCongDuc(baseGain, n === 1 ? 'Thắp hương' : 'Thắp 3 nén');
+  if (S.festivalActive) noteFestivalAct('incense', 'Thắp hương giờ hội');
+  noteDailyProgress('incense');
+  tryCompletePilgrimBySpot('incense');
+  noteSenBayDuyen();
+  setTimeout(() => tryWeatherRitualBonus('incense'), 500);
   setTimeout(() => {
     ud.armL.rotation.set(0,0,0); ud.armR.rotation.set(0,0,0);
     S.busy = false;
@@ -3277,6 +6923,7 @@ function endMinigame(keepBusy = false) {
   $('ring-wrap').style.display = 'none'; $('mg-tap').style.display = 'none';
   const tap = $('mg-tap');
   if (tap) { tap.onpointerdown = tap.onpointerup = tap.onpointerleave = tap.onpointercancel = tap.onclick = null; }
+  if (mg.type === 'coop') coopRitual = null;
   mg.running = false; mg.type = null;
   $('shake-hint').style.display = 'none';
   S.fortuneMode = false;
@@ -3308,6 +6955,8 @@ function actBell() {
 function finishBell() {
   const calm = Math.round(mg.score / Math.max(mg.hits, 1));
   endMinigame();
+  tryCompletePilgrimBySpot('bell');
+  noteSenBayDuyen();
   showCalm(calm, calm >= 85 ? 'Tiếng chuông ngân dài trong lòng bạn.' : calm >= 60 ? 'Nhịp chuông khá đều, tâm dần lắng.' : 'Cứ từ từ, lần sau sẽ hay hơn.');
 }
 
@@ -3330,6 +6979,10 @@ function actMok() {
 
 function updateMinigame(dt) {
   if (!mg.running) return;
+  if (mg.type === 'coop') {
+    updateCoopRitual(dt);
+    return;
+  }
   if (mg.type === 'bell' || mg.type === 'mok') {
     mg.ring += mg.dir * dt * (mg.type === 'mok' ? 1.1 : 0.95);
     if (mg.ring <= 0.18) { mg.ring = 0.18; mg.dir = 1; }
@@ -3347,11 +7000,16 @@ function updateMinigame(dt) {
 function showCalm(score, msg) {
   if (score > S.bestCalm) S.bestCalm = score;
   saveAll();
+  const meritGain = 6 + Math.floor(Math.max(0, score) / 20) + (S.festivalActive ? 3 : 0);
+  gainCongDuc(meritGain, 'Thỉnh chuông / gõ mõ');
+  if (S.festivalActive) noteFestivalAct('bell', 'Thỉnh chuông giờ hội');
+  noteDailyProgress('bell');
+  const weatherExtra = tryWeatherRitualBonus('bell');
   openModal(`
     <h2>Điểm Tâm an</h2>
     <div class="score-big">${score}</div>
     <p>${msg}</p>
-    <p class="tiny">Điểm cao nhất của bạn: ${S.bestCalm}</p>
+    <p class="tiny">Điểm cao nhất của bạn: ${S.bestCalm} · Công đức +${meritGain}${S.festivalActive ? ' · giờ hội' : ''}${weatherExtra ? ` · không khí +${weatherExtra}` : ''}</p>
     <div class="row"><button class="btn" id="m-ok">Tiếp tục</button></div>
   `);
   $('m-ok').onclick = () => { closeModal(); S.busy = false; };
@@ -3402,6 +7060,8 @@ function submitWish(raw, way) {
   spawnWishVisual(way);
   publishWish({ text, way, at, name: S.name });
   toast(way === 'ribbon' ? 'Lời cầu đã treo lên cây bồ đề' : 'Đèn hoa đăng đã thả xuống hồ sen');
+  gainCongDuc(12, 'Viết lời cầu an');
+  noteDailyProgress('wish');
   playWhoosh();
   S.busy = false;
 }
@@ -3423,14 +7083,35 @@ function finishFortuneDraw() {
   const line = `Quẻ ${q.n} · ${q.rank} · ${q.title}: ${q.text}`;
   S.fortunes.push({ text: line, at: Date.now() }); saveAll();
   playWhoosh();
+  gainCongDuc(7, 'Xin quẻ');
+  noteDailyProgress('fortune');
+  tryCompletePilgrimBySpot('fortune');
+  setTimeout(() => tryWeatherRitualBonus('fortune'), 400);
+  const info = fateRankInfo(q.rank);
+  const fateHint = info.steps > 1
+    ? 'Đi theo vận · 2 dấu sáng trên sân'
+    : 'Đi theo vận · tìm dấu sáng trên sân';
+  S._pendingFateQue = q;
   openModal(`
     <h2>Quẻ số ${q.n}</h2>
     <p class="tiny" style="margin-top:4px">${q.rank} — ${q.title}</p>
     <p style="font-size:1.08rem;color:#e8c87a;margin:16px 0;line-height:1.55">${q.text}</p>
-    <p class="tiny">Mang tính giải trí · Xin lại để ra quẻ khác</p>
-    <div class="row"><button class="btn" id="m-ok" type="button">Nhận lời</button></div>
+    <p class="tiny">Mang tính giải trí · Xin lại để ra quẻ khác · +7 công đức</p>
+    <p class="tiny" style="margin-top:8px;color:#f0d090">✦ Quẻ vừa kéo bạn ra sân — ${info.flavor}</p>
+    <div class="row" style="flex-wrap:wrap;gap:8px;justify-content:center">
+      <button class="btn" id="m-fate" type="button">${fateHint}</button>
+      <button class="btn" id="m-ok" type="button" style="opacity:.88">Nhận lời</button>
+    </div>
   `);
-  $('m-ok').onclick = () => { closeModal(); S.busy = false; };
+  const beginFate = (fromCta) => {
+    S._pendingFateQue = null;
+    closeModal();
+    S.busy = false;
+    startFateRun(q);
+    if (!fromCta) toast('✦ Vận đã mở trên sân — theo dấu sáng trước khi khép lại');
+  };
+  $('m-fate').onclick = () => beginFate(true);
+  $('m-ok').onclick = () => beginFate(false);
 }
 
 function actFortune() {
@@ -3477,20 +7158,74 @@ function updateFortune(dt) {
 function openBook() {
   const prayers = S.prayers.slice().reverse().map(p => `<li>${p.text}<br><span class="tiny">${p.way==='ribbon'?'Dải lụa':'Hoa đăng'} · ${new Date(p.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa có lời cầu nào</li>';
   const forts = S.fortunes.slice().reverse().slice(0, 8).map(f => `<li>${f.text}</li>`).join('') || '<li>Chưa xin quẻ</li>';
+  const fates = S.fateRuns.slice().reverse().slice(0, 8).map(f => `<li>${f.text}</li>`).join('') || '<li>Chưa đi theo vận nào</li>';
+  const coops = (S.coopRituals || []).slice().reverse().slice(0, 10).map(c => `<li>${c.text}<br><span class="tiny">${c.streak > 1 ? `Chuỗi ${c.streak} · ` : ''}${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa cầu chung lần nào</li>';
+  const pilgrims = (S.pilgrimQuests || []).slice().reverse().slice(0, 10).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa giúp hành hương lần nào</li>';
+  const festivals = (S.festivalMoments || []).slice().reverse().slice(0, 10).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa kịp giờ hội lần nào</li>';
+  const weathers = (S.weatherLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleString('vi')}</span></li>`).join('') || '<li>Chưa ghi không khí nào</li>';
+  const seenMoods = ['clear', 'mist', 'rain', 'calm'].filter(k => S.weatherSeen?.[k]).map(k => weatherLabel(k)).join(' · ') || 'Chưa gặp';
+  const shopRows = STREET_SHOP_SPECS.map(s => {
+    const ok = !!(S.shopVisited && S.shopVisited[s.id]);
+    return `<li>${ok ? '✅' : '⬜'} ${s.name}${ok ? '' : ' <span class="tiny">· chưa ghé</span>'}</li>`;
+  }).join('');
+  const shopLogs = (S.shopLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa ghé quán nào</li>';
+  const dailyBook = dailyGoalsBookHtml();
+  const dailyClears = (S.dailyLog || []).slice().reverse().slice(0, 12).map(c => `<li>${c.text}<br><span class="tiny">${c.day || new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa hoàn tất Nhật khóa nào</li>';
   const bts = S.btsQuotes.slice().reverse().slice(0, 8).map(q => `<li><strong>${q.who}</strong>: ${q.text}</li>`).join('') || '<li>Chưa xin chữ ký / selfie BTS</li>';
+  const tier = meritTierFor(S.congDuc | 0);
+  const nextTier = nextMeritTier(S.congDuc | 0);
+  const nextLine = nextTier
+    ? `Còn <strong>${nextTier.min - (S.congDuc | 0)}</strong> công đức nữa → ${nextTier.emoji} ${nextTier.title}`
+    : 'Đã đạt danh hiệu cao nhất hiện tại';
+  const stamps = [
+    S.stampGate ? '✅ Ấn Cổng' : '⬜ Ấn Cổng',
+    S.stampPond ? '✅ Ấn Hồ Sen' : '⬜ Ấn Hồ Sen',
+    S.stampHall ? '✅ Ấn Điện' : '⬜ Ấn Điện',
+  ].join(' · ');
+  const titleShow = `${tier.emoji} ${tier.title}${templeFlairSuffix()}`;
+  const weatherNow = weatherLabel(S.weatherMood || 'clear');
+  const senLogs = (S.senBayLog || []).slice().reverse().slice(0, 6).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa ngồi Sen Bay lần nào</li>';
+  const senBest = S.senBayBestTier ? senBayTierLabel(S.senBayBestTier) : '—';
   openModal(`
     <h2>Sổ cầu an của tôi</h2>
     <div class="stat-grid">
       <div class="stat"><div class="v">${S.name}</div><div class="l">Tên</div></div>
       <div class="stat"><div class="v">${S.incense}</div><div class="l">Lần thắp hương</div></div>
-      <div class="stat"><div class="v">${S.btsSigs}</div><div class="l">Chữ ký BTS</div></div>
-      <div class="stat"><div class="v">${S.btsHusbandId ? (BTS_MEMBERS.find(x => x.id === S.btsHusbandId)?.name || '—') : '—'}</div><div class="l">Chồng BTS</div></div>
+      <div class="stat"><div class="v">${S.congDuc | 0}</div><div class="l">Công đức</div></div>
+      <div class="stat"><div class="v">${titleShow}</div><div class="l">Danh hiệu</div></div>
     </div>
-    <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm</p>
+    <p class="tiny" style="text-align:center;margin-top:6px">${nextLine}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">🔥 Chuỗi ngày: <strong>${dailyBook.streak}</strong>${dailyBook.flair}${dailyBook.clearNote}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Ấn khám phá: ${stamps}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">🌦️ Đang: <strong>${weatherNow}</strong></p>
+    <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm · ${S.btsSigs} chữ ký BTS${S.btsPrincessMode ? ' · 👑 Công Chúa' : ''}${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
+    <h2 style="font-size:1rem;margin-top:8px">📋 Mục tiêu hôm nay</h2>
+    <ul class="book-list">${dailyBook.rows}</ul>
+    <h2 style="font-size:1rem">🔥 Nhật khóa đã hoàn tất</h2>
+    <ul class="book-list">${dailyClears}</ul>
+    <h2 style="font-size:1rem;margin-top:8px">🌦️ Không khí chùa</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã gặp: ${seenMoods}</p>
+    <ul class="book-list">${weathers}</ul>
+    <h2 style="font-size:1rem;margin-top:8px">🪷 Sen Bay</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ngồi <strong>${S.senBayRides | 0}</strong> lần · tầng cao nhất: <strong>${senBest}</strong></p>
+    <ul class="book-list">${senLogs}</ul>
+    <h2 style="font-size:1rem;margin-top:8px">🛤️ Phố An Lạc · quán</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ghé <strong>${shopVisitCount()}/4</strong>${S.khachPho ? ' · flair Khách Phố' : ''}</p>
+    <ul class="book-list">${shopRows}</ul>
+    <ul class="book-list">${shopLogs}</ul>
     <h2 style="font-size:1rem;margin-top:8px">Lời cầu đã viết</h2>
     <ul class="book-list">${prayers}</ul>
     <h2 style="font-size:1rem">Quẻ gần đây</h2>
     <ul class="book-list">${forts}</ul>
+    <h2 style="font-size:1rem">✦ Theo vận trên sân</h2>
+    <ul class="book-list">${fates}</ul>
+    <h2 style="font-size:1rem">🔔 Cầu chung bên chuông</h2>
+    <ul class="book-list">${coops}</ul>
+    <h2 style="font-size:1rem">🌿 Giúp hành hương</h2>
+    <ul class="book-list">${pilgrims}</ul>
+    <h2 style="font-size:1rem">🎉 Giờ hội chùa</h2>
+    <ul class="book-list">${festivals}</ul>
     <h2 style="font-size:1rem">💜 Fanmeet BTS</h2>
     <ul class="book-list">${bts}</ul>
     <div class="row"><button class="btn" id="m-ok">Đóng</button></div>
@@ -3644,7 +7379,10 @@ async function connectMultiplayer() {
         toast(`${data.name || 'Ai đó'} vừa vào chùa`);
       }
       rp.name = data.name || rp.name;
-      rp.label.textContent = rp.name;
+      rp.templeTitle = data.title || '';
+      rp.titleEmoji = data.titleEmoji || '';
+      rp.merit = typeof data.merit === 'number' ? data.merit : 0;
+      rp.label.textContent = formatRemoteLabel(rp);
       // Đang chờ hồi sinh tại cổng — không kéo về chỗ chết cũ
       if (!rp.reviving) {
         rp.tx = data.x; rp.tz = data.z; rp.tyaw = data.yaw || 0;
@@ -3698,14 +7436,26 @@ function publishPresence(force = false) {
   const now = performance.now();
   if (!force && now - lastNetPush < 100) return;
   lastNetPush = now;
+  const tier = meritTierFor(S.congDuc | 0);
   update(ref(fbDb, `players/${S.uid}`), {
     name: S.name,
     x: +playerRoot.position.x.toFixed(2),
     z: +playerRoot.position.z.toFixed(2),
     yaw: +player.rotation.y.toFixed(2),
     gun: S.gun || '',
+    title: getTempleTitle(),
+    titleEmoji: tier.emoji,
+    merit: S.congDuc | 0,
     t: Date.now(),
   });
+}
+function formatRemoteLabel(rp) {
+  const name = rp.name || 'Bạn';
+  if (rp.templeTitle) {
+    const em = rp.titleEmoji || '🌸';
+    return `${em} ${rp.templeTitle} · ${name}`;
+  }
+  return name;
 }
 
 function publishWish(w) {
@@ -3768,6 +7518,11 @@ function flashHit() {
 function receiveFriendAction(msg) {
   const type = msg.type || 'chao';
   const name = msg.fromName || 'Ai đó';
+  if (type === 'coop_ritual') {
+    toast(`🔔 ${name} mời bạn cầu chung bên chuông`);
+    playWhoosh();
+    return;
+  }
   const dmg = typeof msg.damage === 'number' ? msg.damage : (DMG[type] || 0);
   toast(ACT_RECV[type] ? ACT_RECV[type](name) : `${name} tương tác với bạn`);
   if (type === 'kill') {
@@ -3985,7 +7740,7 @@ function syncFpsGun(show) {
     if (S.gun === 'bazooka') g = buildBazookaGun();
     else if (S.gun === 'knife') g = buildGiantKnife();
     else g = buildAKGun();
-    g.scale.setScalar(S.gun === 'knife' ? 0.85 : S.gun === 'bazooka' ? 1.15 : 1.35);
+    g.scale.setScalar(S.gun === 'knife' ? 1.05 : S.gun === 'bazooka' ? 1.15 : 1.35);
     S.fpsGun.add(g);
     S.fpsGun.userData.type = S.gun;
   }
@@ -3994,8 +7749,10 @@ function syncFpsGun(show) {
     S.fpsGun.position.set(0.28, -0.28, -0.85);
     S.fpsGun.rotation.set(0.08, 0.12, 0.04);
   } else if (S.gun === 'knife') {
-    S.fpsGun.position.set(0.45, -0.55, -1.1);
-    S.fpsGun.rotation.set(-0.2, 0.4, -0.5);
+    // Dao nằm rõ góc dưới-phải màn hình
+    S.fpsGun.position.set(0.42, -0.42, -0.95);
+    S.fpsGun.rotation.set(-0.15, 0.35, -0.45);
+    S.fpsGun.scale.setScalar(1.05);
   } else {
     S.fpsGun.position.set(0.22, -0.2, -0.55);
     S.fpsGun.rotation.set(0.08, 0.12, 0.04);
@@ -4225,6 +7982,21 @@ function updateBursts(dt) {
     const b = S.bursts[i];
     b.t += dt;
     const u = Math.min(1, b.t / b.life);
+    if (b.princess) {
+      for (const s of b.sparks) {
+        s.vy -= 6 * dt;
+        s.mesh.position.x += s.vx * dt;
+        s.mesh.position.y += s.vy * dt;
+        s.mesh.position.z += s.vz * dt;
+        s.mesh.material.opacity = Math.max(0, 1 - u * 1.1);
+        s.mesh.scale.setScalar(Math.max(0.05, 1 - u * 0.8));
+      }
+      if (b.t >= b.life) {
+        scene.remove(b.root);
+        S.bursts.splice(i, 1);
+      }
+      continue;
+    }
     const grow = 1 + u * (b.big ? 5.5 : 3.5);
     b.core.scale.setScalar(grow * 0.6);
     b.core.material.opacity = Math.max(0, 1 - u * 1.4);
@@ -4539,22 +8311,25 @@ function updatePlayer(dt) {
   if (!S.playing) return;
   if (S.deadUntil && performance.now() < S.deadUntil) return; // đang chết / chờ hồi sinh
   // Vẫn cho đi khi không mở minigame/modal (busy chỉ khoá lúc chơi mini-game)
-  const blocked = S.busy && ($('minigame').classList.contains('open') || $('modal').classList.contains('open'));
+  const onSenBay = !!S.senBayRide;
+  const blocked = !onSenBay && S.busy && ($('minigame').classList.contains('open') || $('modal').classList.contains('open'));
   if (blocked) return;
   // Di chuyển kiểu PUBG/Free Fire: theo hướng nhìn camera
   let strafe = 0, forward = 0;
-  if (S.keys['KeyW'] || S.keys['ArrowUp'] || S.keys['KeyZ']) forward += 1;
-  if (S.keys['KeyS'] || S.keys['ArrowDown']) forward -= 1;
-  if (S.keys['KeyA'] || S.keys['ArrowLeft'] || S.keys['KeyQ']) strafe -= 1;
-  if (S.keys['KeyD'] || S.keys['ArrowRight']) strafe += 1;
-  if (S.keys['ShiftLeft'] || S.keys['ShiftRight']) { /* shift = aim when gun; sprint via joy */ }
-  // Joystick: lên = tiến theo hướng nhìn, ngang = sang ngang
-  if (S.joy.on) {
-    strafe += S.joy.dx;
-    forward += -S.joy.dy; // kéo lên (dy<0) = tiến
+  if (!onSenBay) {
+    if (S.keys['KeyW'] || S.keys['ArrowUp'] || S.keys['KeyZ']) forward += 1;
+    if (S.keys['KeyS'] || S.keys['ArrowDown']) forward -= 1;
+    if (S.keys['KeyA'] || S.keys['ArrowLeft'] || S.keys['KeyQ']) strafe -= 1;
+    if (S.keys['KeyD'] || S.keys['ArrowRight']) strafe += 1;
+    if (S.keys['ShiftLeft'] || S.keys['ShiftRight']) { /* shift = aim when gun; sprint via joy */ }
+    // Joystick: lên = tiến theo hướng nhìn, ngang = sang ngang
+    if (S.joy.on) {
+      strafe += S.joy.dx;
+      forward += -S.joy.dy; // kéo lên (dy<0) = tiến
+    }
   }
   const len = Math.hypot(strafe, forward);
-  const moving = len > 0.08;
+  const moving = !onSenBay && len > 0.08;
   // Hướng nhìn vào thế giới (FPS/PUBG)
   const fwdX = -Math.sin(S.yaw), fwdZ = -Math.cos(S.yaw);
   const rightX = Math.cos(S.yaw), rightZ = -Math.sin(S.yaw);
@@ -4671,15 +8446,167 @@ function updatePlayer(dt) {
   }
   S.nearPlayer = nearP;
   S.nearBts = pickNearBts();
+  S.nearSenBay = (!S.nearBts && !S.busy) ? pickNearSenBay() : null;
+  S.nearPrincessSecret = (!S.nearBts && !S.nearSenBay && !S.busy) ? pickNearPrincessSecret() : null;
+  S.nearFate = (!S.nearBts && !S.nearSenBay && !S.nearPrincessSecret && !S.busy) ? pickNearFate() : null;
+  S.nearFestival = (!S.nearBts && !S.nearSenBay && !S.nearPrincessSecret && !S.nearFate && !S.busy)
+    ? pickNearFestival() : null;
+  S.nearStamp = (!S.nearBts && !S.nearSenBay && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival && !S.busy)
+    ? pickNearStamp() : null;
+  S.nearPilgrimTarget = (!S.nearBts && !S.nearSenBay && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.busy)
+    ? pickNearPilgrimTarget() : null;
+  S.nearPilgrim = (!S.nearBts && !S.nearSenBay && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.nearPilgrimTarget && !S.busy)
+    ? pickNearPilgrim() : null;
+  S.nearGossip = (!S.nearBts && !S.nearSenBay && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.busy)
+    ? pickNearGossip() : null;
+  // Shops after gossip — circle “Hỏi chuyện” wins if both near
+  S.nearShop = (!S.nearBts && !S.nearSenBay && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.busy)
+    ? pickNearShop() : null;
+
+  // Soft tip near festival marker
+  if (S.nearFestival && S.festivalActive) {
+    const now = performance.now();
+    if (now - (S._festivalTipAt || 0) > 14000) {
+      S._festivalTipAt = now;
+      toast('🎉 Đúng giờ hội — Thả hoa hội tại vòng sáng cam');
+    }
+  }
+
+  // Soft tip when first near a pilgrim
+  if (S.nearPilgrim && !S.nearPilgrim.done) {
+    const now = performance.now();
+    if (now - (S._pilgrimTipAt || 0) > 22000) {
+      S._pilgrimTipAt = now;
+      toast(S.festivalActive
+        ? `🌿 ${S.nearPilgrim.name}: “Đúng giờ hội rồi…”`
+        : `🌿 Hành hương · ${S.nearPilgrim.name} có vẻ cần giúp`);
+    }
+  } else if (S.festivalActive && S.nearPilgrim?.done) {
+    const now = performance.now();
+    if (now - (S._festivalPilgrimTip || 0) > 28000) {
+      S._festivalPilgrimTip = now;
+      toast(`🌿 ${S.nearPilgrim.name}: “Đúng giờ hội rồi…”`);
+    }
+  }
+
+  // Co-op cue at chuông: remote partner or soft NPC helper
+  if (!S.busy && near?.id === 'bell') {
+    const coop = pickCoopPartner();
+    S.nearCoop = coop;
+    const now = performance.now();
+    if (coop && now - (S._coopCueAt || 0) > 16000) {
+      S._coopCueAt = now;
+      toast(coop.kind === 'remote'
+        ? `Có thể cầu chung với ${coop.name}`
+        : `Có thể cầu chung · ${coop.name} (hành hương)`);
+    }
+  } else if (!near || near.id !== 'bell') {
+    S.nearCoop = null;
+  }
 
   const btn = $('action-btn');
   const cbar = $('combat-bar');
   const bbar = $('bts-bar');
-  if (!S.busy && S.nearBts) {
+  if (S.senBayRide) {
+    const left = S.senBayRide.phase === 'hover'
+      ? Math.max(0, (S.senBayRide.hoverT - S.senBayRide.t) | 0)
+      : S.senBayRide.phase === 'rise' ? '↑' : '↓';
+    btn.textContent = typeof left === 'number' ? `Hủy · hạ sen (${left}s)` : 'Hủy · hạ sen';
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+  } else if (!S.busy && S.nearSenBay) {
+    btn.textContent = 'Ngồi Sen Bay';
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearBts) {
     btn.textContent = S.interactOpen ? `Hủy · ${S.nearBts.member.name}` : `Gặp BTS · ${S.nearBts.member.name}`;
     btn.classList.add('show');
     bbar.classList.toggle('show', S.interactOpen);
+    if (S.interactOpen) updatePrincessHud();
     cbar.classList.remove('show');
+  } else if (!S.busy && S.nearPrincessSecret) {
+    btn.textContent = `✦ ${S.nearPrincessSecret.label}`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearFate) {
+    const stepLabel = fateEvent && fateEvent.total > 1
+      ? `Theo vận (${fateEvent.step + 1}/${fateEvent.total})`
+      : 'Theo vận · chạm dấu sáng';
+    btn.textContent = stepLabel;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearFestival) {
+    btn.textContent = 'Thả hoa hội';
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearStamp) {
+    btn.textContent = `Thu thập ấn · ${S.nearStamp.label.replace(/^Ấn\s*/, '')}`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearPilgrimTarget) {
+    const lab = S.nearPilgrimTarget.target?.label || 'việc';
+    btn.textContent = `Xong việc · ${lab}`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearPilgrim) {
+    btn.textContent = S.nearPilgrim.done
+      ? `Nói chuyện · ${S.nearPilgrim.name}`
+      : `Giúp · ${S.nearPilgrim.name}`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearGossip) {
+    btn.textContent = 'Hỏi chuyện · đánh ghen?';
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+    const now = performance.now();
+    if (now - (S._gossipTipAt || 0) > 18000) {
+      S._gossipTipAt = now;
+      toast('💢 Ba chị đang đối mặt một người đẹp — lại hỏi xem chuyện gì');
+    }
+  } else if (!S.busy && S.nearShop) {
+    const visited = !!(S.shopVisited && S.shopVisited[S.nearShop.id]);
+    btn.textContent = visited
+      ? `Ghé lại · ${S.nearShop.name}`
+      : `Ghé quán · ${S.nearShop.name}`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+    const now = performance.now();
+    if (now - (S._shopTipAt || 0) > 16000) {
+      S._shopTipAt = now;
+      toast(visited
+        ? `🛤️ ${S.nearShop.name} — ngồi thêm một nhịp?`
+        : `🛤️ ${S.nearShop.name} · chưa ghé (${shopVisitCount()}/4)`);
+    }
+  } else if (!S.busy && near?.id === 'bell' && S.nearCoop) {
+    // Prefer co-op ritual at chuông over combat bar when a partner/helper is available
+    btn.textContent = `Cầu chung · ${S.nearCoop.name}`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
   } else if (!S.busy && nearP) {
     btn.textContent = S.interactOpen ? `Hủy · ${nearP.name}` : `Tương tác · ${nearP.name}`;
     btn.classList.add('show');
@@ -4709,25 +8636,64 @@ function updateWorld(dt, t) {
     $('target-hp')?.classList.remove('on');
     S.targetHpUntil = 0;
   }
-  // Hoàng hôn → đêm trên thiên đường
-  S.dusk = Math.min(1, S.dusk + dt * 0.012);
+  // Ngày → giờ vàng → đêm thiền → bình minh (loop chậm)
+  S.timeOfDay = ((S.timeOfDay || 0) + dt * 0.008) % 1;
+  updateFestivalWindow(dt);
+  const phase = phaseFromTimeOfDay(S.timeOfDay);
+  if (phase !== S.timePhase) {
+    S.timePhase = phase;
+    if (!S.festivalActive) {
+      updateTimeHud();
+      pulseTimeHud();
+    }
+    if (S.playing && !S.festivalActive) {
+      if (phase === 'dusk') toast('🌇 Giờ vàng — ánh nắng dịu trên sân chùa');
+      else if (phase === 'night') toast('🌙 Đêm thiền — đèn lồng sáng hơn');
+      else if (phase === 'dawn') toast('🌅 Bình minh — trời dần sáng lại');
+      else if (phase === 'day') toast('☀️ Ban ngày trên chùa An Lạc');
+    }
+  }
+  S.dusk = duskFromTimeOfDay(S.timeOfDay);
+  tickWeather(dt);
   const d = S.dusk;
-  // Nền trời: tím hồng thiên đường → đêm sâu
-  scene.background.setRGB(0.18 - d * 0.12, 0.12 - d * 0.07, 0.22 - d * 0.08);
-  scene.fog.color.setRGB(0.55 - d * 0.35, 0.48 - d * 0.28, 0.58 - d * 0.32);
-  scene.fog.density = 0.0065;
-  hemi.intensity = 0.72 - d * 0.32;
-  sun.intensity = 0.95 - d * 0.7;
-  sun.color.setRGB(1, 0.65 - d * 0.25, 0.35 - d * 0.2);
-  fillL.intensity = 0.28 + d * 0.3;
+  const fest = S.festivalActive ? 1 : 0;
+  const warm = fest * (0.08 + (phase === 'dusk' || phase === 'night' ? 0.06 : 0));
+  const wm = weatherDef(S.weatherMood || 'clear');
+  const wFog = wm.fogTint, wBg = wm.bgTint;
+  // Nền trời: tím hồng thiên đường → đêm sâu (+ ấm hội; + tint thời tiết phủ nhẹ)
+  scene.background.setRGB(
+    0.18 - d * 0.12 + warm * 0.12 + wBg[0],
+    0.12 - d * 0.07 + warm * 0.04 + wBg[1],
+    0.22 - d * 0.08 - warm * 0.06 + wBg[2]
+  );
+  scene.fog.color.setRGB(
+    0.55 - d * 0.35 + warm * 0.18 + wFog[0],
+    0.48 - d * 0.28 + warm * 0.08 + wFog[1],
+    0.58 - d * 0.32 - warm * 0.1 + wFog[2]
+  );
+  // Festival keeps warm fill; weather mainly densifies fog (mist/rain) without wiping hội
+  scene.fog.density = 0.0065 * wm.fogMul * (fest ? 0.92 : 1);
+  hemi.intensity = (0.72 - d * 0.32 + fest * 0.08) * wm.hemiMul;
+  sun.intensity = (0.95 - d * 0.7 + fest * 0.12) * wm.sunMul;
+  sun.color.setRGB(
+    1,
+    0.65 - d * 0.25 + fest * 0.08 - wm.cool * 0.15,
+    0.35 - d * 0.2 + fest * 0.05 + Math.max(0, wm.cool) * 0.12
+  );
+  fillL.intensity = (0.28 + d * 0.3 + fest * 0.1) * wm.fillMul;
   updateSky(dt, t, d);
   updateClouds(dt, t);
+  updateTempleStampsVisual(t);
+  updateFateEvent(dt, t);
+  updatePilgrimNpcs(dt, t);
+  updateGossipCircle(dt, t);
+  updateFestivalFx(dt, t);
 
-  // Đèn lung linh
+  // Đèn lung linh (+ sáng hơn lúc giờ hội / Không khí an)
   S.lanterns.forEach(L => {
     const flick = 0.7 + 0.3 * Math.sin(t * 3 + L.userData.ph) * Math.sin(t * 5.1 + L.userData.ph);
-    if (L.userData.gm) L.userData.gm.emissiveIntensity = 0.6 + flick * 0.8;
-    if (L.userData.pl) L.userData.pl.intensity = 0.25 + flick * 0.35 + d * 0.2;
+    if (L.userData.gm) L.userData.gm.emissiveIntensity = 0.6 + flick * 0.8 + fest * 0.55 + wm.lantern * 0.55;
+    if (L.userData.pl) L.userData.pl.intensity = 0.25 + flick * 0.35 + d * 0.2 + fest * 0.45 + wm.lantern * 0.35;
   });
 
   // Ruy băng đung đưa
@@ -4759,6 +8725,7 @@ function updateWorld(dt, t) {
   }
 
   updateParticles(dt);
+  updateSenBay(dt, t);
   updateProjectiles(dt);
   updateBursts(dt);
   updateDestroyables(dt);
@@ -4804,6 +8771,12 @@ function bootGame() {
     buildPlayer();
     buildAI();
     buildBtsCrew();
+    buildTempleStamps();
+    buildSenBay();
+    buildPilgrimNpcs();
+    buildFestivalFx();
+    updateMeritHud();
+    updateTimeHud();
     const tip = document.getElementById('loading-tip');
     if (tip) tip.remove();
     animate();

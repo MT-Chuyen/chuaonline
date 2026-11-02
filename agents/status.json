@@ -1,0 +1,1093 @@
+{
+  "updatedAt": "2026-11-02T20:23:18+07:00",
+  "pipeline": {
+    "agent1": {
+      "id": "agent1",
+      "name": "Agent 1 — Director",
+      "role": "Assign · Review · Improve",
+      "status": "working",
+      "detail": "Review Sen Bay + next IRL-impossible pagoda wonder"
+    },
+    "agent2": {
+      "id": "agent2",
+      "name": "Agent 2 — Builder",
+      "role": "Implement task in index.html",
+      "status": "done",
+      "detail": "Build complete — Sen Bay ready for review"
+    },
+    "pipelinePhase": "review"
+  },
+  "currentTask": {
+    "file": "agents/tasks/TASK-20261102-2008-pagoda-fantasy.md",
+    "name": "TASK-20261102-2008-pagoda-fantasy.md",
+    "title": "Sen Bay — Sen khổng lồ bay trên sân chùa",
+    "wish": "Ai lên chùa cũng từng ước ngồi trong đóa sen khổng lồ treo lơ lửng trên sân — nhìn xuống tháp, tượng Phật, hồ sen — thanh tịnh kiểu chỉ có trong mơ. Game cho họ làm điều đó: **Sen Bay**, một đài sen sống biết nâng người lên trời chùa.",
+    "phase": "review",
+    "checklist": [
+      {
+        "done": true,
+        "text": "**Hotspot Sen Bay** gần đài sen / tượng Phật giữa sân (`buildStandingBuddha` ~`0,-4.6`) hoặc sàn trước tháp — **không** đẩy sang phố / BTS. Prompt + `near` radius giống interact chuông/hương"
+      },
+      {
+        "done": true,
+        "text": "**Một mesh sen bay** (reuse geometry đài sen / petal nếu có; 1 group nhẹ): idle glow trên mặt đất → sit → lerp lên cao → hover → hạ xuống. Không physics nặng, không multi-lotus swarm"
+      },
+      {
+        "done": true,
+        "text": "**Cửa sổ ride** 12–20s với HUD/tiny chip hoặc toast countdown nhẹ; Hủy = hạ sen an toàn về chỗ cũ; `S.busy` / interact pattern hiện có"
+      },
+      {
+        "done": true,
+        "text": "**Tầng escalate** tối thiểu 3: `van` / `nguyet` / `tinh` — persist `senBayBestTier` (và optionally `senBayRides`) trong `saveAll`; lần đầu mỗi tầng → toast + Sổ line + `gainCongDuc`"
+      },
+      {
+        "done": true,
+        "text": "**VFX rẻ**: particle cánh hoa / soft light (reuse particle helpers nếu có); không post-process stack; tắt/bớt trên mobile nếu FPS thấp (theo pattern particle rain hiện có)"
+      },
+      {
+        "done": true,
+        "text": "**Sổ cầu an** section ngắn **🪷 Sen Bay** — số lần ngồi, tầng cao nhất, 1–3 dòng nhật ký gần đây"
+      },
+      {
+        "done": true,
+        "text": "Soft hooks (optional nhưng nên có ≥1): thắp hương hoặc thỉnh chuông *trước* khi ngồi → lần đó dễ lên tầng kế / +1 công đức “duyên sen”; ban đêm hoặc weather `calm` → glow đẹp hơn"
+      },
+      {
+        "done": true,
+        "text": "UI copy **tiếng Việt** (prompt, toast, Sổ) nơi game đã dùng VN"
+      },
+      {
+        "done": true,
+        "text": "Mobile + desktop usable; FPS-safe (1 lotus + ≤1 particle burst)"
+      },
+      {
+        "done": true,
+        "text": "Reuse: `toast`, `gainCongDuc`, Sổ/`openBook`, day cycle, weather mood, interact/`S.busy`, particles"
+      },
+      {
+        "done": true,
+        "text": "**Do NOT** expand BTS / princess / idol romance"
+      },
+      {
+        "done": true,
+        "text": "**Do NOT** expand phố shops / gossip this pass"
+      }
+    ],
+    "done": 12,
+    "total": 12,
+    "progress": 100.0,
+    "hasDoneReport": true,
+    "doneReport": "- Files changed: `index.html` only (courtyard Sen Bay; no street/gate/shop edits)\n- What the player can do now:\n  - After ~18–28s in sân (or sooner after thắp hương / thỉnh chuông), a glowing **Sen Bay** lotus appears in front of the standing Buddha (`0,-1.35`)\n  - Walk up → **「Ngồi Sen Bay」** → sit; lotus rises ~4.6–7.8m, hovers ~12–20s total, then descends\n  - **Hủy** / Esc mid-ride safely lowers the lotus\n  - Session rides escalate **Vân → Nguyệt → Tịnh**; incense/bell “duyên” bumps tier +1 and +1 công đức; night/`calm` warms the glow\n  - First visit each tier stamps Sổ + bigger công đức; flair **Khách Sen Bay** on title / Sổ section **🪷 Sen Bay**\n- How to test:\n  1. Open `index.html`, enter game, walk to center courtyard near Buddha/đài sen (south of statue toward lư hương)\n  2. Wait for toast *“Đóa sen đang chờ bạn…”* (~20s) **or** thắp hương / thỉnh chuông first to unlock early\n  3. Stand in pink glow → tap **Ngồi Sen Bay** → confirm lift-off + petal burst + toast\n  4. Tap **Hủy · hạ sen** or Esc to descend early; ride again for Nguyệt / Tịnh\n  5. Open **Sổ** → section **🪷 Sen Bay** shows rides, best tier, log lines\n- Known limits / next ideas for Agent 1:\n  - Presence does not yet sync a live “on lotus” pose to remotes (title flair only via `publishPresence`)\n  - No multiplayer shared lotus / co-op rise\n  - Next courtyard wonder candidates: cloud bridge, talking Buddha, time-rewind chuông (still no street)",
+    "mtime": "2026-11-02T20:18:25+07:00"
+  },
+  "tasks": [
+    {
+      "file": "agents/tasks/TASK-20261102-2008-pagoda-fantasy.md",
+      "name": "TASK-20261102-2008-pagoda-fantasy.md",
+      "title": "Sen Bay — Sen khổng lồ bay trên sân chùa",
+      "wish": "Ai lên chùa cũng từng ước ngồi trong đóa sen khổng lồ treo lơ lửng trên sân — nhìn xuống tháp, tượng Phật, hồ sen — thanh tịnh kiểu chỉ có trong mơ. Game cho họ làm điều đó: **Sen Bay**, một đài sen sống biết nâng người lên trời chùa.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Hotspot Sen Bay** gần đài sen / tượng Phật giữa sân (`buildStandingBuddha` ~`0,-4.6`) hoặc sàn trước tháp — **không** đẩy sang phố / BTS. Prompt + `near` radius giống interact chuông/hương"
+        },
+        {
+          "done": true,
+          "text": "**Một mesh sen bay** (reuse geometry đài sen / petal nếu có; 1 group nhẹ): idle glow trên mặt đất → sit → lerp lên cao → hover → hạ xuống. Không physics nặng, không multi-lotus swarm"
+        },
+        {
+          "done": true,
+          "text": "**Cửa sổ ride** 12–20s với HUD/tiny chip hoặc toast countdown nhẹ; Hủy = hạ sen an toàn về chỗ cũ; `S.busy` / interact pattern hiện có"
+        },
+        {
+          "done": true,
+          "text": "**Tầng escalate** tối thiểu 3: `van` / `nguyet` / `tinh` — persist `senBayBestTier` (và optionally `senBayRides`) trong `saveAll`; lần đầu mỗi tầng → toast + Sổ line + `gainCongDuc`"
+        },
+        {
+          "done": true,
+          "text": "**VFX rẻ**: particle cánh hoa / soft light (reuse particle helpers nếu có); không post-process stack; tắt/bớt trên mobile nếu FPS thấp (theo pattern particle rain hiện có)"
+        },
+        {
+          "done": true,
+          "text": "**Sổ cầu an** section ngắn **🪷 Sen Bay** — số lần ngồi, tầng cao nhất, 1–3 dòng nhật ký gần đây"
+        },
+        {
+          "done": true,
+          "text": "Soft hooks (optional nhưng nên có ≥1): thắp hương hoặc thỉnh chuông *trước* khi ngồi → lần đó dễ lên tầng kế / +1 công đức “duyên sen”; ban đêm hoặc weather `calm` → glow đẹp hơn"
+        },
+        {
+          "done": true,
+          "text": "UI copy **tiếng Việt** (prompt, toast, Sổ) nơi game đã dùng VN"
+        },
+        {
+          "done": true,
+          "text": "Mobile + desktop usable; FPS-safe (1 lotus + ≤1 particle burst)"
+        },
+        {
+          "done": true,
+          "text": "Reuse: `toast`, `gainCongDuc`, Sổ/`openBook`, day cycle, weather mood, interact/`S.busy`, particles"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand phố shops / gossip this pass"
+        }
+      ],
+      "done": 12,
+      "total": 12,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html` only (courtyard Sen Bay; no street/gate/shop edits)\n- What the player can do now:\n  - After ~18–28s in sân (or sooner after thắp hương / thỉnh chuông), a glowing **Sen Bay** lotus appears in front of the standing Buddha (`0,-1.35`)\n  - Walk up → **「Ngồi Sen Bay」** → sit; lotus rises ~4.6–7.8m, hovers ~12–20s total, then descends\n  - **Hủy** / Esc mid-ride safely lowers the lotus\n  - Session rides escalate **Vân → Nguyệt → Tịnh**; incense/bell “duyên” bumps tier +1 and +1 công đức; night/`calm` warms the glow\n  - First visit each tier stamps Sổ + bigger công đức; flair **Khách Sen Bay** on title / Sổ section **🪷 Sen Bay**\n- How to test:\n  1. Open `index.html`, enter game, walk to center courtyard near Buddha/đài sen (south of statue toward lư hương)\n  2. Wait for toast *“Đóa sen đang chờ bạn…”* (~20s) **or** thắp hương / thỉnh chuông first to unlock early\n  3. Stand in pink glow → tap **Ngồi Sen Bay** → confirm lift-off + petal burst + toast\n  4. Tap **Hủy · hạ sen** or Esc to descend early; ride again for Nguyệt / Tịnh\n  5. Open **Sổ** → section **🪷 Sen Bay** shows rides, best tier, log lines\n- Known limits / next ideas for Agent 1:\n  - Presence does not yet sync a live “on lotus” pose to remotes (title flair only via `publishPresence`)\n  - No multiplayer shared lotus / co-op rise\n  - Next courtyard wonder candidates: cloud bridge, talking Buddha, time-rewind chuông (still no street)",
+      "mtime": "2026-11-02T20:18:25+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-1852-global-temple.md",
+      "name": "TASK-20261102-1852-global-temple.md",
+      "title": "Global temple living world — công đức, day cycle, explore stamps",
+      "wish": "Players want the *whole chùa* to feel alive and meaningful: progress that matters, a world that changes, secrets to hunt, and a title they earned — not a celebrity cameo.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Công đức meter (global progression)**"
+        },
+        {
+          "done": true,
+          "text": "**Day → dusk → night mood cycle**"
+        },
+        {
+          "done": true,
+          "text": "**Exploration photo/stamp route (3 spots)**"
+        },
+        {
+          "done": true,
+          "text": "**Multiplayer show-off (deeds, not idols)**"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + FPS + existing combat/BTS **untouched except** shared HUD/presence if needed"
+        },
+        {
+          "done": true,
+          "text": "**Do not** add new BTS/princess features in this task"
+        }
+      ],
+      "done": 6,
+      "total": 6,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`, `agents/loop-state.json`, this task file\n- What the player can do now:\n  - Earn **công đức** from thắp hương, chuông/mõ, xin quẻ, lời cầu — HUD chip + Sổ show tier **Thiện Nam → Tu Tập (25) → Hộ Pháp (70)**\n  - See **day / giờ vàng / đêm thiền / bình minh** cycle with sky+lighting shift and phase toasts + time chip\n  - Collect **3 ấn** (Cổng, Hồ Sen, Chính Điện); persist; 3/3 bonus công đức\n  - Online: presence publishes deed `title` / `merit`; remote nameplate shows `🌸 Tu Tập · Name`\n- How to test:\n  1. Enter play → merit + time + stamp chips visible\n  2. Thắp hương near lư → toast `+công đức`, chip updates\n  3. Walk glowing stamps (gate / pond / hall) → Thu thập ấn; reload keeps stamps/XP\n  4. Wait ~20–40s → sky shifts; toast giờ vàng / đêm thiền\n  5. Open Sổ → công đức + danh hiệu + ấn checklist\n  6. Second client online → see title on remote label; FPS toggle still works\n- Known limits / next ideas for Agent 1:\n  - Stamp positions are fixed courtyard markers (not photo UI)\n  - Title tiers are XP thresholds only (no cosmetics yet)\n  - Weather / co-op rituals / pilgrim NPCs still open for next global iteration\n  - Partial princess persist fields remain from aborted loop2 — no new BTS features shipped",
+      "mtime": "2026-11-02T20:08:03+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-princess-bts.md",
+      "name": "TASK-20261102-princess-bts.md",
+      "title": "Princess service + addictive BTS fantasy loop",
+      "wish": "Players wish they could be noticed, spoiled, and “owned the moment” by idols — kiss, marry, be carried, be followed, be treated like royalty. Real life never allows that. The game should.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "Add a clear in-world / UI entry: **“Chế độ Công Chúa”** (Princess Mode) when near BTS or after marry/husband"
+        },
+        {
+          "done": true,
+          "text": "Princess Mode behaviors for living BTS members near player:"
+        },
+        {
+          "done": true,
+          "text": "Keep existing kiss / bế / husband follow working"
+        },
+        {
+          "done": true,
+          "text": "Add 1–2 **secret explore hooks** near temple (sign or glowing spot) that unlocks an extra line or a “royal ring” buff (session-only is fine)"
+        },
+        {
+          "done": true,
+          "text": "Mobile-friendly buttons in existing BTS action UI"
+        },
+        {
+          "done": true,
+          "text": "Make it feel exclusive: short sparkle/heart burst when Princess Mode starts"
+        }
+      ],
+      "done": 6,
+      "total": 6,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html` (CSS/HUD/BTS bar + Princess Mode logic, secrets, VFX); this task file.\n- What the player can do now:\n  - Near BTS (or with BTS bar open): tap **Chế độ Công Chúa** (bar + modal) to toggle Princess Mode.\n  - Living idols form a soft escort circle; husband still follows (or joins escort when several are alive).\n  - Periodic bows + Vietnamese toasts (“dạ công chúa…”); serve tea/fan with prop + toast.\n  - Kiss / bế / làm chồng keep working; dead members are skipped.\n  - Explore glowing spots: **Sen ẩn** (~5.4, −1.6) → session **Nhẫn Hoàng Gia**; **Đèn ẩn** (~−8.2, 3.6) → extra line.\n  - Sparkle/heart burst + HUD chip `👑 Công Chúa` when mode (or ring) is on.\n- How to test:\n  1. Enter game → walk to BTS fanmeet near gate (~−6.5, 9.2).\n  2. Open BTS actions → **Chế độ Công Chúa** → confirm burst, escort, bow/serve toasts within ~15s.\n  3. Try hôn / bế / làm chồng while mode is on.\n  4. Walk to sen glow (east of sân) and đèn glow (near chuông area); collect both.\n  5. Toggle FPS (V / nút 3rd) and reload — no blank screen.\n- Known limits / next ideas for Agent 1:\n  - Royal ring / princess title are session-only (not in localStorage).\n  - Serve props are simple meshes (cup/fan), not full animations.\n  - Could later persist title in Sổ or add a short “công chúa parade” emote.",
+      "mtime": "2026-11-02T20:08:01+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-1953-street-shop-interact.md",
+      "name": "TASK-20261102-1953-street-shop-interact.md",
+      "title": "Phố An Lạc — Ghé quán (street shop interact)",
+      "wish": "Players finally walk the golden path out the gate and find shops that feel like a living street — order trà đá, sit for phở gossip crumbs, get a silly hair tip — not only the đánh ghen circle. Soft “escape ordinary life” + belong / show-off via a tiny **Khách Phố** flair from temple-adjacent city life.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Shop interact targets** — wire the 4 existing `shopSpecs` buildings as proximity hooks (`nearShop` or similar), same pattern as pilgrim / gossip / stamp. Labels in Vietnamese matching signs: Cà phê Sài Gòn, Phở Bà Tư, Tiệm tóc Mai, Trà đá vỉa hè"
+        },
+        {
+          "done": true,
+          "text": "**Per-shop beat** — on interact: distinct toast (and optional 1-button mini panel) with playful, non-creepy copy. Examples: trà đá “ly mát · ngồi vỉa hè”; phở “một tô ấm bụng”; cà phê “ly nâu đá”; tóc “soi gương · mái vẫn ổn”. Tiny +1–4 công đức; **first visit** per shop slightly higher + Sổ log"
+        },
+        {
+          "done": true,
+          "text": "**Collection + flair** — track `shopVisited` (persist in `saveAll`); 4/4 → set flair flag (e.g. `S.khachPho`) included in `templeFlairSuffix` / Sổ; HUD chip or toast when complete"
+        },
+        {
+          "done": true,
+          "text": "**Sổ section** — short **🛤️ Phố An Lạc · quán** list (visited / missing); do not replace gossip story UI"
+        },
+        {
+          "done": true,
+          "text": "**Leave intact** — golden path circles + **RA PHỐ AN LẠC** sign; gossip / đánh ghen circle + “Hỏi chuyện”; weather moods; festival; streak; pilgrims; Cầu chung; fate; stamps; công đức tiers. Shops must not steal gossip proximity when standing in the circle (gossip wins if both near)"
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop usable (reuse existing interact button; no new heavy UI chrome)"
+        },
+        {
+          "done": true,
+          "text": "Reuse temple / proximity / toast / `gainCongDuc` / Sổ / save patterns"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand đánh ghen story / combat this pass (shops only)"
+        }
+      ],
+      "done": 10,
+      "total": 10,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`; `agents/tasks/TASK-20261102-1953-street-shop-interact.md`; `agents/loop-state.json`\n- What the player can do now:\n  - Follow golden path **east (+X / phải, đối diện chuông)** → Phố An Lạc\n  - Stand at door glow of **Cà phê Sài Gòn / Phở Bà Tư / Tiệm tóc Mai / Trà đá vỉa hè** → interact **Ghé quán**\n  - First visit: Vietnamese beat modal + toast + công đức + Sổ log + steam puff; revisit: smaller +công đức\n  - 4/4 unlocks persistent flair **Khách Phố** on merit chip / title / Sổ\n  - Gossip circle still wins proximity if both near\n- How to test:\n  1. Load game → walk **RIGHT** (opposite bell) along vàng rings → **RA PHỐ AN LẠC** (~x 12→20, z≈3.2)\n  2. Approach a shop door (golden floor ring) → press interact → confirm toast + công đức\n  3. Visit all 4 → see **Khách Phố** on merit chip; open Sổ → **🛤️ Phố An Lạc · quán**\n  4. Stand in pink gossip circle → button stays **Hỏi chuyện** (not shop)\n- Known limits / next ideas for Agent 1:\n  - No economy / menu; revisit reward is tiny\n  - Optional: soft daily goal “ghé 1 quán” or photo stamp on street\n  - Shop door radius is door-front only — standing deep behind building won’t trigger",
+      "mtime": "2026-11-02T19:59:37+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-1945-weather-mood.md",
+      "name": "TASK-20261102-1945-weather-mood.md",
+      "title": "Thời tiết & Không khí chùa — Weather / mood gameplay",
+      "wish": "Players want the temple to feel alive beyond the day/night clock — rain on the roof, morning mist, a soft “không khí” that makes each visit feel rare and changes how rituals land. Sacred calm on demand + escape ordinary life.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Weather / mood system** — 3–4 named states tied to GLOBAL atmosphere (not a cameo). Suggested set:"
+        },
+        {
+          "done": true,
+          "text": "**Visual hook in `updateWorld`** — modulate existing `scene.background`, `scene.fog`, `hemi` / `sun` / `fillL` (and lantern flicker if easy) by mood multipliers; coexist with dusk + Giờ hội (festival wins or layers gently — document choice)"
+        },
+        {
+          "done": true,
+          "text": "**HUD + copy** — chip or time-chip subtitle in Vietnamese; toast on mood enter/exit (throttled); Sổ section **🌦️ Không khí chùa** with current mood + short recent log"
+        },
+        {
+          "done": true,
+          "text": "**Soft gameplay** — at least 2 mood×act flavor hooks, e.g. mưa → thắp hương toast “khói lẫn mưa”; sương → chuông / Cầu chung soft bonus; không khí an → xin quẻ or pilgrim help tiny công đức bump. Keep numbers small; never soft-lock goals"
+        },
+        {
+          "done": true,
+          "text": "**Coexistence** — leave intact: công đức tiers, day cycle, stamps, fortune→fate, Cầu chung, pilgrims, Phố An Lạc/gossip, Giờ hội, daily streak / Mục tiêu. Mood should *paint* those systems, not rewrite them"
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop + FPS usable (cheap particles only; no post-process stack)"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand đánh ghen / gossip / street shop interact this pass"
+        }
+      ],
+      "done": 9,
+      "total": 9,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html` (weather moods + rain particles + HUD chip + Sổ + soft ritual bonuses + save/load seen/log); this task; `agents/loop-state.json`\n- What the player can do now:\n  - ~1.6s after play, a named mood rolls (`clear` / `mist` / `rain` / `calm`) with HUD **🌦️** chip + toast; windows ~48–84s then re-roll by day phase (calm rarer; hội biases clear/calm)\n  - Sky/fog/hemi/sun/fill/lanterns shift per mood; rain shows cheap streak particles. **Coexistence:** dusk base + Giờ hội warm/intensity still apply; weather only multiplies fog/lights and tints — hội wins warmth, weather paints atmosphere\n  - First time each mood → +2 công đức + Sổ log; **🌦️ Không khí chùa** lists current + đã gặp + recent log\n  - Soft “đúng lúc” (once per window): mưa×hương, sương×chuông/cầu chung, calm×quẻ/hành hương, mưa×chuông — tiny +1–3 công đức flavor toasts\n- How to test:\n  1. Open `index.html`, enter name, play → within ~2–5s watch weather chip + enter toast; fog/sky should feel different within ~30s\n  2. Wait for **🌧️ Mưa nhẹ** (or console `setWeatherMood('rain')`) → thắp hương → toast “Khói lẫn mưa…”\n  3. `setWeatherMood('mist')` → thỉnh chuông / cầu chung → soft sương bonus; `setWeatherMood('calm')` → xin quẻ or giúp hành hương\n  4. Open **Sổ** → **🌦️ Không khí chùa**; reload keeps `weatherSeen` / log\n  5. During Giờ hội, mood chip still updates but lanterns stay warm (festival layer intact); streak/fest/pilgrim/fate/coop untouched\n- Known limits / next ideas for Agent 1:\n  - No remote sync of mood (friends don’t yet “join the vibe” over net)\n  - Could add wet ground sheen / soft ambient rain audio later\n  - Optional debug skip or longer windows for photographers\n\n## Director review (Agent 1 — loop 9)\nAccepted. Moods, chip, visuals, Sổ, soft ritual hooks, and festival layering all land; no tiny polish needed. Golden path / RA PHỐ left alone. Next assign: street shop interact (final-ish before iter 10).",
+      "mtime": "2026-11-02T19:53:44+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-1939-daily-streak-goals.md",
+      "name": "TASK-20261102-1939-daily-streak-goals.md",
+      "title": "Daily streak & Sổ goals — Chuỗi ngày · Mục tiêu hôm nay",
+      "wish": "Players want a clear reason to come back tomorrow and feel their temple life *means something* — a daily ritual checklist in Sổ plus a growing “chuỗi ngày” that rewards consistency without grinding. Progress / meaning + soft sacred routine on demand.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Daily goals** — each local calendar day, roll or pick 2–3 goals from a small pool tied to *existing* systems (examples: thắp hương 1×, thỉnh chuông hoặc Cầu chung 1×, xin quẻ / hoàn thành 1 vận, thu 1 ấn mới hoặc bất kỳ ấn, giúp 1 hành hương, 1 act giờ hội *if* window happens — make giờ hội optional/bonus so offline day still completable). Show in **Sổ cầu an** under **📋 Mục tiêu hôm nay** with live ✓ / ⬜"
+        },
+        {
+          "done": true,
+          "text": "**Chuỗi ngày** — persist `dailyStreak`, `lastDailyDay` (YYYY-MM-DD local), `dailyGoals` / completion flags in `saveAll` / load. Increment streak when player clears the day (or meets “active day” rule — prefer: at least all required goals, or document clearly). Soft reset on missed day; toast once"
+        },
+        {
+          "done": true,
+          "text": "**Feedback** — toast on goal complete + day clear; HUD hint (tiny on merit chip, stamp-chip style chip, or Sổ-only + first toast) so player finds it in ≤10s after play start on a fresh day"
+        },
+        {
+          "done": true,
+          "text": "**Rewards** — `gainCongDuc` on goal + day-clear bonus; optional streak milestone flair on presence / merit suffix (session or persisted lightweight flag OK); log day-clear lines in Sổ (cap ~12)"
+        },
+        {
+          "done": true,
+          "text": "**Coexistence** — leave intact: công đức tiers, day cycle, stamps, fortune→fate, Cầu chung, pilgrims, Phố An Lạc/gossip, Giờ hội chùa. Goals should *consume* those systems, not rewrite them"
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop + FPS usable"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand đánh ghen / gossip / street shops"
+        }
+      ],
+      "done": 9,
+      "total": 9,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html` (daily goals + chuỗi ngày + streak chip + Sổ + save/load + act hooks + flair); this task; `agents/loop-state.json`\n- What the player can do now:\n  - Each local day gets **2–3 required Mục tiêu** (deterministic roll from hương / chuông·cầu chung / quẻ·vận / ấn / hành hương / lời cầu) + optional **Giờ hội** bonus\n  - HUD **🔥 Chuỗi** chip + ~1.6s toast naming today’s goals; open **Sổ** → **📋 Mục tiêu hôm nay** with ✅/⬜ + **🔥 Nhật khóa** log\n  - Completing a hooked act checks the matching goal (+6 công đức; festival bonus +5); clearing all required → **Nhật khóa** bonus, streak++, Sổ line\n  - Streak milestones **3 → Chuyên Cần**, **7 → Nhật Tu** on merit/presence suffix; miss a calendar day → soft reset + kind toast\n  - Progress persists via `loadSave` / `saveAll` (`dailyStreak`, `lastDailyDay`, `dailyGoalsDay`, `dailyGoals`, `dailyCleared`, `dailyLog`, `streakFlair`)\n- How to test:\n  1. Open `index.html`, enter name, play → within ~2s see streak chip + toast **📋 Mục tiêu hôm nay**\n  2. Open **Sổ** → section **📋 Mục tiêu hôm nay** lists today’s ✅/⬜ (Giờ hội marked thưởng)\n  3. Do one listed act (e.g. thắp hương) within ~30s → goal toast + chip `done/total` updates\n  4. Finish remaining required goals → **Nhật khóa** toast + công đức; Sổ log line; reload same day keeps streak/checks\n  5. (Optional) Set `lastDailyDay` two days back in localStorage → reload → soft-break toast; smoke festival / pilgrims / Cầu chung / stamps / fate still work; no new BTS UI\n- Known limits / next ideas for Agent 1:\n  - Streak advances only on **full required clear** (not “any one goal”)\n  - Stamp goal is omitted from the roll if bộ ấn already 3/3\n  - No push notifications / server calendar; weather system still a good next GLOBAL pass\n\n## Acceptance criteria\n- Player sees today’s goals within ~10s of opening Sổ (and a toast/chip hint within ~15s of play start on a new day)\n- Can complete one goal within ~30s using an existing act they already know\n- Streak persis",
+      "mtime": "2026-11-02T19:45:12+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-1932-festival-hour.md",
+      "name": "TASK-20261102-1932-festival-hour.md",
+      "title": "Festival hour — Giờ hội chùa",
+      "wish": "Players want the temple to *come alive on a schedule* — a short, rare “hội” window where the yard feels magical, rituals pay more, and they earn a festival deed they can show in Sổ / presence. Sacred calm on demand + reason to linger through the day cycle.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Festival window** — detect/schedule a short spike from existing `timeOfDay` / `timePhase` (do not replace day cycle). Clear enter + exit toasts; time-chip shows festival state while active"
+        },
+        {
+          "done": true,
+          "text": "**Atmosphere** — at least 2 of: lantern glow boost, floating petals/confetti, ambient pitch/volume nudge, soft extra crowd silhouettes in yard (cheap meshes OK). Keep FPS mobile-friendly"
+        },
+        {
+          "done": true,
+          "text": "**Festival action** — one clear hook within ~30s: either boosted first incense/bell during window **or** a dedicated near-zone action **Cầu giờ hội** / **Thả hoa hội** that awards once per window (or once + small repeat cap)"
+        },
+        {
+          "done": true,
+          "text": "**Rewards** — `gainCongDuc` bonus, toast, persist Sổ list `festivalMoments` (max ~12); session flair “Khách Hội” on merit chip / presence title if easy"
+        },
+        {
+          "done": true,
+          "text": "**Coexistence** — leave intact: công đức tiers, day cycle base phases, stamps, fortune→fate, Cầu chung, pilgrim quests, Phố An Lạc + đánh ghen gossip (do not expand street/gossip/BTS)"
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop + FPS usable"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** rewrite đánh ghen / gossip circle / street district beyond leaving them intact"
+        }
+      ],
+      "done": 9,
+      "total": 9,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html` (festival window + VFX + Thả hoa hội + Sổ/save/presence flair); task + `agents/loop-state.json`\n- What the player can do now:\n  - Once per day-cycle at late day (`tod≈0.18`), a **~58s Giờ hội chùa** opens — toast + time-chip `🎉 Giờ hội · Ns` + warmer sky\n  - Atmosphere: brighter lanterns, denser petal rain, soft crowd silhouettes, ambient tone/volume nudge\n  - Dedicated **Thả hoa hội** (cam vòng sáng near hồ sen, up to 2×/window) or boosted thắp hương / thỉnh chuông\n  - First festival act → bonus công đức + Sổ **🎉 Giờ hội chùa** + session **Khách Hội** on merit chip / presence; 2nd → **Hội duyên**; pilgrim soft tip “Đúng giờ hội rồi…”\n  - Ignoring the window just ends with exit toast — no soft-lock\n- How to test:\n  1. Open `index.html`, enter name, play (start quickly — festival ~7–10s after boot from `tod=0.12`)\n  2. Watch toast + time-chip flip to **🎉 Giờ hội**; lanterns/petals/crowd silhouettes kick in\n  3. Walk to orange marker by hồ sen → **Thả hoa hội** (or thắp hương / thỉnh chuông) → công đức + Khách Hội\n  4. Do a second festival act → **Hội duyên** toast\n  5. Open **Sổ** → section **🎉 Giờ hội chùa**; wait for exit toast when timer ends\n  6. Smoke-check: stamps, xin quẻ→Theo vận, Cầu chung, pilgrim giúp, Phố An Lạc gossip still work; no new BTS UI\n- Known limits / next ideas for Agent 1:\n  - Festival is wall-clock ~58s once per cycle (not real-world calendar)\n  - Khách Hội is session flair (not persisted) — could become a deed title later\n  - Next: weather (mưa/sương) layered on day cycle, or Sổ daily goals that mention giờ hội without BTS",
+      "mtime": "2026-11-02T19:40:02+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-1924-npc-pilgrim-quests.md",
+      "name": "TASK-20261102-1924-npc-pilgrim-quests.md",
+      "title": "NPC pilgrim quests — chuyện hành hương ngắn",
+      "wish": "Players want the yard to feel *inhabited by stories*, not empty props: meet funny/soft pilgrims, help with a tiny errand, earn a deed line + công đức, and feel like the temple’s quiet helper — without idol/BTS content.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**2–3 pilgrim NPCs** in the courtyard (reuse / extend existing soft NPC / crowd meshes if any; else simple labeled figures + billboard name). Not BTS idols."
+        },
+        {
+          "done": true,
+          "text": "**Quest hook** — near pilgrim → action **Nói chuyện** / **Giúp** → short choice or one-step errand that routes player to an existing zone (chuông, hương, stamp spot, gate, fortune) within ~30–40s"
+        },
+        {
+          "done": true,
+          "text": "**At least 3 quest variants** (rotate or pick unused id per session): funny mishap tone OK; all Vietnamese UI copy"
+        },
+        {
+          "done": true,
+          "text": "**Rewards** — `gainCongDuc`, toast, persist Sổ list `pilgrimQuests` (max ~12), session count; optional light title flavor if easy (reuse công đức tier / presence, no new idol cosmetics tree)"
+        },
+        {
+          "done": true,
+          "text": "**Coexistence** — do not break Cầu chung NPC helper, stamps, fortune→fate, day cycle, solo chuông"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop + FPS usable"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        }
+      ],
+      "done": 7,
+      "total": 7,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html` (pilgrim NPCs + quests, Sổ/save/presence); task + `agents/loop-state.json`\n- What the player can do now:\n  - Meet **3** labeled pilgrims (Bà Năm / Chú Tư / Cô Hạnh) with soft green glow in the yard\n  - **Giúp / Nói chuyện** → accept a short Vietnamese errand (6 variants; 3 assigned per session, unused ids preferred; dusk/night biases a rarer ask)\n  - Follow the green marker to an existing zone (cổng, lư hương, chuông, hồ sen, xin quẻ) and press **Xong việc** (~75s soft timeout / “Thôi giúp”)\n  - Doing the matching ritual (thắp hương / thỉnh·cầu chung / xin quẻ / thu ấn cổng·hồ) also completes the errand\n  - Earn công đức + Sổ **Giúp hành hương** line; 2+ helps → **Thiện Duyên** flair on merit chip / presence title; optional wish-feed blip online\n- How to test:\n  1. Open `index.html`, enter name, play\n  2. Look for green-glow figures + tip “Hành hương · …” (e.g. near gate / fortune / wish side of yard)\n  3. Press action **Giúp · …** → **Giúp** → toast tip + green destination marker\n  4. Walk to marker → **Xong việc** (or do matching incense/bell/fortune/stamp) → toast + công đức\n  5. Open **Sổ** → section **🌿 Giúp hành hương**; help a second pilgrim → **Thiện Duyên** toast\n  6. Smoke-check: Cầu chung at chuông, stamps, xin quẻ→Theo vận, day-phase chip still work; no new BTS UI\n- Known limits / next ideas for Agent 1:\n  - Pilgrims stay put (no pathing); one quest each until helped then “Cảm ơn”\n  - Session pool can reshuffle if all variants used; no multi-day calendar yet\n  - Next: pilgrim return schedules, tiny dialogue beats, or festival-hour special ask without BTS",
+      "mtime": "2026-11-02T19:28:52+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-1904-coop-ritual.md",
+      "name": "TASK-20261102-1904-coop-ritual.md",
+      "title": "Co-op social ritual — shared chuông cầu an",
+      "wish": "Players want to *belong with someone on the yard* — not alone XP. A short shared ritual (chuông / cầu an cùng lúc) that only works when another pilgrim (remote player or friendly NPC stand-in) is near, with a world toast they can show off.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Co-op hook at chuông (or incense zone)** — when local player is near bell/mõ zone AND (a remote player within ~5m OR a soft NPC pilgrim helper if alone offline), show action **Cầu chung** (distinct from solo rung chuông)"
+        },
+        {
+          "done": true,
+          "text": "**Synced mini-window (≤6s)** — start ritual → partner prompt / local “đợi nhịp” → both complete (solo+NPC path auto-fills second beat so offline still works). Success = clear feedback; fail/timeout = gentle toast, no soft-lock"
+        },
+        {
+          "done": true,
+          "text": "**Rewards** — +công đức (higher than solo bell), toast Vietnamese, Sổ entry list `coopRituals` (max ~15), session `coopStreak` bonus"
+        },
+        {
+          "done": true,
+          "text": "**Social show-off** — if online: `publishWish` / presence blip with deed line (names), not idol content"
+        },
+        {
+          "done": true,
+          "text": "Reuse zones, action-btn, toast, gainCongDuc, publishPresence/publishWish, day phase only as light flavor"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop + FPS usable; existing solo chuông / incense / fortune / stamps still work"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        }
+      ],
+      "done": 7,
+      "total": 7,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html` only\n- What the player can do now:\n  - Near **gác chuông** → toast “Có thể cầu chung” + action **Cầu chung · [tên]**\n  - Menu: **Cầu chung** (remote partner or soft NPC hành hương) or **Thỉnh một mình** (solo minigame intact)\n  - ≤6s window: tap **Đồng nhịp** → “đợi nhịp” → partner auto-beat (NPC / nearby remote) → dual VFX + toast + công đức (≥16, streak & dusk/night bump) + Sổ `coopRituals`\n  - Online: inbox invite toast to partner + `publishWish` deed line; session `coopStreak` shown in Sổ\n- How to test:\n  1. Open game offline → walk to gác chuông (trái sân, ~(-9.5, -2))\n  2. See cue / action **Cầu chung** → chọn **Cầu chung** → bấm **Đồng nhịp** trong ~6s → đợi nhịp NPC → success toast + merit pulse\n  3. Mở **Sổ** → section **Cầu chung bên chuông**; lặp 2 lần để thấy chuỗi\n  4. Chọn **Thỉnh một mình** vẫn mở minigame chuông cũ; quẻ / ấn / ngày đêm vẫn chạy\n  5. (Optional online) 2 tab cùng link đứng gần chuông → Cầu chung với tên bạn remote + wish feed\n- Known limits / next ideas for Agent 1:\n  - Partner beat is soft-auto (presence), not a full two-client lockstep input sync\n  - Co-op focused at chuông only (not mõ / incense yet)\n  - Next GLOBAL ideas: weather/festival mood, deed cosmetics / nameplate flair, shared leaderboard of cầu chung",
+      "mtime": "2026-11-02T19:10:59+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-1859-fortune-fate.md",
+      "name": "TASK-20261102-1859-fortune-fate.md",
+      "title": "Fortune → short fate mini-event in the yard",
+      "wish": "Xin quẻ should feel like *fate briefly opens a door* — not only a text modal. Players want a playful “run of destiny” they can only live out on this temple yard: chase a sign, touch a glowing spot, get a short exclusive moment + show-off reward.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Hook from existing xin quẻ** — after `finishFortuneDraw` / “Nhận lời”, offer a clear CTA: e.g. button **Đi theo vận** (or auto-spawn marker if player dismisses with a short tip toast)"
+        },
+        {
+          "done": true,
+          "text": "**Yard fate mini-event (30–60s max)** — spawn 1 primary glowing marker in the courtyard (reuse stamp-style mesh OR distinct gold/lotus cue). Near + action → complete event. Optional: 2-step path (marker A → marker B) for Trung Cát+; keep Đại Cát slightly juicier (extra VFX / +công đức)"
+        },
+        {
+          "done": true,
+          "text": "**Outcome tied to quẻ** — use rank/title from `drawQue()` to pick flavor copy in Vietnamese + reward size (small table: Trung bình / Trung Cát / Đại Cát…). Persist a short line in Sổ (fortunes or new `fateRuns` list, max ~20)"
+        },
+        {
+          "done": true,
+          "text": "**Feedback** — toast, pulse merit HUD, soft VFX/sound (reuse `playWhoosh` / `playBell` / existing particles if easy)"
+        },
+        {
+          "done": true,
+          "text": "**Session loop** — player can xin quẻ again for another fate run; don’t soft-lock if they walk away (marker expires ~45–90s with gentle toast)"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop + FPS usable; reuse zones / action-btn / toast / gainCongDuc"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        }
+      ],
+      "done": 7,
+      "total": 7,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html` only\n- What the player can do now:\n  - After xin quẻ, modal shows **Đi theo vận** (or dismiss / Nhận lời → same spawn + tip toast)\n  - Gold/lotus glowing yard markers appear (~55–80s TTL); Trung Cát+ = 2-step path; Đại/Thượng Cát = juicier VFX + more công đức\n  - Walk to marker → action button **Theo vận** → toast + merit pulse + Sổ `fateRuns` entry; session streak bonus; light online wish blip\n  - Walk away / timeout → gentle “vận đã khép” toast; xin quẻ again for another run\n- How to test:\n  1. Open game → walk to **Xin quẻ đầu năm** → lắc quẻ\n  2. Tap **Đi theo vận** (or Nhận lời) → look for golden glowing marker(s) in courtyard\n  3. Walk onto marker → action button → complete (2nd marker if Trung Cát+)\n  4. Confirm toast + công đức chip pulse + Sổ section **Theo vận trên sân**\n  5. Ignore a marker ~70s → expire toast; xin quẻ again; stamps / day cycle / incense still work\n- Known limits / next ideas for Agent 1:\n  - No compass/arrow to marker (player must scout the yard)\n  - Online blip reuses wish feed (short deed line), not a dedicated fate channel\n  - Next GLOBAL ideas: weather festival mood, co-op bell, title cosmetics from deeds",
+      "mtime": "2026-11-02T19:03:24+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-1849-princess-loop2.md",
+      "name": "TASK-20261102-1849-princess-loop2.md",
+      "title": "Princess Mode loop 2 — parade, persist, soft commands, show-off",
+      "wish": "Being a công chúa once is cute; staying one, ordering soft commands (hát / cúi chào), leading a parade, and having *other players see the title* is the addictive fantasy IRL never allows.",
+      "phase": "assigned",
+      "checklist": [
+        {
+          "done": false,
+          "text": "**Công chúa parade / group photo emote**"
+        },
+        {
+          "done": false,
+          "text": "**Persist royal title** (localStorage via existing `loadSave` / `saveAll`)"
+        },
+        {
+          "done": false,
+          "text": "**1+ new explore secret / collectible** near temple"
+        },
+        {
+          "done": false,
+          "text": "**Funnier serve + random soft commands** while Princess Mode is on"
+        },
+        {
+          "done": false,
+          "text": "**Show-off title to other players** (multiplayer hooks exist)"
+        },
+        {
+          "done": false,
+          "text": "UI copy Vietnamese; mobile + desktop usable"
+        },
+        {
+          "done": false,
+          "text": "Reuse Princess Mode / BTS / Firebase presence — no full rewrite"
+        }
+      ],
+      "done": 0,
+      "total": 7,
+      "progress": 0.0,
+      "hasDoneReport": false,
+      "doneReport": "",
+      "mtime": "2026-11-02T18:50:46+07:00"
+    }
+  ],
+  "git": {
+    "indexDirty": true,
+    "indexMtime": "2026-11-02T20:22:38+07:00",
+    "diffStat": "index.html | 4395 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++----\n 1 file changed, 4127 insertions(+), 268 deletions(-)"
+  },
+  "activity": [
+    {
+      "ts": "2026-11-02T20:22:51+07:00",
+      "agent": "agent1",
+      "message": "Review Sen Bay + next IRL-impossible pagoda wonder",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:18:30+07:00",
+      "agent": "agent2",
+      "message": "Build complete — Sen Bay ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:17:36+07:00",
+      "agent": "agent2",
+      "message": "Sen Bay ride + tiers + So wired",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:14:38+07:00",
+      "agent": "system",
+      "message": "Loop scope: pagoda only — no Phố An Lạc tasks",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:14:11+07:00",
+      "agent": "agent2",
+      "message": "Starting Sen Bay build",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:13:51+07:00",
+      "agent": "agent2",
+      "message": "Building Sen Bay floating lotus",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:09:42+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: TASK-20261102-2008-pagoda-fantasy.md",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:09:42+07:00",
+      "agent": "agent1",
+      "message": "Assigned Sen Bay pagoda fantasy (floating lotus ride) → Agent 2",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:08:13+07:00",
+      "agent": "agent1",
+      "message": "Inventing impossible pagoda wonder for Agent2",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:08:12+07:00",
+      "agent": "system",
+      "message": "Loop restarted — 10 rounds, pagoda fantasy",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:08:12+07:00",
+      "agent": "system",
+      "message": "Loop armed — next: agent1",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:00:52+07:00",
+      "agent": "system",
+      "message": "Loop stopped",
+      "status": "idle"
+    },
+    {
+      "ts": "2026-11-02T20:00:51+07:00",
+      "agent": "agent1",
+      "message": "Final review — loop complete",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:00:10+07:00",
+      "agent": "agent1",
+      "message": "Final loop 10/10 — reviewing street shops",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:59:41+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:59:41+07:00",
+      "agent": "agent2",
+      "message": "Finished: Khách Phố flair + Sổ Phố An Lạc",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:59:41+07:00",
+      "agent": "agent2",
+      "message": "Finished: shop interact targets + beats",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:56:39+07:00",
+      "agent": "agent2",
+      "message": "Starting build: street shop interact",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:56:18+07:00",
+      "agent": "agent2",
+      "message": "Starting street shop interact 9/10",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:53:46+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:53:46+07:00",
+      "agent": "agent1",
+      "message": "Reviewed weather (accept, no polish); assigned street shop interact TASK-20261102-1953",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:52:36+07:00",
+      "agent": "agent1",
+      "message": "Loop 9/10 — reviewing weather mood",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:51:22+07:00",
+      "agent": "agent1",
+      "message": "Loop 9/10 — reviewing weather mood",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:50:59+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:50:59+07:00",
+      "agent": "agent2",
+      "message": "Finished: weather mood system + visuals + HUD/Sổ + soft ritual bonuses",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:47:15+07:00",
+      "agent": "agent2",
+      "message": "Starting build",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:46:57+07:00",
+      "agent": "agent2",
+      "message": "Starting weather & mood system",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:46:42+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:46:42+07:00",
+      "agent": "agent1",
+      "message": "Reviewed daily streak (solid); assigned weather/mood TASK-20261102-1945",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:45:36+07:00",
+      "agent": "agent1",
+      "message": "Loop 8/10 — reviewing daily streak goals",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:45:15+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:45:15+07:00",
+      "agent": "agent2",
+      "message": "Finished: daily goals + chuỗi ngày + Sổ UI + persistence",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:41:28+07:00",
+      "agent": "agent2",
+      "message": "Implementing daily goals + chuỗi ngày core",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:40:42+07:00",
+      "agent": "agent2",
+      "message": "Starting build: daily streak + Sổ goals",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:40:23+07:00",
+      "agent": "agent2",
+      "message": "Starting daily streak + Sổ goals",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:40:07+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: daily streak + Sổ goals",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:40:06+07:00",
+      "agent": "agent1",
+      "message": "Reviewed festival hour — accepted, no polish",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:39:02+07:00",
+      "agent": "agent1",
+      "message": "Loop 7/10 — reviewing festival hour",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:38:37+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:38:37+07:00",
+      "agent": "agent2",
+      "message": "Finished: Thả hoa hội + rewards + Sổ Khách Hội",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:38:37+07:00",
+      "agent": "agent2",
+      "message": "Finished: festival window + atmosphere",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:33:28+07:00",
+      "agent": "agent2",
+      "message": "Starting build: Giờ hội chùa",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:33:08+07:00",
+      "agent": "agent2",
+      "message": "Starting Giờ hội chùa festival hour",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:32:52+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:32:52+07:00",
+      "agent": "agent1",
+      "message": "Reviewed pilgrim quests (OK); assigned festival hour Giờ hội chùa",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:31:49+07:00",
+      "agent": "agent1",
+      "message": "Loop 6/10 — reviewing pilgrim quests + street",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:28:53+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:28:52+07:00",
+      "agent": "agent2",
+      "message": "Finished: 3 pilgrims + 6 quest variants + Sổ/Thiện Duyên",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:26:13+07:00",
+      "agent": "agent2",
+      "message": "Scaffolding pilgrim NPCs + quests",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:25:13+07:00",
+      "agent": "agent2",
+      "message": "Starting build",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:24:56+07:00",
+      "agent": "agent2",
+      "message": "Starting NPC pilgrim quests 5/10",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:24:40+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: TASK-20261102-1924-npc-pilgrim-quests.md",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:24:40+07:00",
+      "agent": "agent1",
+      "message": "Iter5: co-op OK light pass; assigned NPC pilgrim quests (unused pillar)",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:23:46+07:00",
+      "agent": "agent1",
+      "message": "Resuming global loop 5/10",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:23:46+07:00",
+      "agent": "system",
+      "message": "Loop resumed — max 10 (iter 5)",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:23:46+07:00",
+      "agent": "system",
+      "message": "Loop armed — next: agent1",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:12:08+07:00",
+      "agent": "system",
+      "message": "Loop stopped",
+      "status": "idle"
+    },
+    {
+      "ts": "2026-11-02T19:12:08+07:00",
+      "agent": "agent1",
+      "message": "Final review — loop complete",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:11:26+07:00",
+      "agent": "agent1",
+      "message": "Final loop pass 4/4 — reviewing co-op ritual",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:11:02+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:10:20+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:10:20+07:00",
+      "agent": "agent2",
+      "message": "Finished: co-op window + rewards + Sổ",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:07:59+07:00",
+      "agent": "agent2",
+      "message": "Wiring coop ritual at chuông",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:06:23+07:00",
+      "agent": "agent2",
+      "message": "Starting build: co-op chuông cầu chung",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:06:03+07:00",
+      "agent": "agent2",
+      "message": "Starting co-op chuông cầu chung",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:05:43+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: co-op social ritual (chuông cầu chung)",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:05:43+07:00",
+      "agent": "agent1",
+      "message": "Reviewed fortune→fate; added compass chip polish; assigned co-op ritual TASK-20261102-1904",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:03:50+07:00",
+      "agent": "agent1",
+      "message": "Loop iter 3 — reviewing fortune fate",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:03:25+07:00",
+      "agent": "agent2",
+      "message": "Build complete — fortune→fate mini-event ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T19:01:13+07:00",
+      "agent": "agent2",
+      "message": "Adding fateRuns state + reward table + yard markers",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:00:44+07:00",
+      "agent": "agent2",
+      "message": "Starting build: fortune→fate mini-event",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:00:26+07:00",
+      "agent": "agent2",
+      "message": "Starting fortune → fate mini-event",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T19:00:04+07:00",
+      "agent": "agent1",
+      "message": "Reviewed global systems; polished HUD/toasts; assigned fortune→fate yard event",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T18:58:12+07:00",
+      "agent": "agent1",
+      "message": "Reviewing global temple systems (merit/day/stamps/title)",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T18:57:51+07:00",
+      "agent": "agent1",
+      "message": "Loop iter 2 — reviewing global temple systems",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T18:57:32+07:00",
+      "agent": "agent2",
+      "message": "Build complete — global temple: cong duc, day cycle, stamps, presence title",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T18:54:12+07:00",
+      "agent": "agent2",
+      "message": "Building: cong duc, day cycle, stamps, presence title",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T18:53:21+07:00",
+      "agent": "agent2",
+      "message": "Switching focus: global temple systems (stop princess)",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T18:53:17+07:00",
+      "agent": "agent2",
+      "message": "Pivoting off BTS → global temple task",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T18:53:17+07:00",
+      "agent": "system",
+      "message": "Focus pivoted → GLOBAL temple (BTS deprioritized)",
+      "status": "working"
+    }
+  ]
+}

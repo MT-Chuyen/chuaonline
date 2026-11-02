@@ -749,8 +749,12 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
     </div>
   </div>
 </div>
-<!-- Âm thanh ẩn — hình ảnh gắn trên mesh 3D như tranh Ronaldo–Messi -->
-<iframe id="yt-audio" title="Nhạc phố" allow="autoplay; encrypted-media" style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-99px;top:-99px;border:0"></iframe>
+<!-- Nhạc phố: iframe ngoài màn hình (không hiện hộp đen). Poster trên bảng 3D. -->
+<iframe id="yt-audio" title="Nhạc phố"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  referrerpolicy="strict-origin-when-cross-origin"
+  allowfullscreen
+  style="position:fixed;left:-12000px;top:0;width:480px;height:270px;opacity:1;pointer-events:none;border:0;z-index:-1"></iframe>
 <div id="bubbles"></div>
 
 <script type="module">
@@ -862,6 +866,12 @@ const S = {
   phoVangUses: 0, phoVangBestTier: '', phoVangLog: [],
   khachGioVang: false, _gioVangTipAt: 0, _gioVangStreetTip: false,
   _phoVangDuyenReady: false, _phoVangDuyenTip: false,
+  // Boy Phố · Đội Hè (west entrance Phố An Lạc)
+  nearBoyPho: null, boyPhoStand: null, boyPhoAct: null,
+  boyPhoChaos: 0, boyPhoHangs: 0, boyPhoRaces: 0, boyPhoLog: [],
+  banPho: false, anhEmPho: false,
+  _boyPhoTipAt: 0, _boyPhoStreetTip: false, _boyPhoHangTip: false,
+  _boyPhoDuyenReady: false, _boyPhoDuyenTip: false,
   // Hẻm Phóng Lợn — tội phạm xe máy cũ (bắn được)
   phongLonCrew: null, phongLonKills: 0, phongLonLog: [], truGian: false,
   _phongLonTipAt: 0, _phongLonStreetTip: false, phongLonRoot: null,
@@ -1164,6 +1174,18 @@ function loadSave() {
         at: w.at | 0,
       })).filter(w => w.text);
     }
+    if (typeof d.boyPhoChaos === 'number') S.boyPhoChaos = Math.max(0, d.boyPhoChaos | 0);
+    if (typeof d.boyPhoHangs === 'number') S.boyPhoHangs = Math.max(0, d.boyPhoHangs | 0);
+    if (typeof d.boyPhoRaces === 'number') S.boyPhoRaces = Math.max(0, d.boyPhoRaces | 0);
+    if (typeof d.banPho === 'boolean') S.banPho = d.banPho;
+    if (typeof d.anhEmPho === 'boolean') S.anhEmPho = d.anhEmPho;
+    if (Array.isArray(d.boyPhoLog)) {
+      S.boyPhoLog = d.boyPhoLog.slice(-12).map(w => ({
+        text: String(w.text || '').slice(0, 80),
+        kind: String(w.kind || '').slice(0, 12),
+        at: w.at | 0,
+      })).filter(w => w.text);
+    }
     if (typeof d.phongLonKills === 'number') S.phongLonKills = Math.max(0, d.phongLonKills | 0);
     if (typeof d.truGian === 'boolean') S.truGian = d.truGian;
     if (typeof d.vuaTruGian === 'boolean') S.vuaTruGian = d.vuaTruGian;
@@ -1320,6 +1342,12 @@ function saveAll() {
       phoVangBestTier: S.phoVangBestTier || '',
       khachGioVang: !!S.khachGioVang,
       phoVangLog: (S.phoVangLog || []).slice(-12),
+      boyPhoChaos: S.boyPhoChaos | 0,
+      boyPhoHangs: S.boyPhoHangs | 0,
+      boyPhoRaces: S.boyPhoRaces | 0,
+      banPho: !!S.banPho,
+      anhEmPho: !!S.anhEmPho,
+      boyPhoLog: (S.boyPhoLog || []).slice(-12),
       phongLonKills: S.phongLonKills | 0,
       truGian: !!S.truGian,
       vuaTruGian: !!S.vuaTruGian,
@@ -1389,6 +1417,8 @@ function templeFlairSuffix() {
   if (S.chuHo) parts.push('Chủ Họ');
   if (S.banTraMua) parts.push('Bạn Trà Mưa');
   if (S.khachGioVang) parts.push('Khách Giờ Vàng');
+  if (S.anhEmPho) parts.push('Anh Em Phố');
+  else if (S.banPho) parts.push('Bạn Phố');
   if (S.vuaTruGian) parts.push('Vua Trừ Gian');
   else if (S.truGian) parts.push('Trừ Gian');
   if (S.khachSenBay) parts.push('Khách Sen Bay');
@@ -3408,6 +3438,7 @@ function buildStreetDistrict() {
   buildKaraokeStand();
   buildHotHoStand();
   buildMuaTraStand();
+  buildBoyPhoStand();
   buildGioVangStand();
   buildGossipCircle();
   buildGossipCircleNgoaiTinh();
@@ -7797,6 +7828,619 @@ function updateGioVang(dt, t) {
   if (u >= 1) finishGioVangCall(false);
 }
 
+/* ========== Boy Phố · Đội Hè · đầu hè Phố An Lạc ========== */
+/** West entrance (bridge) — north of lane; clear of love/mirror/shops/karaoke/Giờ Vàng mid */
+const BOY_PHO_SPOT = { x: 14.9, z: STREET_Z + 2.35, r: 2.2 };
+const BOY_PHO_RACE = { x0: 15.0, x1: 24.0, z: STREET_Z };
+const BOY_PHO_CHAO_LINES = [
+  '🛹 Boy Phố: “Ê anh em — chào cái đã!”',
+  '🛤️ Đội hè An Lạc gật đầu · nhận mặt',
+];
+const BOY_PHO_HANG_LINES = [
+  '🛹 Tụ tập · lean tường · bật flash giả',
+  '🛤️ Đội hè tạo vòng · mình đứng giữa',
+  '🛹 “Pose nhẹ — đừng làm màu quá”',
+  '✨ Điện thoại flash · phố nhớ hình',
+];
+const BOY_PHO_RACE_LINES = [
+  '🛹 Đua hè · wall-run ngắn dọc Phố An Lạc!',
+  '💨 Bụi tốc · đội chạy cạnh mình',
+  '🛤️ Không bay sen — chỉ hop hè bất khả',
+  '🛹 Về đích trước bến xích lô!',
+];
+
+function boyPhoTutapUnlocked() {
+  return (S.boyPhoChaos | 0) >= 1;
+}
+function boyPhoDuaUnlocked() {
+  return (S.boyPhoHangs | 0) >= 1 || (S.boyPhoChaos | 0) >= 2;
+}
+function pickBoyPhoVerb() {
+  if (!boyPhoTutapUnlocked()) return 'chao';
+  if (!boyPhoDuaUnlocked()) return 'tutap';
+  return 'dua';
+}
+function boyPhoVerbLabel(v) {
+  if (v === 'tutap') return 'Tụ tập';
+  if (v === 'dua') return 'Đua hè';
+  return 'Chào Boy Phố';
+}
+function streetBoyPhoBlocked() {
+  if (S.xichLoRide) return 'xích lô';
+  if (S.karaokePerf) return 'karaoke';
+  if (S.phoVangCall) return 'giờ vàng';
+  if (S.hotHoDraw) return 'hốt họ';
+  if (S.muaTraHen) return 'mưa trà';
+  return null;
+}
+function markBoyPhoDuyen() {
+  if (S._boyPhoDuyenReady) return;
+  S._boyPhoDuyenReady = true;
+  if (!S._boyPhoDuyenTip) {
+    S._boyPhoDuyenTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast('🛹 Khách phố / quán nhớ mình — đội hè đua sẽ thêm duyên');
+    }, 900);
+  }
+}
+
+function buildBoyPhoBoy(teeColor, capColor, scale) {
+  const h = buildHumanoid({ robeColor: teeColor, scale: scale || 0.95, withFace: true });
+  const cap = new THREE.Mesh(
+    new THREE.BoxGeometry(0.42, 0.1, 0.48),
+    new THREE.MeshStandardMaterial({ color: capColor, roughness: 0.7 })
+  );
+  cap.position.set(0, 1.72, 0.04);
+  h.add(cap);
+  const brim = new THREE.Mesh(
+    new THREE.BoxGeometry(0.38, 0.04, 0.18),
+    new THREE.MeshStandardMaterial({ color: capColor, roughness: 0.75 })
+  );
+  brim.position.set(0, 1.68, 0.28);
+  h.add(brim);
+  return h;
+}
+
+function buildBoyPhoStand() {
+  const sx = BOY_PHO_SPOT.x, sz = BOY_PHO_SPOT.z;
+  const stand = new THREE.Group();
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(1.55, 24),
+    new THREE.MeshBasicMaterial({
+      color: 0x66ccee, transparent: true, opacity: 0.16,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.set(0, 0.035, 0);
+  stand.add(glow);
+
+  const tip = textPlane('🛹 Boy Phố · đội hè', 360, 48, '#e8f8ff', '#1a3040', 15);
+  tip.position.set(0, 2.05, 0);
+  tip.scale.set(2.4, 0.4, 1);
+  stand.add(tip);
+
+  const pl = new THREE.PointLight(0x88ddee, 0.22, 5.5, 2);
+  pl.position.set(0, 1.5, 0);
+  stand.add(pl);
+
+  const sparks = [];
+  const nSpark = IS_MOBILE ? 4 : 9;
+  for (let i = 0; i < nSpark; i++) {
+    const sp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.035, 5, 4),
+      new THREE.MeshBasicMaterial({ color: 0xa0e8ff, transparent: true, opacity: 0.0, depthWrite: false })
+    );
+    sp.position.set((Math.random() - 0.5) * 1.6, 0.15, (Math.random() - 0.5) * 1.6);
+    stand.add(sp);
+    sparks.push({ mesh: sp, ph: Math.random() * 6.28, spd: 0.7 + Math.random() * 1.1 });
+  }
+
+  stand.position.set(sx, 0, sz);
+  scene.add(stand);
+
+  const defs = [
+    { tee: 0x2a6a8a, cap: 0x1a1a22, ox: -0.55, oz: 0.35, rot: 0.4 },
+    { tee: 0xc45c2a, cap: 0x333340, ox: 0.5, oz: 0.45, rot: -0.5 },
+    { tee: 0x3a7a4a, cap: 0x222228, ox: -0.15, oz: -0.55, rot: 2.8 },
+    { tee: 0x5a5a70, cap: 0x2a2a30, ox: 0.65, oz: -0.25, rot: -2.2 },
+  ];
+  const boys = defs.map((d, i) => {
+    const boy = buildBoyPhoBoy(d.tee, d.cap, 0.92 + (i % 2) * 0.04);
+    boy.position.set(sx + d.ox, 0, sz + d.oz);
+    boy.rotation.y = d.rot;
+    boy.userData.homeX = sx + d.ox;
+    boy.userData.homeZ = sz + d.oz;
+    boy.userData.homeRot = d.rot;
+    boy.userData.phase = i * 1.7;
+    scene.add(boy);
+    return boy;
+  });
+
+  S.boyPhoStand = {
+    mesh: stand, glow, tip, light: pl, sparks, boys,
+    pos: new THREE.Vector3(sx, 0, sz),
+  };
+}
+
+function pickNearBoyPho() {
+  if (!playerRoot || S.boyPhoAct || !S.boyPhoStand) return null;
+  const d = Math.hypot(
+    playerRoot.position.x - BOY_PHO_SPOT.x,
+    playerRoot.position.z - BOY_PHO_SPOT.z
+  );
+  if (d > BOY_PHO_SPOT.r) return null;
+  const verb = pickBoyPhoVerb();
+  return { id: 'boypho', label: boyPhoVerbLabel(verb), verb, pos: BOY_PHO_SPOT };
+}
+
+function startBoyPhoAct() {
+  if (S.busy || S.boyPhoAct || !S.boyPhoStand) return;
+  const blocked = streetBoyPhoBlocked();
+  if (blocked) {
+    toast('🛹 Đội chờ hết lượt phố đã');
+    return;
+  }
+  if (S.khachPho || shopVisitCount() > 0) {
+    try { markBoyPhoDuyen(); } catch (_) {}
+  }
+  const verb = pickBoyPhoVerb();
+  if (verb === 'chao') startBoyPhoChao();
+  else if (verb === 'tutap') startBoyPhoHang();
+  else startBoyPhoRace();
+}
+
+function startBoyPhoChao() {
+  const first = (S.boyPhoChaos | 0) === 0;
+  const dur = 2.5;
+  S.busy = true;
+  S.boyPhoAct = {
+    kind: 'chao', t: 0, dur, first, rewarded: false,
+    lineIdx: 0, nextLineAt: 0.4,
+    lines: BOY_PHO_CHAO_LINES.slice(),
+    faceYaw: 0,
+  };
+  const dx = BOY_PHO_SPOT.x - playerRoot.position.x;
+  const dz = BOY_PHO_SPOT.z - playerRoot.position.z;
+  const yaw = Math.atan2(dx, dz);
+  S.yaw = yaw;
+  S.boyPhoAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armR.rotation.set(-0.9, 0, -0.2);
+    ud.armL.rotation.set(-0.3, 0, 0.25);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+  toast(first ? '🛹 Chào Boy Phố · đội hè gật đầu' : '🛹 Chào lại đội hè');
+  if (S.boyPhoStand?.glow?.material) S.boyPhoStand.glow.material.opacity = 0.28;
+}
+
+function startBoyPhoHang() {
+  if (!boyPhoTutapUnlocked()) {
+    toast('🛹 Chào đội trước đã');
+    return;
+  }
+  const first = (S.boyPhoHangs | 0) === 0;
+  const dur = IS_MOBILE ? 6.2 : 7.4;
+  S.busy = true;
+  playerRoot.position.set(BOY_PHO_SPOT.x, 0, BOY_PHO_SPOT.z);
+  S.boyPhoAct = {
+    kind: 'hang', t: 0, dur, first, rewarded: false,
+    lineIdx: 0, nextLineAt: 0.5,
+    lines: BOY_PHO_HANG_LINES.slice(),
+    faceYaw: 0,
+  };
+  const yaw = Math.atan2(0.2, -1);
+  S.yaw = yaw;
+  S.boyPhoAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(-0.55, 0, 0.55);
+    ud.armR.rotation.set(-0.55, 0, -0.55);
+  } catch (_) {}
+  const boys = S.boyPhoStand?.boys;
+  if (boys) {
+    boys.forEach((b, i) => {
+      const ang = (i / boys.length) * Math.PI * 2 + 0.3;
+      b.position.set(
+        BOY_PHO_SPOT.x + Math.cos(ang) * 1.15,
+        0,
+        BOY_PHO_SPOT.z + Math.sin(ang) * 1.15
+      );
+      b.lookAt(BOY_PHO_SPOT.x, b.position.y, BOY_PHO_SPOT.z);
+    });
+  }
+  try { playWhoosh(); } catch (_) {}
+  toast(first ? '🛹 Tụ tập · đội hè tạo vòng' : '🛹 Tụ tập lại với đội');
+  if (S.boyPhoStand?.glow?.material) S.boyPhoStand.glow.material.opacity = 0.32;
+}
+
+function startBoyPhoRace() {
+  if (!boyPhoDuaUnlocked()) {
+    toast(boyPhoTutapUnlocked()
+      ? '🛹 Tụ tập thêm hoặc chào lần nữa để mở Đua hè'
+      : '🛹 Chào / tụ tập trước đã');
+    return;
+  }
+  if (streetBoyPhoBlocked()) {
+    toast('🛹 Đội chờ hết lượt phố đã');
+    return;
+  }
+  const first = (S.boyPhoRaces | 0) === 0;
+  const x1 = IS_MOBILE ? 22.2 : BOY_PHO_RACE.x1;
+  const dur = IS_MOBILE ? 10.5 : 12.8;
+  const nightish = S.timePhase === 'night' || S.timePhase === 'dusk';
+  S.busy = true;
+  playerRoot.position.set(BOY_PHO_RACE.x0, 0, BOY_PHO_RACE.z);
+  S.boyPhoAct = {
+    kind: 'race', t: 0, dur, first, rewarded: false,
+    x0: BOY_PHO_RACE.x0, x1, z: BOY_PHO_RACE.z,
+    lineIdx: 0, nextLineAt: 0.55,
+    lines: BOY_PHO_RACE_LINES.slice(),
+    faceYaw: Math.PI / 2,
+    nightish,
+    duyen: !!S._boyPhoDuyenReady,
+  };
+  S.yaw = Math.PI / 2;
+  if (player) { player.rotation.y = Math.PI / 2; player.rotation.z = 0; }
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(-0.7, 0, 0.35);
+    ud.armR.rotation.set(-0.7, 0, -0.35);
+  } catch (_) {}
+  const boys = S.boyPhoStand?.boys;
+  if (boys) {
+    boys.forEach((b, i) => {
+      b.position.set(BOY_PHO_RACE.x0 - 0.3, 0, BOY_PHO_RACE.z + (i - 1.5) * 0.55);
+      b.rotation.y = Math.PI / 2;
+      b.rotation.z = 0;
+    });
+  }
+  try { playWhoosh(); } catch (_) {}
+  toast(S.anhEmPho
+    ? '🛹 Anh Em Phố · đua hè · đội reo to!'
+    : first
+      ? (nightish ? '🛹 Đua hè đêm · trail sáng hơn' : '🛹 Đua hè · wall-run dọc phố!')
+      : '🛹 Đua hè lại với đội');
+  if (S.boyPhoStand?.glow?.material) S.boyPhoStand.glow.material.opacity = 0.1;
+}
+
+function finishBoyPhoAct(early) {
+  const act = S.boyPhoAct;
+  if (!act) return;
+  const elapsed = act.t;
+  const counts = !early || elapsed >= 1.2;
+
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+    ud.legL.rotation.set(0, 0, 0); ud.legR.rotation.set(0, 0, 0);
+  } catch (_) {}
+  if (player) player.rotation.z = 0;
+  playerRoot.position.y = 0;
+
+  const boys = S.boyPhoStand?.boys;
+  if (boys) {
+    boys.forEach((b) => {
+      if (b.userData.homeX != null) {
+        b.position.set(b.userData.homeX, 0, b.userData.homeZ);
+        b.rotation.y = b.userData.homeRot || 0;
+        b.rotation.z = 0;
+        b.rotation.x = 0;
+      }
+    });
+  }
+
+  if (act.kind === 'race') {
+    const endX = early
+      ? (act.x0 + (act.x1 - act.x0) * Math.min(1, elapsed / Math.max(0.01, act.dur)))
+      : act.x1;
+    playerRoot.position.set(Math.min(endX, act.x1), 0, act.z);
+  } else {
+    playerRoot.position.set(BOY_PHO_SPOT.x + 0.4, 0, BOY_PHO_SPOT.z);
+  }
+
+  if (counts && !act.rewarded) {
+    act.rewarded = true;
+    let gain = 2;
+    if (act.kind === 'chao') {
+      S.boyPhoChaos = (S.boyPhoChaos | 0) + 1;
+      const n = S.boyPhoChaos | 0;
+      gain = act.first ? 6 : (early ? 2 : 3);
+      S.boyPhoLog = (S.boyPhoLog || []).concat([{
+        text: `${early ? 'Chào sớm' : 'Chào đội hè'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'chao', at: Date.now(),
+      }]).slice(-12);
+      if (n >= 2 && !S.banPho) {
+        S.banPho = true;
+        setTimeout(() => {
+          toast('🛹 Flair · Bạn Phố');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 1000);
+      } else if (n === 1) {
+        setTimeout(() => toast('🛹 Mở · Tụ tập với đội hè'), 800);
+      }
+      saveAll();
+      gainCongDuc(gain, act.first ? '🛹 Boy Phố · chào đội hè' : 'Boy Phố · chào', true);
+      toast(early
+        ? `🛹 Chào sớm · +${gain}`
+        : `🛹 Boy Phố · chào đội hè · +${gain}${act.first ? ' · lần đầu' : ` · ${n} lần`}`);
+    } else if (act.kind === 'hang') {
+      S.boyPhoHangs = (S.boyPhoHangs | 0) + 1;
+      const n = S.boyPhoHangs | 0;
+      gain = act.first ? 5 : (early ? 2 : 3);
+      S.boyPhoLog = (S.boyPhoLog || []).concat([{
+        text: `${early ? 'Tụ sớm' : 'Tụ tập'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'hang', at: Date.now(),
+      }]).slice(-12);
+      if (!S.banPho) {
+        S.banPho = true;
+        setTimeout(() => {
+          toast('🛹 Flair · Bạn Phố');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 1000);
+      }
+      if (n === 1) {
+        if (!S._boyPhoHangTip) {
+          S._boyPhoHangTip = true;
+          setTimeout(() => toast('🛹 Đội nhớ mình — thử Đua hè đầu hè'), 1200);
+        } else {
+          setTimeout(() => toast('🛹 Mở · Đua hè với đội'), 900);
+        }
+      }
+      saveAll();
+      gainCongDuc(gain, act.first ? '🛹 Boy Phố · tụ tập' : 'Boy Phố · tụ tập', true);
+      toast(early
+        ? `🛹 Tụ sớm · +${gain}`
+        : `🛹 Tụ tập đội hè · +${gain}${act.first ? ' · lần đầu' : ` · ${n} lần`}`);
+    } else if (act.kind === 'race') {
+      S.boyPhoRaces = (S.boyPhoRaces | 0) + 1;
+      const n = S.boyPhoRaces | 0;
+      gain = act.first ? 9 : (early ? 3 : 5);
+      if (act.duyen && S._boyPhoDuyenReady) {
+        S._boyPhoDuyenReady = false;
+        gain += 1;
+        setTimeout(() => toast('🛹 Duyên phố · +1 công đức đua hè'), 1300);
+      }
+      S.boyPhoLog = (S.boyPhoLog || []).concat([{
+        text: `${early ? 'Đua sớm' : 'Đua hè xong'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'race', at: Date.now(),
+      }]).slice(-12);
+      if (!S.banPho) {
+        S.banPho = true;
+        setTimeout(() => toast('🛹 Flair · Bạn Phố'), 900);
+      }
+      if (n >= 3 && !S.anhEmPho) {
+        S.anhEmPho = true;
+        setTimeout(() => {
+          toast('🛹 Flair · Anh Em Phố · đội nhận mình');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 1200);
+      } else if (S.anhEmPho && !early) {
+        setTimeout(() => toast('🛹 Đội hè reo · anh em về đích!'), 700);
+      }
+      saveAll();
+      gainCongDuc(gain, act.first ? '🛹 Boy Phố · đua hè' : 'Boy Phố · đua hè', true);
+      toast(early
+        ? `🛹 Đua sớm · +${gain}`
+        : `🛹 Đua hè An Lạc · +${gain}${act.first ? ' · lần đầu' : ` · ${n} lần`}`);
+      try {
+        const nSpark = IS_MOBILE ? 2 : 5;
+        for (let i = 0; i < nSpark; i++) {
+          emitSmoke(
+            playerRoot.position.x + (Math.random() - 0.5),
+            0.4 + Math.random() * 0.5,
+            playerRoot.position.z + (Math.random() - 0.5) * 0.4,
+            1
+          );
+        }
+      } catch (_) {}
+    }
+    try { playWhoosh(); } catch (_) {}
+    updateMeritHud();
+    pulseMeritHud();
+  } else if (!counts) {
+    toast('🛹 Chưa kịp — đứng gần đội hè thử lại');
+  }
+
+  const stand = S.boyPhoStand;
+  if (stand?.sparks) stand.sparks.forEach(s => { if (s.mesh?.material) s.mesh.material.opacity = 0; });
+  if (stand?.glow?.material) {
+    stand.glow.material.opacity = 0.16;
+    stand.glow.scale.set(1, 1, 1);
+  }
+  if (stand?.light) stand.light.intensity = 0.22;
+
+  S.boyPhoAct = null;
+  S.busy = false;
+}
+
+function cancelBoyPhoAct() {
+  if (!S.boyPhoAct) return;
+  finishBoyPhoAct(true);
+}
+
+function updateBoyPho(dt, t) {
+  const stand = S.boyPhoStand;
+  if (stand?.tip && camera) stand.tip.quaternion.copy(camera.quaternion);
+
+  if (playerRoot && playerRoot.position.x > 13.5 && playerRoot.position.z > STREET_Z - 1.2 && !S._boyPhoStreetTip) {
+    S._boyPhoStreetTip = true;
+    setTimeout(() => {
+      if (!S.playing || (S.boyPhoChaos | 0) > 0) return;
+      toast('🛹 Boy Phố đang đợi đầu hè…');
+    }, 3500);
+  }
+
+  if (stand?.boys && !S.boyPhoAct) {
+    stand.boys.forEach((b) => {
+      const ph = (b.userData.phase || 0) + t;
+      b.position.y = Math.sin(t * 1.8 + ph) * 0.02;
+      if (S.nearBoyPho && playerRoot) {
+        const dx = playerRoot.position.x - b.position.x;
+        const dz = playerRoot.position.z - b.position.z;
+        const target = Math.atan2(dx, dz);
+        let cur = b.rotation.y;
+        let diff = target - cur;
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        b.rotation.y = cur + diff * Math.min(1, dt * 3);
+      } else if (b.userData.homeRot != null) {
+        b.rotation.y += (b.userData.homeRot - b.rotation.y) * Math.min(1, dt * 1.5);
+      }
+      try {
+        const ud = b.userData;
+        if (ud.armL) ud.armL.rotation.z = 0.15 + Math.sin(t * 2 + ph) * 0.08;
+        if (ud.armR) ud.armR.rotation.z = -0.15 - Math.sin(t * 2.1 + ph) * 0.08;
+      } catch (_) {}
+    });
+  }
+
+  if (stand?.mesh && !S.boyPhoAct) {
+    if (stand.glow?.material) {
+      const warm = S.anhEmPho || S.banPho;
+      stand.glow.material.opacity = 0.1 + 0.1 * Math.abs(Math.sin(t * 1.5));
+      stand.glow.material.color.setHex(warm ? 0x88e0ff : 0x66ccee);
+    }
+    if (stand.light) stand.light.intensity = 0.16 + 0.1 * Math.abs(Math.sin(t * 1.7));
+  }
+
+  if (S.nearBoyPho && !S.boyPhoAct) {
+    const now = performance.now();
+    if (now - (S._boyPhoTipAt || 0) > 16000) {
+      S._boyPhoTipAt = now;
+      if (streetBoyPhoBlocked()) {
+        toast('🛹 Đội chờ hết lượt phố đã');
+      } else {
+        const v = pickBoyPhoVerb();
+        toast(S.anhEmPho
+          ? '🛹 Anh Em Phố · đua hè thêm vòng?'
+          : S.banPho
+            ? (v === 'dua' ? '🛹 Bạn Phố · thử Đua hè?' : `🛹 Bạn Phố · ${boyPhoVerbLabel(v)}`)
+            : v === 'chao'
+              ? '🛹 Boy Phố · chào đội hè?'
+              : `🛹 Đội hè · ${boyPhoVerbLabel(v)}`);
+      }
+    }
+  }
+
+  const act = S.boyPhoAct;
+  if (!act) return;
+
+  if ($('modal')?.classList.contains('open')) {
+    cancelBoyPhoAct();
+    return;
+  }
+
+  act.t += dt;
+  const u = Math.min(1, act.t / act.dur);
+
+  if (playerRoot) {
+    if (player) player.rotation.y = act.faceYaw;
+    S.yaw = act.faceYaw;
+  }
+
+  if (act.kind === 'chao') {
+    if (playerRoot) playerRoot.position.y = Math.sin(act.t * 3) * 0.02;
+    if (stand?.boys) {
+      stand.boys.forEach((b, i) => {
+        b.rotation.x = Math.sin(act.t * 4 + i) * 0.08;
+        if (playerRoot) b.lookAt(playerRoot.position.x, 0, playerRoot.position.z);
+      });
+    }
+  } else if (act.kind === 'hang') {
+    if (playerRoot) playerRoot.position.y = Math.sin(act.t * 2.2) * 0.015;
+    if (stand?.sparks) {
+      stand.sparks.forEach((s, i) => {
+        if (!s.mesh) return;
+        if (IS_MOBILE && i > 2) { s.mesh.visible = false; return; }
+        s.mesh.visible = true;
+        const flash = Math.abs(Math.sin(act.t * 5 + s.ph));
+        s.mesh.position.y = 1.1 + flash * 0.35;
+        s.mesh.position.x = Math.cos(s.ph + act.t) * 1.0;
+        s.mesh.position.z = Math.sin(s.ph * 1.2 + act.t) * 1.0;
+        s.mesh.material.opacity = 0.15 + flash * 0.55;
+        s.mesh.material.color.setHex(0xfff0c0);
+      });
+    }
+    if (stand?.light) stand.light.intensity = 0.3 + 0.5 * Math.abs(Math.sin(act.t * 5));
+    if (stand?.boys) {
+      stand.boys.forEach((b, i) => {
+        b.position.y = Math.sin(act.t * 2.5 + i) * 0.03;
+        try {
+          const ud = b.userData;
+          if (ud.armR) ud.armR.rotation.set(-1.1, 0, -0.4);
+        } catch (_) {}
+      });
+    }
+  } else if (act.kind === 'race') {
+    const x = act.x0 + (act.x1 - act.x0) * u;
+    let y = 0;
+    let lean = 0;
+    if (u > 0.12 && u < 0.32) {
+      const hu = (u - 0.12) / 0.2;
+      y = Math.sin(hu * Math.PI) * 0.55;
+    } else if (u > 0.45 && u < 0.72) {
+      const wu = (u - 0.45) / 0.27;
+      y = 0.35 + Math.sin(wu * Math.PI) * 0.45;
+      lean = -0.35;
+    } else if (u > 0.78 && u < 0.92) {
+      const hu = (u - 0.78) / 0.14;
+      y = Math.sin(hu * Math.PI) * 0.4;
+    }
+    if (playerRoot) {
+      playerRoot.position.set(x, y, act.z + Math.sin(act.t * 8) * 0.04);
+      if (player) player.rotation.z = lean;
+    }
+    try {
+      const ud = player.userData;
+      const run = act.t * 10;
+      if (ud.legL) ud.legL.rotation.x = Math.sin(run) * 0.7;
+      if (ud.legR) ud.legR.rotation.x = Math.sin(run + Math.PI) * 0.7;
+      if (ud.armL) ud.armL.rotation.x = Math.sin(run + Math.PI) * 0.5;
+      if (ud.armR) ud.armR.rotation.x = Math.sin(run) * 0.5;
+    } catch (_) {}
+
+    if (stand?.boys) {
+      stand.boys.forEach((b, i) => {
+        const offset = (i - 1.5) * 0.5;
+        const bx = x - 0.4 - i * 0.15 + Math.sin(act.t * 3 + i) * 0.1;
+        const by = y * (0.7 + i * 0.05);
+        b.position.set(bx, by, act.z + offset);
+        b.rotation.y = Math.PI / 2;
+        b.rotation.z = lean * 0.8;
+      });
+    }
+
+    if (stand?.sparks) {
+      const bright = act.nightish || S.anhEmPho;
+      stand.sparks.forEach((s, i) => {
+        if (!s.mesh) return;
+        if (IS_MOBILE && i > 3) { s.mesh.visible = false; return; }
+        s.mesh.visible = true;
+        s.mesh.material.opacity = 0.35 + 0.4 * Math.abs(Math.sin(act.t * 6 + s.ph));
+        s.mesh.material.color.setHex(bright ? 0xffe080 : 0xa0e8ff);
+        s.mesh.position.y = 0.2 + ((act.t * s.spd + s.ph) % 1) * 1.2;
+      });
+    }
+    if (Math.random() < (IS_MOBILE ? 0.08 : 0.18)) {
+      try { emitSmoke(x - 0.3, 0.2, act.z + (Math.random() - 0.5) * 0.5, 1); } catch (_) {}
+    }
+    if (stand?.light) stand.light.intensity = 0.2 + 0.6 * Math.abs(Math.sin(act.t * 4));
+  }
+
+  if (act.lineIdx < act.lines.length && act.t >= act.nextLineAt) {
+    toast(act.lines[act.lineIdx]);
+    act.lineIdx += 1;
+    act.nextLineAt = act.t + 2.8;
+  }
+
+  if (u >= 1) finishBoyPhoAct(false);
+}
+
 function addRibbon(x, y, z, ai) {
   const m = box(0.11, 0.85 + Math.random()*0.35, 0.02, M.silk, x, y, z, scene, false);
   m.rotation.y = Math.random()*3.14; m.userData.ph = Math.random()*6.28; m.userData.ai = ai;
@@ -11475,57 +12119,60 @@ function streetEmbedUrl(id, muted, startSec) {
   }
 }
 
-function mountStreetVideo(videoId, title, muted, startSec = 0) {
-  const frame = $('yt-yard-frame');
+function hideStreetVideoOverlay() {
   const yard = $('yt-yard');
-  if (!frame || !yard) return;
-  const id = parseYoutubeId(videoId) || String(videoId || '');
-  if (!id) {
-    frame.innerHTML = '';
-    return;
+  const frame = $('yt-yard-frame');
+  if (frame) frame.innerHTML = '';
+  if (yard) {
+    yard.classList.remove('on', 'yt-board', 'yt-playing', 'yt-searching');
+    yard.setAttribute('aria-hidden', 'true');
+    yard.style.opacity = '0';
+    yard.style.pointerEvents = 'none';
+    yard.style.width = '0';
+    yard.style.height = '0';
+    yard.style.left = '-9999px';
   }
-  const nice = String(title || 'YouTube').replace(/"/g, '');
-  // Autoplay: luôn bắt đầu mute (trình duyệt cho phép), rồi chuyển có tiếng sau cử chỉ
-  const wantSound = !muted;
-  const relay = streetEmbedUrl(id, true, startSec);
-  frame.innerHTML = `<iframe
-    id="yt-street-iframe"
-    src="${relay}"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-    allowfullscreen
-    referrerpolicy="strict-origin-when-cross-origin"
-    title="${nice}"
-  ></iframe>`;
-  yard.classList.add('on');
-  yard.classList.add('yt-board');
-  yard.classList.remove('yt-playing');
-  yard.classList.remove('yt-searching');
-  yard.setAttribute('aria-hidden', 'false');
   const cssRoot = $('yt-css3d');
-  if (cssRoot) cssRoot.setAttribute('aria-hidden', 'false');
-  S.musicMuted = true;
-  try { updateYardYtOverlay(); } catch (_) {}
+  if (cssRoot) {
+    cssRoot.setAttribute('aria-hidden', 'true');
+    cssRoot.style.pointerEvents = 'none';
+  }
+  const panel = S.musicRoot?.userData?.panel;
+  if (panel?.material) {
+    panel.material.opacity = 1;
+    panel.material.transparent = !!panel.material.map;
+  }
+}
 
-  const kickPlay = () => {
-    const ifr = $('yt-street-iframe');
-    if (!ifr?.contentWindow || S.musicVideoId !== id) return;
-    try { ifr.contentWindow.postMessage('pho-play', '*'); } catch (_) {}
+function mountStreetVideo(videoId, title, muted, startSec = 0) {
+  const id = parseYoutubeId(videoId) || String(videoId || '');
+  const audio = $('yt-audio');
+  if (!id || !audio) return;
+
+  // Không hiện hộp đen / sub-screen — chỉ poster trên bảng + nhạc ẩn ngoài màn
+  hideStreetVideoOverlay();
+
+  const wantSound = !muted;
+  // Autoplay mute trước (chắc chắn chạy), rồi bật tiếng
+  audio.src = streetEmbedUrl(id, true, startSec);
+  S.musicMuted = true;
+
+  const kick = () => {
+    if (S.musicVideoId !== id) return;
+    try { audio.contentWindow?.postMessage('pho-play', '*'); } catch (_) {}
+    try { audio.contentWindow?.postMessage('pho-unmute', '*'); } catch (_) {}
   };
-  setTimeout(kickPlay, 500);
-  setTimeout(kickPlay, 1500);
+  setTimeout(kick, 500);
+  setTimeout(kick, 1600);
 
   if (wantSound) {
-    // Remount có tiếng trong cùng phiên tương tác (chọn bài / bấm Phố)
     setTimeout(() => {
       if (S.musicVideoId !== id) return;
-      const ifr = $('yt-street-iframe');
-      if (!ifr) return;
       S.musicMuted = false;
-      const sec = streetMusicElapsedSec(S.musicStartedAt);
-      ifr.src = streetEmbedUrl(id, false, sec);
-      setTimeout(kickPlay, 400);
-      toast('🔊 Đang phát trên bảng phố');
-    }, 900);
+      audio.src = streetEmbedUrl(id, false, streetMusicElapsedSec(S.musicStartedAt));
+      setTimeout(kick, 500);
+      toast('🔊 Nhạc phố đang phát · nhìn bảng để xem poster');
+    }, 700);
   }
 }
 
@@ -11734,7 +12381,7 @@ function playMusicOnYard(videoId, title, opts = {}) {
   if (!opts.skipNet) publishStreetMusic(id, niceTitle);
 
   if (!opts.silent) {
-    toast(`🎵 Phát trên bảng phố · ${niceTitle}${startSec ? ` · từ ${startSec}s` : ''}`);
+    toast(`🎵 Nhạc phố · ${niceTitle} — bảng hiện poster, không hộp đen`);
   }
   try { playWhoosh(); } catch (_) {}
   if (!remote) {
@@ -11747,18 +12394,16 @@ function playMusicOnYard(videoId, title, opts = {}) {
 function unmuteStreetMusic() {
   if (!S.musicPlaying || !S.musicVideoId) return;
   S.musicMuted = false;
-  const ifr = $('yt-street-iframe');
+  const audio = $('yt-audio');
   const sec = streetMusicElapsedSec(S.musicStartedAt);
-  if (ifr) {
-    ifr.src = streetEmbedUrl(S.musicVideoId, false, sec);
+  if (audio) {
+    audio.src = streetEmbedUrl(S.musicVideoId, false, sec);
     setTimeout(() => {
-      try { ifr.contentWindow?.postMessage('pho-play', '*'); } catch (_) {}
-      try { ifr.contentWindow?.postMessage('pho-unmute', '*'); } catch (_) {}
+      try { audio.contentWindow?.postMessage('pho-play', '*'); } catch (_) {}
+      try { audio.contentWindow?.postMessage('pho-unmute', '*'); } catch (_) {}
     }, 500);
-  } else {
-    mountStreetVideo(S.musicVideoId, S.musicTitle || 'YouTube', false, sec);
   }
-  toast('🔊 Đã bật tiếng — nghe cùng phố');
+  toast('🔊 Đã bật tiếng nhạc phố');
 }
 
 /** ④ Kéo ngay một nhóm AI tới trước màn để nhún */
@@ -11919,7 +12564,6 @@ function css3dObjectMatrix(matrix) {
 
 function updateYardYtOverlay() {
   const el = $('yt-yard');
-  const camEl = $('yt-css3d-cam');
   const root = $('yt-css3d');
   if (!el) return;
   const panel = S.musicRoot?.userData?.panel;
@@ -11927,13 +12571,7 @@ function updateYardYtOverlay() {
     panel.getWorldPosition(S.musicScreenAnchor);
   }
 
-  // Tắt CSS3D cam — dùng tọa độ màn hình cố định (ổn định hơn)
-  if (camEl) camEl.style.transform = 'none';
-  if (root) {
-    root.style.perspective = 'none';
-    root.style.pointerEvents = 'none';
-  }
-
+  // Chỉ hiện UI khi đang tìm bài (panel tìm). Khi phát nhạc: không hộp đen.
   const searching = el.classList.contains('yt-searching') || document.activeElement === $('yt-yard-q');
   if (searching) {
     el.classList.add('on');
@@ -11943,7 +12581,6 @@ function updateYardYtOverlay() {
     el.style.height = '';
     el.style.left = '50%';
     el.style.top = '50%';
-    el.style.bottom = 'auto';
     el.style.opacity = '1';
     el.style.pointerEvents = 'auto';
     el.style.transform = 'translate(-50%, -50%)';
@@ -11952,86 +12589,9 @@ function updateYardYtOverlay() {
     return;
   }
 
-  if (!S.musicPlaying || !panel || !camera) {
-    if (!S.musicPlaying && el.classList.contains('on') && !S.musicMode) {
-      el.classList.remove('on');
-      el.classList.remove('yt-board');
-      el.classList.remove('yt-playing');
-      el.setAttribute('aria-hidden', 'true');
-      if (root) root.setAttribute('aria-hidden', 'true');
-    }
-    return;
-  }
-
-  // Gắn video đúng chỗ bảng trên màn hình (chiếu 4 góc plane)
-  panel.updateWorldMatrix(true, false);
-  panel.getWorldPosition(_v);
-  const hw = 4.3, hh = 2.425;
-  _ytC[0].set(-hw, hh, 0.04);
-  _ytC[1].set(hw, hh, 0.04);
-  _ytC[2].set(hw, -hh, 0.04);
-  _ytC[3].set(-hw, -hh, 0.04);
-  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-  let anyFront = false;
-  for (let i = 0; i < 4; i++) {
-    _ytC[i].applyMatrix4(panel.matrixWorld);
-    _v2.copy(_ytC[i]).project(camera);
-    if (_v2.z < 1) anyFront = true;
-    const sx = (_v2.x * 0.5 + 0.5) * window.innerWidth;
-    const sy = (-_v2.y * 0.5 + 0.5) * window.innerHeight;
-    if (sx < minX) minX = sx;
-    if (sx > maxX) maxX = sx;
-    if (sy < minY) minY = sy;
-    if (sy > maxY) maxY = sy;
-  }
-  _v2.set(0, 0, 1).transformDirection(panel.matrixWorld);
-  {
-    const toCam = _v.copy(camera.position).sub(S.musicScreenAnchor).normalize();
-    if (_v2.dot(toCam) < 0.02) anyFront = false;
-  }
-  let w = maxX - minX;
-  let h = maxY - minY;
-  const onStreet = isOnAnLacStreet();
-
-  el.classList.add('on');
-  el.classList.add('yt-board');
-  el.classList.remove('yt-playing');
-  el.style.position = 'fixed';
-  el.style.transform = 'none';
-  el.style.right = 'auto';
-  el.style.bottom = 'auto';
-  el.style.borderRadius = '0';
-  el.style.boxShadow = 'none';
-  el.style.border = '0';
-  el.style.aspectRatio = 'auto';
-  el.style.zIndex = '145';
-  el.style.pointerEvents = 'none';
-  el.setAttribute('aria-hidden', 'false');
-  if (root) root.setAttribute('aria-hidden', 'false');
-
-  // Chỉ phủ đúng mặt bảng phố — không cửa sổ phụ / mini player
-  const boardVisible = anyFront && onStreet && w >= 40 && h >= 24
-    && maxX > 0 && minX < window.innerWidth
-    && maxY > 0 && minY < window.innerHeight;
-
-  el.style.left = `${minX}px`;
-  el.style.top = `${minY}px`;
-  el.style.width = `${Math.max(80, w)}px`;
-  el.style.height = `${Math.max(45, h)}px`;
-
-  if (boardVisible) {
-    el.style.opacity = '1';
-    if (panel.material) {
-      panel.material.transparent = true;
-      panel.material.opacity = 0.02;
-    }
-  } else {
-    // Ẩn khỏi mắt nhưng giữ iframe chạy (nghe nhạc), không hiện sub-screen
-    el.style.opacity = '0';
-    if (panel.material) {
-      panel.material.transparent = true;
-      panel.material.opacity = 1;
-    }
+  // Đang phát hoặc idle → ẩn overlay (tránh hình chữ nhật đen)
+  if (el.classList.contains('on') && !S.musicMode) {
+    hideStreetVideoOverlay();
   }
 }
 
@@ -13797,6 +14357,7 @@ $('action-btn').onclick = () => {
   if (S.karaokePerf) { cancelKaraokeSing(); return; }
   if (S.hotHoDraw) { cancelHotHoDraw(); return; }
   if (S.muaTraHen) { cancelMuaTraHen(); return; }
+  if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
   if (S.phoVangCall) { cancelGioVangCall(); return; }
   if (S.musicMode) { closeMusicPanel(); return; }
   if (S.busy && S.interactOpen) { cancelNpcInteract(); return; }
@@ -13904,6 +14465,10 @@ $('action-btn').onclick = () => {
   }
   if (S.nearXichLo) {
     startXichLoRide();
+    return;
+  }
+  if (S.nearBoyPho) {
+    startBoyPhoAct();
     return;
   }
   if (S.nearGioVang) {
@@ -14020,6 +14585,7 @@ addEventListener('keydown', e => {
     if (S.karaokePerf) { cancelKaraokeSing(); return; }
     if (S.hotHoDraw) { cancelHotHoDraw(); return; }
     if (S.muaTraHen) { cancelMuaTraHen(); return; }
+    if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
     if (S.phoVangCall) { cancelGioVangCall(); return; }
     if (S.musicMode) { closeMusicPanel(); return; }
     if (typingInField()) return;
@@ -16317,11 +16883,17 @@ function updatePlayer(dt) {
     && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo && !S.nearNemChua && !S.nearPhongLonWreck && !S.busy)
     ? pickNearXichLo() : null;
-  // Giờ Vàng · Đèn Bay — thấp nhất trong chuỗi phố (sau xích lô)
-  S.nearGioVang = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+  // Boy Phố · Đội Hè — sau xích lô, trước Giờ Vàng
+  S.nearBoyPho = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
     && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo
     && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.busy)
+    ? pickNearBoyPho() : null;
+  // Giờ Vàng · Đèn Bay — thấp nhất trong chuỗi phố (sau Boy Phố)
+  S.nearGioVang = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo
+    && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.nearBoyPho && !S.busy)
     ? pickNearGioVang() : null;
 
   // Soft tip near festival marker
@@ -16622,6 +17194,23 @@ function updatePlayer(dt) {
   } else if (!S.busy && S.nearXichLo) {
     const m = pickXichLoMode();
     btn.textContent = m === 'xeom' ? 'Lên xe ôm gấp' : m === 'dem' ? 'Lên xích lô đêm' : 'Lên xích lô';
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (S.boyPhoAct) {
+    const left = Math.max(0, (S.boyPhoAct.dur - S.boyPhoAct.t) | 0);
+    const kind = S.boyPhoAct.kind;
+    btn.textContent = kind === 'race'
+      ? `Hủy · dừng đua (${left}s)`
+      : kind === 'hang'
+        ? `Hủy · giải tán (${left}s)`
+        : `Hủy · chào xong (${left}s)`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+  } else if (!S.busy && S.nearBoyPho) {
+    btn.textContent = boyPhoVerbLabel(pickBoyPhoVerb());
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');

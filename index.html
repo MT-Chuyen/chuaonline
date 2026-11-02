@@ -2568,6 +2568,29 @@ function toggleAiming() {
   if (!S.gun) return;
   setAiming(!S.aiming);
 }
+/** Súng FPS gắn vào camera khi zoom từ mắt */
+function syncFpsGun(show) {
+  if (!show) {
+    if (S.fpsGun) S.fpsGun.visible = false;
+    return;
+  }
+  if (!S.fpsGun) {
+    S.fpsGun = new THREE.Group();
+    camera.add(S.fpsGun);
+  }
+  if (S.fpsGun.userData.type !== S.gun) {
+    while (S.fpsGun.children.length) S.fpsGun.remove(S.fpsGun.children[0]);
+    const g = S.gun === 'bazooka' ? buildBazookaGun() : buildAKGun();
+    g.scale.setScalar(S.gun === 'bazooka' ? 1.15 : 1.35);
+    S.fpsGun.add(g);
+    S.fpsGun.userData.type = S.gun;
+  }
+  S.fpsGun.visible = true;
+  // Góc dưới-phải tầm nhìn — như đưa súng lên ngắm
+  if (S.gun === 'bazooka') S.fpsGun.position.set(0.28, -0.28, -0.85);
+  else S.fpsGun.position.set(0.22, -0.2, -0.55);
+  S.fpsGun.rotation.set(0.08, 0.12, 0.04);
+}
 function getAimRay() {
   const origin = camera.position.clone();
   const dir = new THREE.Vector3();
@@ -2901,7 +2924,7 @@ function updatePlayer(dt) {
     }
   }
 
-  // Camera: bình thường theo nhân vật · cầm súng = over-shoulder nhìn ra phía trước (dấu + không dính đầu mình)
+  // Camera: bình thường / cầm súng 3rd · zoom = góc nhìn từ mắt (FPS)
   const armed = !!S.gun;
   const phi = S.pitch;
   const cosP = Math.cos(phi);
@@ -2909,38 +2932,49 @@ function updatePlayer(dt) {
   const backX = Math.sin(S.yaw), backZ = Math.cos(S.yaw);
   const rightX = Math.cos(S.yaw), rightZ = -Math.sin(S.yaw);
   const fwdX = -backX, fwdZ = -backZ;
+  const eyeH = 1.52;
 
-  let dist, shoulder, camH;
   if (S.aiming && armed) {
-    dist = 1.55; shoulder = 0.42; camH = 1.62;
-  } else if (armed) {
-    dist = 3.0; shoulder = 0.55; camH = 1.55;
+    // First-person: camera đúng vị trí mắt, nhìn theo yaw/pitch
+    const eyeX = px + fwdX * 0.12;
+    const eyeY = playerRoot.position.y + eyeH;
+    const eyeZ = pz + fwdZ * 0.12;
+    camera.position.lerp(_v.set(eyeX, eyeY, eyeZ), 1 - Math.pow(0.00005, dt));
+    const ahead = 60;
+    _v2.set(
+      eyeX + fwdX * ahead * Math.cos(phi),
+      eyeY - Math.sin(phi) * ahead,
+      eyeZ + fwdZ * ahead * Math.cos(phi)
+    );
+    camera.lookAt(_v2);
+    player.visible = false; // không thấy đầu/thân mình
+    syncFpsGun(true);
   } else {
-    dist = 6.2; shoulder = 0; camH = 1.45;
-  }
-
-  const cx = px + backX * dist * Math.max(0.12, cosP) + rightX * shoulder;
-  const cy = playerRoot.position.y + camH + Math.sin(phi) * dist * (armed ? 0.4 : 1);
-  const cz = pz + backZ * dist * Math.max(0.12, cosP) + rightZ * shoulder;
-  camera.position.lerp(_v.set(cx, Math.max(0.4, cy), cz), 1 - Math.pow(0.0008, dt));
-
-  if (armed) {
-    // Nhìn ra thế giới phía trước theo yaw/pitch — tâm ngắm = bạn bè, không phải đầu mình
-    const ahead = S.aiming ? 48 : 22;
-    const lookY = camH - Math.sin(phi) * ahead * 0.9;
-    _v2.set(px + fwdX * ahead, lookY, pz + fwdZ * ahead);
-    // Ẩn nhẹ thân mình khi zoom để khỏi che tâm ngắm
-    player.visible = !S.aiming;
-  } else {
+    syncFpsGun(false);
     player.visible = true;
-    const lookY = 1.35 + (phi < 0 ? -phi * 28 : -phi * 14);
-    _v2.set(px, lookY, pz);
+    let dist, shoulder, camH;
+    if (armed) {
+      dist = 3.0; shoulder = 0.55; camH = 1.55;
+    } else {
+      dist = 6.2; shoulder = 0; camH = 1.45;
+    }
+    const cx = px + backX * dist * Math.max(0.12, cosP) + rightX * shoulder;
+    const cy = playerRoot.position.y + camH + Math.sin(phi) * dist * (armed ? 0.4 : 1);
+    const cz = pz + backZ * dist * Math.max(0.12, cosP) + rightZ * shoulder;
+    camera.position.lerp(_v.set(cx, Math.max(0.4, cy), cz), 1 - Math.pow(0.0008, dt));
+    if (armed) {
+      const ahead = 22;
+      _v2.set(px + fwdX * ahead, camH - Math.sin(phi) * ahead * 0.9, pz + fwdZ * ahead);
+    } else {
+      const lookY = 1.35 + (phi < 0 ? -phi * 28 : -phi * 14);
+      _v2.set(px, lookY, pz);
+    }
+    camera.lookAt(_v2);
   }
-  camera.lookAt(_v2);
 
-  // Zoom FOV khi ngắm (bật/tắt, không giữ)
-  const wantFov = S.aiming && armed ? (S.gun === 'bazooka' ? 30 : 24) : S.baseFov;
-  camera.fov += (wantFov - camera.fov) * Math.min(1, dt * 12);
+  // Zoom FOV khi ngắm từ mắt
+  const wantFov = S.aiming && armed ? (S.gun === 'bazooka' ? 28 : 22) : S.baseFov;
+  camera.fov += (wantFov - camera.fov) * Math.min(1, dt * 14);
   camera.updateProjectionMatrix();
 
   // Spot gần + người chơi thật gần

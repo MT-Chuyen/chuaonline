@@ -637,6 +637,81 @@ function buildStandingBuddha(x, z) {
   return g;
 }
 
+/** Tượng Superman low-poly (trang trí góc sân — không đặt trước tượng Phật) */
+function buildSupermanStatue(x, z) {
+  const g = new THREE.Group();
+  const blue = mat(0x1e3a8a, 0.55, 0.15);
+  const red = mat(0xb91c1c, 0.55, 0.1);
+  const yellow = mat(0xf5c542, 0.4, 0.35);
+  const skin = mat(0xe8b896, 0.75);
+  const dark = mat(0x1a1a1a, 0.8);
+
+  // Bệ đá
+  box(1.8, 0.35, 1.8, M.stone, 0, 0.18, 0, g);
+  box(1.5, 0.2, 1.5, M.stone, 0, 0.42, 0, g);
+
+  // Chân
+  box(0.28, 0.95, 0.32, blue, -0.22, 1.0, 0.05, g);
+  box(0.28, 0.95, 0.32, blue, 0.22, 1.0, 0.05, g);
+  // Ủng đỏ
+  box(0.32, 0.28, 0.4, red, -0.22, 0.55, 0.08, g);
+  box(0.32, 0.28, 0.4, red, 0.22, 0.55, 0.08, g);
+
+  // Thân áo xanh
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.42, 0.7, 4, 8), blue);
+  torso.position.y = 2.05; g.add(torso);
+  // Đai vàng
+  box(0.9, 0.14, 0.55, yellow, 0, 1.55, 0.05, g);
+
+  // Khiên S trên ngực
+  const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.06, 6), yellow);
+  shield.rotation.x = Math.PI / 2; shield.position.set(0, 2.15, 0.4); g.add(shield);
+  // Chữ S cách điệu
+  box(0.08, 0.28, 0.05, red, 0, 2.15, 0.44, g);
+  box(0.16, 0.07, 0.05, red, 0.04, 2.26, 0.44, g);
+  box(0.16, 0.07, 0.05, red, -0.04, 2.04, 0.44, g);
+
+  // Đầu
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), skin);
+  head.position.y = 2.85; g.add(head);
+  // Tóc đen chẻ ngôi kiểu Superman
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.33, 8, 6), dark);
+  hair.scale.set(1.05, 0.7, 1.05); hair.position.set(0, 2.98, -0.02); g.add(hair);
+  const curl = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 5), dark);
+  curl.position.set(0.02, 3.05, 0.28); g.add(curl);
+
+  // Tay: một chống hông, một giơ lên (pose anh hùng)
+  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.55, 3, 6), blue);
+  armL.position.set(-0.55, 2.0, 0.1); armL.rotation.z = 0.85; g.add(armL);
+  const armR = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.65, 3, 6), blue);
+  armR.position.set(0.62, 2.45, 0.15); armR.rotation.z = -1.15; g.add(armR);
+  // Bao tay đỏ
+  const gloveL = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), red);
+  gloveL.position.set(-0.78, 1.72, 0.12); g.add(gloveL);
+  const gloveR = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), red);
+  gloveR.position.set(0.85, 2.85, 0.2); g.add(gloveR);
+
+  // Áo choàng đỏ bay
+  const cape = new THREE.Mesh(new THREE.PlaneGeometry(1.35, 2.1), new THREE.MeshStandardMaterial({
+    color: 0xb91c1c, roughness: 0.65, side: THREE.DoubleSide,
+  }));
+  cape.position.set(0, 2.0, -0.45); cape.rotation.x = 0.25; cape.rotation.z = 0.08;
+  g.add(cape);
+  // Phần choàng trên vai
+  box(0.95, 0.12, 0.35, red, 0, 2.48, -0.15, g);
+
+  g.position.set(x, 0, z);
+  g.rotation.y = Math.PI * 0.15;
+  g.scale.setScalar(1.35);
+  g.userData.cape = cape;
+  g.userData.ph = Math.random() * 6.28;
+  scene.add(g);
+  addCol(x, z, 2.2, 2.2);
+  if (!S.superman) S.superman = [];
+  S.superman.push(g);
+  return g;
+}
+
 /* ========== CẢNH CHÙA ========== */
 let hemi, sun, fillL;
 function buildScene() {
@@ -783,6 +858,11 @@ function buildScene() {
     const bush = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55 + (i % 2) * 0.15, 0), i % 2 ? M.leaf : M.red);
     bush.position.set(x, 0.7, z); scene.add(bush);
   });
+
+  // Tượng Superman (góc sân gần cổng — vui, tách khỏi khu thờ)
+  buildSupermanStatue(-7.5, 7.2);
+  const superSign = textPlane('Superman', 180, 48, '#f5e6c8', '#1e3a8a', 22);
+  superSign.position.set(-7.5, 5.2, 7.2); superSign.scale.set(1.6, 0.42, 1); scene.add(superSign);
 
   // ——— Cây bồ đề ———
   const tx = 8, tz = 2.2;
@@ -1916,6 +1996,10 @@ function updateWorld(dt, t) {
 
   // Ruy băng đung đưa
   S.ribbons.forEach(r => { r.rotation.z = Math.sin(t * 1.5 + r.userData.ph) * 0.15; });
+  // Áo choàng Superman phấp phới nhẹ
+  (S.superman || []).forEach(s => {
+    if (s.userData.cape) s.userData.cape.rotation.x = 0.22 + Math.sin(t * 2.2 + s.userData.ph) * 0.08;
+  });
 
   // Hoa đăng trôi
   S.floats.forEach(f => {

@@ -597,7 +597,24 @@ function makeBrickTex() {
   tex.repeat.set(14, 14); tex.colorSpace = THREE.SRGBColorSpace; return tex;
 }
 const colliders = [];
-function addCol(x, z, w, d) { colliders.push({ a: x - w/2, b: x + w/2, c: z - d/2, d: z + d/2 }); }
+/** Đăng ký va chạm; root (Group) = phá hủy cả khối khi trúng bazooka */
+function addCol(x, z, w, d, root = null) {
+  const col = {
+    a: x - w / 2, b: x + w / 2, c: z - d / 2, d: z + d / 2,
+    root, pieces: null, destroyed: false, phase: null, anim: 0, recoverAt: 0,
+    baseY: root ? root.position.y : 0,
+    baseRot: root ? { x: root.rotation.x, y: root.rotation.y, z: root.rotation.z } : null,
+    baseScale: root ? root.scale.x : 1,
+  };
+  colliders.push(col);
+  if (root) root.userData.destroyCol = col;
+  return col;
+}
+function markIndestructible(obj) {
+  if (!obj) return;
+  obj.userData.indestructible = true;
+  obj.traverse?.(c => { c.userData.indestructible = true; });
+}
 function box(w, h, d, mat, x, y, z, p = scene, cast = true) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
   m.position.set(x, y, z); m.castShadow = cast; m.receiveShadow = true; p.add(m); return m;
@@ -819,7 +836,7 @@ function buildGrandPagoda(cx, cz) {
 
   root.position.set(cx, 0, cz);
   scene.add(root);
-  addCol(cx, cz, 15.5, 11.5);
+  addCol(cx, cz, 15.5, 11.5, root);
   return root;
 }
 
@@ -858,7 +875,7 @@ function buildStandingBuddha(x, z) {
   g.position.set(x, 0, z);
   g.scale.setScalar(1.25);
   scene.add(g);
-  addCol(x, z, 4.2, 4.2);
+  addCol(x, z, 4.2, 4.2, g);
   return g;
 }
 
@@ -934,7 +951,7 @@ function buildSupermanStatue(x, z) {
   const superSign = textPlane('SUPERMAN', 220, 56, '#ffffff', '#1e3a8a', 28);
   superSign.position.set(x, 8.2, z); superSign.scale.set(2.4, 0.6, 1); scene.add(superSign);
 
-  addCol(x, z, 3.2, 3.2);
+  addCol(x, z, 3.2, 3.2, g);
   if (!S.superman) S.superman = [];
   S.superman.push(g);
   return g;
@@ -949,10 +966,12 @@ function buildScene() {
     new THREE.MeshStandardMaterial({ color: 0xc4b49a, roughness: 0.95, metalness: 0.04, emissive: 0x3a2a18, emissiveIntensity: 0.08 })
   );
   isle.rotation.x = -Math.PI / 2; isle.position.y = -0.04; isle.receiveShadow = true; scene.add(isle);
+  markIndestructible(isle);
   const yard = new THREE.Mesh(new THREE.PlaneGeometry(24, 36), new THREE.MeshStandardMaterial({
     map: makeBrickTex(), roughness: 0.92, metalness: 0.02, color: 0xffffff,
   }));
   yard.rotation.x = -Math.PI / 2; yard.position.set(0, 0.01, -2); yard.receiveShadow = true; scene.add(yard);
+  markIndestructible(yard);
   // Viền mây mềm quanh đảo (nhìn ngang cũng thấy mây)
   buildCloudSea();
   // Viền sân đá
@@ -963,30 +982,29 @@ function buildScene() {
 
   // ——— Cổng tam quan ———
   const gz = 12.5;
+  const gateRoot = new THREE.Group(); scene.add(gateRoot);
   // nền cổng
-  box(11, 0.35, 3.2, M.stone, 0, 0.15, gz);
+  box(11, 0.35, 3.2, M.stone, 0, 0.15, gz, gateRoot);
   // trụ giữa + hai bên (to hơn, có đế)
   const pillars = [-3.6, 0, 3.6];
   pillars.forEach((x, i) => {
-    box(1.15, 0.45, 1.15, M.stone, x, 0.35, gz);
-    box(0.85, 4.6, 0.85, M.plaster, x, 2.55, gz);
-    box(0.95, 0.22, 0.95, M.tile, x, 4.95, gz);
-    // khung cửa gỗ giữa các trụ
+    box(1.15, 0.45, 1.15, M.stone, x, 0.35, gz, gateRoot);
+    box(0.85, 4.6, 0.85, M.plaster, x, 2.55, gz, gateRoot);
+    box(0.95, 0.22, 0.95, M.tile, x, 4.95, gz, gateRoot);
     if (i < 2) {
       const mid = (pillars[i] + pillars[i + 1]) / 2;
-      box(2.4, 0.18, 0.18, M.wood, mid, 3.6, gz + 0.15);
-      box(0.12, 3.2, 0.12, M.wood, pillars[i] + 0.55, 2.0, gz + 0.15);
-      box(0.12, 3.2, 0.12, M.wood, pillars[i + 1] - 0.55, 2.0, gz + 0.15);
+      box(2.4, 0.18, 0.18, M.wood, mid, 3.6, gz + 0.15, gateRoot);
+      box(0.12, 3.2, 0.12, M.wood, pillars[i] + 0.55, 2.0, gz + 0.15, gateRoot);
+      box(0.12, 3.2, 0.12, M.wood, pillars[i + 1] - 0.55, 2.0, gz + 0.15, gateRoot);
     }
-    addCol(x, gz, 1.0, 1.0);
   });
-  // tường nối hai bên cổng
-  box(2.2, 2.4, 0.4, M.plaster, -5.5, 1.3, gz);
-  box(2.2, 2.4, 0.4, M.plaster, 5.5, 1.3, gz);
-  const rg = roof(5.2, 2.6, 1.35, M.tile); rg.position.set(0, 5.4, gz); scene.add(rg);
-  [-3.6, 3.6].forEach(x => { const r = roof(3.0, 2.2, 1.0, M.tile); r.position.set(x, 5.15, gz); scene.add(r); });
+  box(2.2, 2.4, 0.4, M.plaster, -5.5, 1.3, gz, gateRoot);
+  box(2.2, 2.4, 0.4, M.plaster, 5.5, 1.3, gz, gateRoot);
+  const rg = roof(5.2, 2.6, 1.35, M.tile); rg.position.set(0, 5.4, gz); gateRoot.add(rg);
+  [-3.6, 3.6].forEach(x => { const r = roof(3.0, 2.2, 1.0, M.tile); r.position.set(x, 5.15, gz); gateRoot.add(r); });
   const sign = textPlane('Chùa An Lạc', 320, 72, '#f5e6c8', '#8b1a1a', 32);
-  sign.position.set(0, 3.85, gz + 0.55); sign.scale.set(3.6, 0.82, 1); scene.add(sign);
+  sign.position.set(0, 3.85, gz + 0.55); sign.scale.set(3.6, 0.82, 1); gateRoot.add(sign);
+  addCol(0, gz, 12, 3.5, gateRoot);
 
   // Hàng rào / tường bao sân trước
   for (const side of [-1, 1]) {
@@ -998,38 +1016,31 @@ function buildScene() {
 
   // ——— Chính điện ———
   const hz = -10;
-  // nền cao + bậc cấp
-  box(12.5, 0.55, 9, M.stone, 0, 0.25, hz);
-  box(7.5, 0.28, 1.4, M.stone, 0, 0.2, hz + 4.7);
-  box(6.2, 0.28, 1.15, M.stone, 0, 0.42, hz + 3.9);
-  box(5.2, 0.28, 1.0, M.stone, 0, 0.64, hz + 3.2);
-  // thân điện
-  box(10.5, 4.8, 7.2, M.plaster, 0, 2.95, hz);
-  // viền gỗ
-  box(10.7, 0.25, 7.4, M.wood, 0, 5.3, hz);
-  box(10.7, 0.18, 7.4, M.wood, 0, 0.7, hz);
-  // cột hiên
+  const hallRoot = new THREE.Group(); scene.add(hallRoot);
+  box(12.5, 0.55, 9, M.stone, 0, 0.25, hz, hallRoot);
+  box(7.5, 0.28, 1.4, M.stone, 0, 0.2, hz + 4.7, hallRoot);
+  box(6.2, 0.28, 1.15, M.stone, 0, 0.42, hz + 3.9, hallRoot);
+  box(5.2, 0.28, 1.0, M.stone, 0, 0.64, hz + 3.2, hallRoot);
+  box(10.5, 4.8, 7.2, M.plaster, 0, 2.95, hz, hallRoot);
+  box(10.7, 0.25, 7.4, M.wood, 0, 5.3, hz, hallRoot);
+  box(10.7, 0.18, 7.4, M.wood, 0, 0.7, hz, hallRoot);
   [-4.2, -1.4, 1.4, 4.2].forEach(x => {
-    cyl(0.22, 0.26, 4.4, M.wood, x, 2.85, hz + 3.55, scene, 10);
-    box(0.5, 0.18, 0.5, M.stone, x, 0.7, hz + 3.55);
+    cyl(0.22, 0.26, 4.4, M.wood, x, 2.85, hz + 3.55, hallRoot, 10);
+    box(0.5, 0.18, 0.5, M.stone, x, 0.7, hz + 3.55, hallRoot);
   });
-  // xà ngang
-  box(9.2, 0.22, 0.28, M.wood, 0, 4.9, hz + 3.55);
-  // lan can hiên
-  box(9.5, 0.08, 0.08, M.rail, 0, 1.35, hz + 4.15);
-  for (let x = -4; x <= 4; x += 1) box(0.06, 0.55, 0.06, M.rail, x, 1.1, hz + 4.15);
-  // cửa chính + cửa sổ
-  box(2.4, 3.4, 0.16, M.woodD, 0, 2.35, hz + 3.62);
-  box(0.12, 3.4, 0.05, M.gold, 0, 2.35, hz + 3.72);
-  box(1.2, 1.4, 0.1, M.wood, -3.2, 2.8, hz + 3.62);
-  box(1.2, 1.4, 0.1, M.wood, 3.2, 2.8, hz + 3.62);
-  // mái đôi
-  const rh = roof(13.2, 9.5, 2.35, M.tile); rh.position.set(0, 5.85, hz); scene.add(rh);
-  const rh2 = roof(10.5, 7.5, 1.5, M.tile); rh2.position.set(0, 7.35, hz); scene.add(rh2);
-  const rp = roof(9, 3.4, 1.25, M.tile); rp.position.set(0, 5.35, hz + 3.7); scene.add(rp);
+  box(9.2, 0.22, 0.28, M.wood, 0, 4.9, hz + 3.55, hallRoot);
+  box(9.5, 0.08, 0.08, M.rail, 0, 1.35, hz + 4.15, hallRoot);
+  for (let x = -4; x <= 4; x += 1) box(0.06, 0.55, 0.06, M.rail, x, 1.1, hz + 4.15, hallRoot);
+  box(2.4, 3.4, 0.16, M.woodD, 0, 2.35, hz + 3.62, hallRoot);
+  box(0.12, 3.4, 0.05, M.gold, 0, 2.35, hz + 3.72, hallRoot);
+  box(1.2, 1.4, 0.1, M.wood, -3.2, 2.8, hz + 3.62, hallRoot);
+  box(1.2, 1.4, 0.1, M.wood, 3.2, 2.8, hz + 3.62, hallRoot);
+  const rh = roof(13.2, 9.5, 2.35, M.tile); rh.position.set(0, 5.85, hz); hallRoot.add(rh);
+  const rh2 = roof(10.5, 7.5, 1.5, M.tile); rh2.position.set(0, 7.35, hz); hallRoot.add(rh2);
+  const rp = roof(9, 3.4, 1.25, M.tile); rp.position.set(0, 5.35, hz + 3.7); hallRoot.add(rp);
   const hs = textPlane('Chính điện', 220, 52, '#f5e6c8', '#6b1510', 24);
-  hs.position.set(0, 4.55, hz + 3.85); hs.scale.set(2.5, 0.58, 1); scene.add(hs);
-  addCol(0, hz - 0.4, 11, 6.2);
+  hs.position.set(0, 4.55, hz + 3.85); hs.scale.set(2.5, 0.58, 1); hallRoot.add(hs);
+  addCol(0, hz - 0.4, 11, 6.2, hallRoot);
 
   // Tượng Phật trang nghiêm hơn
   const bud = new THREE.Group();
@@ -1046,10 +1057,9 @@ function buildScene() {
   robe.scale.set(1.05, 0.55, 0.9); robe.position.set(0, 1.05, 0.05); bud.add(robe);
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 10), M.buddha); head.position.y = 2.42; bud.add(head);
   cyl(0.1, 0.16, 0.28, M.buddha, 0, 2.88, 0, bud, 8);
-  // tai dài cách điệu
   box(0.08, 0.28, 0.06, M.buddha, -0.34, 2.38, 0, bud);
   box(0.08, 0.28, 0.06, M.buddha, 0.34, 2.38, 0, bud);
-  bud.position.set(0, 0.7, hz - 1.3); scene.add(bud); addCol(0, hz - 1.3, 2.4, 2.0);
+  bud.position.set(0, 0.7, hz - 1.3); scene.add(bud); addCol(0, hz - 1.3, 2.4, 2.0, bud);
 
   // Lư hương đồng
   const lu = new THREE.Group();
@@ -1059,28 +1069,29 @@ function buildScene() {
   box(0.16, 0.4, 0.08, M.bronze, -0.78, 1.0, 0, lu); box(0.16, 0.4, 0.08, M.bronze, 0.78, 1.0, 0, lu);
   [[-0.45, -0.4], [0.45, -0.4], [0, 0.45]].forEach(([x, z]) => cyl(0.08, 0.12, 0.28, M.bronze, x, 0.14, z, lu, 6));
   cyl(0.45, 0.45, 0.08, M.dark, 0, 1.5, 0, lu, 10);
-  lu.position.set(0, 0, 2.5); scene.add(lu); addCol(0, 2.5, 1.8, 1.8);
+  lu.position.set(0, 0, 2.5); scene.add(lu); addCol(0, 2.5, 1.8, 1.8, lu);
   S.incenseY = 1.55;
 
   // ——— Gác chuông ———
   const bx = -9.5, bz = -2;
-  box(3.6, 0.35, 3.6, M.stone, bx, 0.15, bz);
+  const bellTower = new THREE.Group(); scene.add(bellTower);
+  box(3.6, 0.35, 3.6, M.stone, bx, 0.15, bz, bellTower);
   [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]].forEach(([x, z]) => {
-    box(0.38, 5.6, 0.38, M.wood, bx + x, 2.95, bz + z);
-    box(0.5, 0.2, 0.5, M.stone, bx + x, 0.35, bz + z);
+    box(0.38, 5.6, 0.38, M.wood, bx + x, 2.95, bz + z, bellTower);
+    box(0.5, 0.2, 0.5, M.stone, bx + x, 0.35, bz + z, bellTower);
   });
-  box(3.4, 0.28, 3.4, M.wood, bx, 5.7, bz);
-  // lan can gác
+  box(3.4, 0.28, 3.4, M.wood, bx, 5.7, bz, bellTower);
   for (let i = -1; i <= 1; i++) {
-    box(0.08, 0.55, 0.08, M.rail, bx + i * 1.1, 6.05, bz + 1.45);
-    box(0.08, 0.55, 0.08, M.rail, bx + i * 1.1, 6.05, bz - 1.45);
+    box(0.08, 0.55, 0.08, M.rail, bx + i * 1.1, 6.05, bz + 1.45, bellTower);
+    box(0.08, 0.55, 0.08, M.rail, bx + i * 1.1, 6.05, bz - 1.45, bellTower);
   }
-  const rb = roof(4.4, 4.4, 1.45, M.tile); rb.position.set(bx, 6.5, bz); scene.add(rb);
+  const rb = roof(4.4, 4.4, 1.45, M.tile); rb.position.set(bx, 6.5, bz); bellTower.add(rb);
   const bell = new THREE.Group();
   bell.add(new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.78, 1.15, 14), M.bronze));
   const bt = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 6), M.bronze); bt.position.y = 0.55; bt.scale.y = 0.55; bell.add(bt);
   cyl(0.08, 0.08, 0.5, M.bronze, 0, 1.0, 0, bell, 6);
-  bell.position.set(bx, 4.3, bz); scene.add(bell); S.bell = bell; addCol(bx, bz, 2.9, 2.9);
+  bell.position.set(bx, 4.3, bz); bellTower.add(bell); S.bell = bell;
+  addCol(bx, bz, 2.9, 2.9, bellTower);
 
   // ——— Tháp nhiều tầng lớn phía sau + tượng Phật đứng giữa sân (như ảnh tham chiếu) ———
   buildGrandPagoda(0, -18.5);
@@ -1097,11 +1108,11 @@ function buildScene() {
 
   // ——— Cây bồ đề ———
   const tx = 8, tz = 2.2;
-  cyl(0.38, 0.58, 5.0, M.woodD, tx, 2.5, tz, scene, 9);
-  // cành
+  const treeRoot = new THREE.Group(); scene.add(treeRoot);
+  cyl(0.38, 0.58, 5.0, M.woodD, tx, 2.5, tz, treeRoot, 9);
   for (let i = 0; i < 6; i++) {
     const a = (i / 6) * 6.28;
-    const br = box(0.12, 1.8, 0.12, M.woodD, 0, 0, 0, scene, true);
+    const br = box(0.12, 1.8, 0.12, M.woodD, 0, 0, 0, treeRoot, true);
     br.position.set(tx + Math.cos(a) * 0.3, 4.2, tz + Math.sin(a) * 0.3);
     br.rotation.z = Math.cos(a) * 0.9; br.rotation.x = Math.sin(a) * 0.9;
   }
@@ -1109,9 +1120,9 @@ function buildScene() {
     const s = new THREE.Mesh(new THREE.IcosahedronGeometry(0.95 + Math.random() * 0.55, 0), i % 2 ? M.leaf : M.leafD);
     const a = Math.random() * 6.28, r = 0.5 + Math.random() * 2.1;
     s.position.set(tx + Math.cos(a) * r, 4.6 + Math.random() * 2.4, tz + Math.sin(a) * r);
-    s.castShadow = true; scene.add(s);
+    s.castShadow = true; treeRoot.add(s);
   }
-  addCol(tx, tz, 1.4, 1.4); S.bodhi = new THREE.Vector3(tx, 0, tz);
+  addCol(tx, tz, 1.4, 1.4, treeRoot); S.bodhi = new THREE.Vector3(tx, 0, tz);
   for (let i = 0; i < 18; i++) addRibbon(tx + (Math.random() - 0.5) * 3.6, 3.2 + Math.random() * 2.2, tz + (Math.random() - 0.5) * 3.6, true);
 
   // ——— Hồ sen ———
@@ -1130,18 +1141,21 @@ function buildScene() {
     }
   }
   for (let i = 0; i < 12; i++) addFloat(true);
-  addCol(px, pz, 5.6, 5.6);
+  // Hồ không phá (tránh rơi xuống mây)
+  const pondCol = addCol(px, pz, 5.6, 5.6, null);
+  pondCol.noDestroy = true;
 
   // Ống xăm
   const fx = -4.5, fz = 4.5;
-  box(1.3, 0.75, 0.85, M.wood, fx, 0.38, fz);
-  box(1.4, 0.08, 0.95, M.woodD, fx, 0.78, fz);
-  S.fortuneTube = cyl(0.22, 0.28, 0.7, M.woodD, fx, 1.15, fz, scene, 10);
+  const fortRoot = new THREE.Group(); scene.add(fortRoot);
+  box(1.3, 0.75, 0.85, M.wood, fx, 0.38, fz, fortRoot);
+  box(1.4, 0.08, 0.95, M.woodD, fx, 0.78, fz, fortRoot);
+  S.fortuneTube = cyl(0.22, 0.28, 0.7, M.woodD, fx, 1.15, fz, fortRoot, 10);
   for (let i = 0; i < 8; i++) {
     const st = box(0.025, 0.55, 0.025, M.wood, (Math.random() - 0.5) * 0.2, 0.22, (Math.random() - 0.5) * 0.2, S.fortuneTube, false);
     st.rotation.z = (Math.random() - 0.5) * 0.12;
   }
-  addCol(fx, fz, 1.45, 1.2);
+  addCol(fx, fz, 1.45, 1.2, fortRoot);
 
   // Đèn lồng hai hàng
   for (let i = -5; i <= 5; i++) {
@@ -1159,6 +1173,7 @@ function buildScene() {
   const mb = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), M.wood); mb.scale.set(1.15, 0.9, 1); mok.add(mb);
   box(0.08, 0.5, 0.08, M.woodD, 0.48, 0.1, 0, mok);
   mok.position.set(3.2, 1.05, -6.0); scene.add(mok);
+  addCol(3.2, -6.0, 1.2, 1.2, mok);
 
   // Ánh sáng thiên đường — bầu trời ấm, phản chiếu mây dưới
   hemi = new THREE.HemisphereLight(0xffd0b0, 0xb8c8e8, 0.72); scene.add(hemi);
@@ -1588,9 +1603,68 @@ function tryMove(nx, nz) {
   const r = 0.35;
   if (nx < -18 || nx > 18 || nz < -22 || nz > 15) return false;
   for (const c of colliders) {
+    if (c.destroyed) continue; // công trình đã bị phá — đi xuyên được
     if (nx + r > c.a && nx - r < c.b && nz + r > c.c && nz - r < c.d) return false;
   }
   return true;
+}
+
+/** Bazooka phá công trình — 2 giây sau dựng lại dần */
+function destroyStructure(col) {
+  if (!col || col.noDestroy || !col.root || col.destroyed || col.phase) return false;
+  col.destroyed = true;
+  col.phase = 'destroying';
+  col.anim = 0;
+  col.recoverAt = performance.now() + 2000;
+  col.baseY = col.root.position.y;
+  col.baseRot = { x: col.root.rotation.x, y: col.root.rotation.y, z: col.root.rotation.z };
+  col.baseScale = col.root.scale.x;
+  return true;
+}
+function updateDestroyables(dt) {
+  for (const col of colliders) {
+    if (!col.root || !col.phase) continue;
+    const root = col.root;
+    if (col.phase === 'destroying') {
+      col.anim += dt / 0.38;
+      const u = Math.min(1, col.anim);
+      const s = Math.max(0.02, col.baseScale * (1 - u));
+      root.scale.setScalar(s);
+      root.position.y = col.baseY - u * 2.2;
+      root.rotation.x = col.baseRot.x + u * 0.55;
+      root.rotation.z = col.baseRot.z + u * (Math.random() > 0.5 ? 0.9 : -0.9) * 0.02 + u * 0.7;
+      if (u >= 1) {
+        root.visible = false;
+        root.scale.setScalar(0.01);
+        col.phase = 'wait';
+      }
+    } else if (col.phase === 'wait') {
+      if (performance.now() >= col.recoverAt) {
+        col.phase = 'recovering';
+        col.anim = 0;
+        root.visible = true;
+        root.position.y = col.baseY;
+        root.rotation.set(col.baseRot.x, col.baseRot.y, col.baseRot.z);
+        root.scale.setScalar(0.04 * col.baseScale);
+      }
+    } else if (col.phase === 'recovering') {
+      // Dựng lại dần ~1.25s sau khi hết 2s chờ
+      col.anim += dt / 1.25;
+      const u = Math.min(1, col.anim);
+      const e = 1 - Math.pow(1 - u, 2);
+      root.scale.setScalar(col.baseScale * (0.04 + 0.96 * e));
+      root.position.y = col.baseY + (1 - e) * 0.8;
+      if (u >= 1) {
+        root.scale.setScalar(col.baseScale);
+        root.position.y = col.baseY;
+        root.rotation.set(col.baseRot.x, col.baseRot.y, col.baseRot.z);
+        root.visible = true;
+        col.destroyed = false;
+        col.phase = null;
+        toast('Công trình đã dựng lại');
+      }
+    }
+  }
 }
 
 /* ========== KHÁCH AI (InstancedMesh — thân + đầu + tóc + chân) ========== */
@@ -2698,13 +2772,14 @@ function findWorldHit(origin, dir, maxDist) {
     }
   }
   for (const c of colliders) {
+    if (c.destroyed) continue;
     const w = c.b - c.a, depth = c.d - c.c;
     const h = Math.max(3.5, Math.min(26, Math.max(w, depth) * 1.35));
     const box = { minX: c.a, maxX: c.b, minY: 0, maxY: h, minZ: c.c, maxZ: c.d };
     const t = rayHitAABB(origin, dir, box, bestT);
     if (t != null && t > 0.45 && t < bestT) {
       bestT = t;
-      hit = { kind: 'building', dist: t, point: origin.clone().addScaledVector(dir, t) };
+      hit = { kind: 'building', dist: t, point: origin.clone().addScaledVector(dir, t), col: c };
     }
   }
   return hit;
@@ -2886,6 +2961,9 @@ async function fireWeapon() {
   if (isBaz) {
     spawnRocketVisual(muzzle, dir, end, () => {
       if (impact?.kind === 'player') sendGunHit('bazooka', impact);
+      if (impact?.kind === 'world' && impact.col) {
+        if (destroyStructure(impact.col)) toast('Công trình bị phá! Dựng lại sau 2 giây…');
+      }
     });
     if (impact?.kind === 'player') toast(`Bazooka → ${impact.name}!`);
     else if (impact?.kind === 'world') toast(impact.kind === 'ground' ? 'Bazooka nổ xuống đất! 💥' : 'Bazooka nổ vào công trình! 💥');
@@ -3188,6 +3266,7 @@ function updateWorld(dt, t) {
   updateParticles(dt);
   updateProjectiles(dt);
   updateBursts(dt);
+  updateDestroyables(dt);
   updateAI(dt);
   updateMinigame(dt);
   updateFortune(dt);

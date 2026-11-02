@@ -472,8 +472,8 @@ const S = {
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
 const DMG = { chao: 0, dam: 14, da: 18, tat: 12, ak: 28, bazooka: 55, knife: 42, kill: 100 };
-/** Điểm hồi sinh khi bị hạ — ngay cổng tam quan */
-const GATE_SPAWN = { x: 0, z: 13.2 };
+/** Điểm hồi sinh khi bị hạ — trong sân, vừa qua cổng (không đứng trong collider) */
+const GATE_SPAWN = { x: 0, z: 10.2 };
 
 const SPOTS = [
   { id: 'incense', pos: new THREE.Vector3(0, 0, 2.2), r: 2.3, label: 'Thắp hương' },
@@ -1180,11 +1180,20 @@ function buildScene() {
   [-3.6, 3.6].forEach(x => { const r = roof(3.0, 2.2, 1.0, M.tile); r.position.set(x, 5.15, gz); gateRoot.add(r); });
   const sign = textPlane('Chùa An Lạc', 320, 72, '#f5e6c8', '#8b1a1a', 32);
   sign.position.set(0, 3.85, gz + 0.55); sign.scale.set(3.6, 0.82, 1); gateRoot.add(sign);
-  addCol(0, gz, 12, 3.5, gateRoot);
+  // Va chạm theo trụ + tường hai bên — chừa 2 lối đi (trước bị 1 hộp 12×3.5 chặn cả cổng → kẹt/lag góc)
+  const gateCols = [
+    addCol(-5.5, gz, 2.5, 2.8, gateRoot), // tường trái
+    addCol(5.5, gz, 2.5, 2.8, gateRoot),  // tường phải
+    addCol(-3.6, gz, 1.05, 1.45, gateRoot), // trụ
+    addCol(0, gz, 1.05, 1.45, gateRoot),
+    addCol(3.6, gz, 1.05, 1.45, gateRoot),
+  ];
+  gateCols.forEach(c => { c.siblings = gateCols; });
 
-  // Hàng rào / tường bao sân trước
+  // Hàng rào / tường bao sân trước (+ collider mỏng để không xuyên tường)
   for (const side of [-1, 1]) {
     box(0.35, 1.6, 10, M.plaster, side * 10.5, 0.85, 6);
+    addCol(side * 10.5, 6, 0.55, 10.2, null);
     for (let z = 2; z <= 10; z += 2) {
       box(0.45, 1.9, 0.45, M.stone, side * 10.5, 0.95, z);
     }
@@ -1788,14 +1797,19 @@ function tryMove(nx, nz) {
 /** Bazooka phá công trình — 2 giây sau dựng lại dần */
 function destroyStructure(col) {
   if (!col || col.noDestroy || !col.root || col.destroyed || col.phase) return false;
-  col.destroyed = true;
-  col.phase = 'destroying';
-  col.anim = 0;
-  col.recoverAt = performance.now() + 2000;
-  col.baseY = col.root.position.y;
-  col.baseRot = { x: col.root.rotation.x, y: col.root.rotation.y, z: col.root.rotation.z };
-  col.baseScale = col.root.scale.x;
-  col.spin = Math.random() > 0.5 ? 1 : -1;
+  const group = col.siblings && col.siblings.length ? col.siblings : [col];
+  const primary = group[0];
+  // Đánh dấu mọi mảnh cùng khối (vd. các trụ cổng) để hết kẹt va chạm
+  group.forEach(c => { c.destroyed = true; });
+  primary.phase = 'destroying';
+  primary.anim = 0;
+  primary.recoverAt = performance.now() + 2000;
+  primary.baseY = primary.root.position.y;
+  primary.baseRot = { x: primary.root.rotation.x, y: primary.root.rotation.y, z: primary.root.rotation.z };
+  primary.baseScale = primary.root.scale.x;
+  primary.spin = Math.random() > 0.5 ? 1 : -1;
+  // Chỉ animate một lần trên root
+  group.slice(1).forEach(c => { c.phase = null; });
   return true;
 }
 function updateDestroyables(dt) {
@@ -1836,8 +1850,8 @@ function updateDestroyables(dt) {
         root.position.y = col.baseY;
         root.rotation.set(col.baseRot.x, col.baseRot.y, col.baseRot.z);
         root.visible = true;
-        col.destroyed = false;
-        col.phase = null;
+        const group = col.siblings && col.siblings.length ? col.siblings : [col];
+        group.forEach(c => { c.destroyed = false; c.phase = null; });
         toast('Công trình đã dựng lại');
       }
     }

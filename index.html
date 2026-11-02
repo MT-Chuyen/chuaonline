@@ -329,7 +329,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <ol class="steps">
         <li><span class="n">1</span><span>Điện thoại kiểu Free Fire: trái kéo đi · phải kéo xoay nhìn. Máy tính: WASD + chuột.</span></li>
         <li><span class="n">2</span><span>Nút Chạy để tăng tốc. Tới gần lư hương, chuông, mõ rồi bấm hành động.</span></li>
-        <li><span class="n">3</span><span>Góc phải: AK / Bazooka / dao. Gặp đội BTS gần cổng → xin chữ ký & selfie (hài lắm).</span></li>
+        <li><span class="n">3</span><span>Gặp BTS gần cổng: ôm / chữ ký / selfie. Bấm Hủy hoặc Esc để thoát tương tác.</span></li>
       </ol>
       <p class="tiny" style="margin:0 0 10px;text-align:center">Chọn góc nhìn khi vào chùa</p>
       <div class="row" style="margin-bottom:14px">
@@ -360,11 +360,14 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button class="combat-btn" data-act="dam" type="button">Đấm</button>
       <button class="combat-btn" data-act="da" type="button">Đá</button>
       <button class="combat-btn" data-act="tat" type="button">Tát</button>
+      <button class="combat-btn" data-act="cancel" type="button">Hủy</button>
     </div>
     <div id="bts-bar">
+      <button class="bts-btn" type="button" data-bts="hug">Ôm BTS</button>
       <button class="bts-btn" type="button" data-bts="sign">Xin chữ ký</button>
       <button class="bts-btn" type="button" data-bts="selfie">Selfie</button>
       <button class="bts-btn" type="button" data-bts="chat">Hỏi vui</button>
+      <button class="bts-btn" type="button" data-bts="cancel">Hủy</button>
     </div>
     <div id="selfie-flash"></div>
     <div id="weapon-bar">
@@ -467,7 +470,8 @@ const S = {
   gun: '', aiming: false, fireUntil: 0, baseFov: 55, projectiles: [], bursts: [],
   fpsMode: false, deadUntil: 0,
   hp: 100, targetHpUntil: 0,
-  nearBts: null, btsSigs: 0, btsSelfies: 0, btsQuotes: [],
+  nearBts: null, btsSigs: 0, btsSelfies: 0, btsHugs: 0, btsQuotes: [],
+  interactOpen: false,
 };
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
@@ -567,6 +571,7 @@ function loadSave() {
     if (d.day === S.day && typeof d.visitExtra === 'number') S.visitExtra = d.visitExtra;
     if (typeof d.btsSigs === 'number') S.btsSigs = d.btsSigs;
     if (typeof d.btsSelfies === 'number') S.btsSelfies = d.btsSelfies;
+    if (typeof d.btsHugs === 'number') S.btsHugs = d.btsHugs;
     if (Array.isArray(d.btsQuotes)) S.btsQuotes = d.btsQuotes.slice(-20);
   } catch (_) {}
 }
@@ -576,7 +581,8 @@ function saveAll() {
       name: S.name, incense: S.incense, bestCalm: S.bestCalm,
       prayers: S.prayers.slice(-40), fortunes: S.fortunes.slice(-40),
       day: S.day, visitExtra: S.visitExtra,
-      btsSigs: S.btsSigs, btsSelfies: S.btsSelfies, btsQuotes: S.btsQuotes.slice(-20),
+      btsSigs: S.btsSigs, btsSelfies: S.btsSelfies, btsHugs: S.btsHugs,
+      btsQuotes: S.btsQuotes.slice(-20),
     }));
   } catch (_) {}
 }
@@ -2342,39 +2348,126 @@ function pickNearBts() {
   return best;
 }
 
+function cancelNpcInteract() {
+  closeModal();
+  S.busy = false;
+  S.interactOpen = false;
+  $('bts-bar')?.classList.remove('show');
+  $('combat-bar')?.classList.remove('show');
+  if (player?.userData) {
+    player.userData.armL.rotation.set(0, 0, 0);
+    player.userData.armR.rotation.set(0, 0, 0);
+  }
+  toast('Đã hủy tương tác');
+}
+
 function openBtsMenu(member) {
   const m = member || BTS_MEMBERS[(Math.random() * BTS_MEMBERS.length) | 0];
   S.busy = true;
+  S.interactOpen = true;
   openModal(`
     <h2>🎤 Fanmeet BTS</h2>
     <p><strong>${m.name}</strong> (${m.full}) đang cầu an tại chùa thiên đường.<br/>Xin gì nào, ARMY?</p>
     <div class="row">
+      <button class="choice" id="bts-hug">🤗 Ôm chặt</button>
       <button class="choice" id="bts-sign">✍️ Xin chữ ký</button>
-      <button class="choice" id="bts-selfie">📸 Selfie</button>
     </div>
     <div class="row" style="margin-top:8px">
+      <button class="choice" id="bts-selfie">📸 Selfie</button>
       <button class="choice" id="bts-chat">💬 Hỏi vui</button>
     </div>
-    <p class="tiny">Đã có ${S.btsSigs} chữ ký · ${S.btsSelfies} selfie</p>
-    <div class="row" style="margin-top:12px"><button class="btn secondary" id="m-cancel">Đóng</button></div>
+    <p class="tiny">${S.btsSigs} chữ ký · ${S.btsSelfies} selfie · ${S.btsHugs} cái ôm</p>
+    <div class="row" style="margin-top:12px"><button class="btn secondary" id="m-cancel" type="button">Hủy / Đóng</button></div>
   `);
+  $('bts-hug').onclick = () => { closeModal(); hugBts(m); };
   $('bts-sign').onclick = () => { closeModal(); askBtsSignature(m); };
   $('bts-selfie').onclick = () => { closeModal(); takeBtsSelfie(m); };
   $('bts-chat').onclick = () => { closeModal(); chatBts(m); };
-  $('m-cancel').onclick = () => { closeModal(); S.busy = false; };
+  $('m-cancel').onclick = () => cancelNpcInteract();
+}
+
+const BTS_HUG_LINES = [
+  'ôm xong vẫn phải xếp hàng xin chữ ký',
+  'ôm chặt như comeback stage!',
+  'tim đập BPM concert luôn',
+  'đừng kể ARMY khác — spoil hết',
+  'ôm xong tâm an gấp đôi',
+  'borahae… và hơi ngạt thở',
+];
+function hugBts(m) {
+  S.busy = true;
+  S.interactOpen = true;
+  const b = btsCrew.find(x => x.member.id === m.id && btsAlive(x));
+  // Pose ôm
+  if (player?.userData) {
+    player.userData.armL.rotation.set(-1.15, 0, 0.85);
+    player.userData.armR.rotation.set(-1.15, 0, -0.85);
+  }
+  if (b?.body?.userData) {
+    b.body.userData.armL.rotation.set(-1.05, 0, 0.7);
+    b.body.userData.armR.rotation.set(-1.05, 0, -0.7);
+  }
+  playWhoosh();
+  S.btsHugs++;
+  const line = BTS_HUG_LINES[(Math.random() * BTS_HUG_LINES.length) | 0];
+  S.btsQuotes.push({ who: m.name, text: `🤗 Ôm: ${line}`, at: Date.now() });
+  saveAll();
+  // Đôi khi ôm “siêu to” cả nhóm
+  const huge = Math.random() < 0.28;
+  if (huge) {
+    btsCrew.forEach(other => {
+      if (!btsAlive(other) || !other.body?.userData) return;
+      other.body.userData.armL.rotation.set(-1.0, 0, 0.65);
+      other.body.userData.armR.rotation.set(-1.0, 0, -0.65);
+    });
+  }
+  openModal(`
+    <h2>${huge ? '🤗 HUGE HUG — cả BTS!' : `🤗 Ôm ${m.name}`}</h2>
+    <p>${huge
+      ? `<strong>Cả bảy người</strong> lao vào ôm ${S.name || 'bạn'} giữa sân chùa. Đèn lồng cũng rung!`
+      : `<strong>${m.name}</strong> ôm bạn: “${line}”`}</p>
+    <p class="tiny">Tổng ${S.btsHugs} cái ôm đã lưu trong Sổ</p>
+    <div class="row">
+      <button class="btn" id="m-ok" type="button">Bỏ ôm</button>
+      <button class="btn secondary" id="m-cancel" type="button">Hủy</button>
+    </div>
+  `);
+  const endHug = () => {
+    closeModal();
+    S.busy = false;
+    S.interactOpen = false;
+    if (player?.userData) {
+      player.userData.armL.rotation.set(0, 0, 0);
+      player.userData.armR.rotation.set(0, 0, 0);
+    }
+    btsCrew.forEach(other => {
+      if (other.body?.userData) {
+        other.body.userData.armL.rotation.set(0, 0, 0);
+        other.body.userData.armR.rotation.set(0, 0, 0);
+      }
+    });
+  };
+  $('m-ok').onclick = endHug;
+  $('m-cancel').onclick = endHug;
+  toast(huge ? 'HUGE hug cả BTS! 💜💜💜' : `Đã ôm ${m.name}! 🤗`);
 }
 
 function askBtsSignature(m) {
   S.busy = true;
+  S.interactOpen = true;
   const line = m.lines[(Math.random() * m.lines.length) | 0];
   // Thỉnh thoảng từ chối hài
   if (Math.random() < 0.12) {
     openModal(`
       <h2>Suýt được chữ ký…</h2>
       <p><strong>${m.name}</strong>: “Bạn xếp hàng sau <em>7 kiếp nữa</em> nhé. Idol cũng phải thắp hương đã!”</p>
-      <div class="row"><button class="btn" id="m-ok">Khóc thầm rồi đóng</button></div>
+      <div class="row">
+        <button class="btn" id="m-ok" type="button">Khóc thầm rồi đóng</button>
+        <button class="btn secondary" id="m-cancel" type="button">Hủy</button>
+      </div>
     `);
-    $('m-ok').onclick = () => { closeModal(); S.busy = false; };
+    $('m-ok').onclick = () => cancelNpcInteract();
+    $('m-cancel').onclick = () => cancelNpcInteract();
     toast(`${m.name} bảo xếp hàng tiếp 😅`);
     return;
   }
@@ -2396,20 +2489,19 @@ function askBtsSignature(m) {
       <div class="sig-note" style="margin-top:8px">BTS × Chùa An Lạc · ${new Date().toLocaleDateString('vi')}</div>
     </div>
     <p class="tiny">Lưu trong Sổ cầu an · Tổng ${S.btsSigs} chữ ký</p>
-    <div class="row"><button class="btn" id="m-ok">Cảm ơn oppa!</button></div>
+    <div class="row">
+      <button class="btn" id="m-ok" type="button">Cảm ơn oppa!</button>
+      <button class="btn secondary" id="m-cancel" type="button">Hủy</button>
+    </div>
   `);
-  $('m-ok').onclick = () => {
-    closeModal(); S.busy = false;
-    if (player?.userData) {
-      player.userData.armL.rotation.set(0, 0, 0);
-      player.userData.armR.rotation.set(0, 0, 0);
-    }
-  };
+  $('m-ok').onclick = () => cancelNpcInteract();
+  $('m-cancel').onclick = () => cancelNpcInteract();
   toast(`${m.name} đã ký cho bạn! ✍️💜`);
 }
 
 function takeBtsSelfie(m) {
   S.busy = true;
+  S.interactOpen = true;
   const flash = $('selfie-flash');
   if (flash) {
     flash.classList.add('on');
@@ -2439,29 +2531,32 @@ function takeBtsSelfie(m) {
       <div class="sf-cap"><strong>${S.name}</strong> + <strong>${m.name}</strong><br/>${cap}</div>
     </div>
     <p class="tiny">Đã lưu · Tổng ${S.btsSelfies} selfie</p>
-    <div class="row"><button class="btn" id="m-ok">Đăng story (tưởng tượng)</button></div>
+    <div class="row">
+      <button class="btn" id="m-ok" type="button">Đăng story (tưởng tượng)</button>
+      <button class="btn secondary" id="m-cancel" type="button">Hủy</button>
+    </div>
   `);
-  $('m-ok').onclick = () => {
-    closeModal(); S.busy = false;
-    if (player?.userData) {
-      player.userData.armL.rotation.set(0, 0, 0);
-      player.userData.armR.rotation.set(0, 0, 0);
-    }
-    toast('Story ảo đã bay vào mây ☁️');
-  };
+  const endSelfie = () => { cancelNpcInteract(); toast('Story ảo đã bay vào mây ☁️'); };
+  $('m-ok').onclick = endSelfie;
+  $('m-cancel').onclick = () => cancelNpcInteract();
 }
 
 function chatBts(m) {
   S.busy = true;
+  S.interactOpen = true;
   const joke = BTS_CHAT[(Math.random() * BTS_CHAT.length) | 0];
   const personal = m.lines[(Math.random() * m.lines.length) | 0];
   openModal(`
     <h2>💬 Nói chuyện với ${m.name}</h2>
     <p><strong>${m.name}:</strong> “${personal}”</p>
     <p>${joke}</p>
-    <div class="row"><button class="btn" id="m-ok">Haha đóng</button></div>
+    <div class="row">
+      <button class="btn" id="m-ok" type="button">Haha đóng</button>
+      <button class="btn secondary" id="m-cancel" type="button">Hủy</button>
+    </div>
   `);
-  $('m-ok').onclick = () => { closeModal(); S.busy = false; };
+  $('m-ok').onclick = () => cancelNpcInteract();
+  $('m-cancel').onclick = () => cancelNpcInteract();
   toast(`${m.name} vừa thả một câu hài`);
 }
 
@@ -2559,37 +2654,50 @@ $('btn-mute').onclick = () => setMute(!S.muted);
 $('btn-book').onclick = () => openBook();
 $('btn-share').onclick = () => doShare();
 $('action-btn').onclick = () => {
+  if (S.busy && S.interactOpen) { cancelNpcInteract(); return; }
   if (S.busy) return;
   if (S.nearBts) {
+    S.interactOpen = true;
     $('bts-bar').classList.add('show');
+    $('combat-bar').classList.remove('show');
     openBtsMenu(S.nearBts.member);
     return;
   }
   if (S.nearPlayer) {
-    // Hiện thanh tương tác bạn bè
+    S.interactOpen = true;
     $('combat-bar').classList.add('show');
     $('bts-bar').classList.remove('show');
     return;
   }
   $('combat-bar').classList.remove('show');
   $('bts-bar').classList.remove('show');
+  S.interactOpen = false;
   if (S.near) startActivity(S.near.id);
 };
 $('bts-bar').addEventListener('click', e => {
   const btn = e.target.closest('.bts-btn');
-  if (!btn || !S.nearBts) return;
+  if (!btn) return;
+  if (btn.dataset.bts === 'cancel') { cancelNpcInteract(); return; }
+  if (!S.nearBts) return;
   const m = S.nearBts.member;
-  if (btn.dataset.bts === 'sign') askBtsSignature(m);
+  if (btn.dataset.bts === 'hug') hugBts(m);
+  else if (btn.dataset.bts === 'sign') askBtsSignature(m);
   else if (btn.dataset.bts === 'selfie') takeBtsSelfie(m);
-  else chatBts(m);
+  else if (btn.dataset.bts === 'chat') chatBts(m);
 });
 $('combat-bar').addEventListener('click', e => {
   const btn = e.target.closest('.combat-btn');
-  if (!btn || !S.nearPlayer) return;
+  if (!btn) return;
+  if (btn.dataset.act === 'cancel') { cancelNpcInteract(); return; }
+  if (!S.nearPlayer) return;
   doFriendAction(btn.dataset.act, S.nearPlayer);
 });
 $('mg-close').onclick = () => endMinigame(false);
-$('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
+$('modal').addEventListener('click', e => {
+  if (e.target !== $('modal')) return;
+  if (S.interactOpen) cancelNpcInteract();
+  else { closeModal(); S.busy = false; }
+});
 
 // Bàn phím (bỏ qua khi đang gõ ô nhập đang hiện)
 function typingInField() {
@@ -2613,6 +2721,15 @@ function bindKey(e, down) {
 }
 addEventListener('keydown', e => {
   if (typingInField()) return;
+  // Esc = hủy tương tác NPC / BTS / modal
+  if (e.code === 'Escape') {
+    e.preventDefault();
+    if (S.interactOpen || $('modal')?.classList.contains('open') || $('bts-bar')?.classList.contains('show') || $('combat-bar')?.classList.contains('show')) {
+      cancelNpcInteract();
+      return;
+    }
+    if ($('minigame')?.classList.contains('open')) { endMinigame(false); return; }
+  }
   bindKey(e, true);
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
   // Shift = bật/tắt ngắm súng · V = đổi FPS / 3rd
@@ -2620,6 +2737,7 @@ addEventListener('keydown', e => {
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') toggleAiming();
     if (e.code === 'KeyV') toggleFpsMode();
   }
+  if (S.busy || S.interactOpen) return;
   if (e.code === 'KeyF' || e.code === 'Space') { if (S.gun) fireWeapon(); }
   if (e.code === 'KeyR') {
     const order = ['', 'ak', 'bazooka', 'knife'];
@@ -3061,7 +3179,7 @@ function openBook() {
       <div class="stat"><div class="v">${S.name}</div><div class="l">Tên</div></div>
       <div class="stat"><div class="v">${S.incense}</div><div class="l">Lần thắp hương</div></div>
       <div class="stat"><div class="v">${S.btsSigs}</div><div class="l">Chữ ký BTS</div></div>
-      <div class="stat"><div class="v">${S.btsSelfies}</div><div class="l">Selfie BTS</div></div>
+      <div class="stat"><div class="v">${S.btsHugs}</div><div class="l">Ôm BTS</div></div>
     </div>
     <h2 style="font-size:1rem;margin-top:8px">Lời cầu đã viết</h2>
     <ul class="book-list">${prayers}</ul>
@@ -4252,24 +4370,26 @@ function updatePlayer(dt) {
   const cbar = $('combat-bar');
   const bbar = $('bts-bar');
   if (!S.busy && S.nearBts) {
-    btn.textContent = `Gặp BTS · ${S.nearBts.member.name}`;
+    btn.textContent = S.interactOpen ? `Hủy · ${S.nearBts.member.name}` : `Gặp BTS · ${S.nearBts.member.name}`;
     btn.classList.add('show');
-    bbar.classList.add('show');
+    bbar.classList.toggle('show', S.interactOpen);
     cbar.classList.remove('show');
   } else if (!S.busy && nearP) {
-    btn.textContent = `Tương tác · ${nearP.name}`;
+    btn.textContent = S.interactOpen ? `Hủy · ${nearP.name}` : `Tương tác · ${nearP.name}`;
     btn.classList.add('show');
-    cbar.classList.add('show');
+    cbar.classList.toggle('show', S.interactOpen);
     bbar.classList.remove('show');
   } else if (!S.busy && near) {
     btn.textContent = near.label;
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
+    S.interactOpen = false;
   } else {
     btn.classList.remove('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
+    if (!S.nearBts && !nearP) S.interactOpen = false;
   }
 
   // Khoá animation đi khi đang đấm đá

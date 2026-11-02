@@ -108,6 +108,38 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 .combat-btn:active{transform:scale(.96);background:rgba(243,235,224,.18)}
 #hit-flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 40%,rgba(255,80,80,.25),transparent 55%);transition:opacity .15s;z-index:40}
 #hit-flash.on{opacity:1}
+#selfie-flash{
+  position:absolute;inset:0;pointer-events:none;opacity:0;background:#fff;z-index:90;
+  transition:opacity .08s;
+}
+#selfie-flash.on{opacity:.92}
+#bts-bar{
+  position:absolute;left:50%;bottom:calc(168px + var(--sb));transform:translateX(-50%);
+  display:none;gap:8px;pointer-events:auto;z-index:57;flex-wrap:wrap;justify-content:center;max-width:94vw;
+}
+#bts-bar.show{display:flex}
+.bts-btn{
+  min-width:88px;min-height:44px;padding:10px 14px;border-radius:999px;border:1px solid rgba(180,120,255,.4);
+  background:rgba(40,20,60,.72);color:#f3e8ff;font-size:.82rem;font-weight:600;
+  cursor:pointer;font-family:inherit;backdrop-filter:blur(12px);
+}
+.bts-btn:active{transform:scale(.96);background:rgba(120,60,180,.45)}
+.sig-card{
+  margin:10px auto;padding:14px 16px;border-radius:12px;max-width:320px;text-align:left;
+  background:linear-gradient(135deg,rgba(80,40,120,.35),rgba(20,10,30,.55));
+  border:1px dashed rgba(220,180,255,.45);font-family:"Literata",Georgia,serif;
+}
+.sig-card .sig-name{font-size:1.15rem;color:#e8d5ff;margin-bottom:4px}
+.sig-card .sig-line{font-size:1.35rem;font-style:italic;color:#fff;transform:rotate(-4deg);display:inline-block;margin:8px 0}
+.sig-card .sig-note{font-size:.78rem;color:rgba(243,235,224,.65)}
+.selfie-frame{
+  margin:8px auto;width:min(280px,80vw);aspect-ratio:3/4;border-radius:14px;overflow:hidden;
+  border:2px solid rgba(220,180,255,.5);background:linear-gradient(180deg,#4a2a6a,#1a1020 55%,#2a1830);
+  position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:12px;
+}
+.selfie-frame .sf-title{position:absolute;top:10px;left:0;right:0;text-align:center;font-size:.72rem;color:#e8d5ff;letter-spacing:.04em}
+.selfie-frame .sf-crew{font-size:1.6rem;letter-spacing:.08em;margin-bottom:6px}
+.selfie-frame .sf-cap{font-size:.78rem;color:rgba(243,235,224,.85);text-align:center;line-height:1.35}
 #weapon-bar{
   position:absolute;right:12px;bottom:calc(168px + var(--sb));display:none;flex-direction:column;gap:6px;
   pointer-events:auto;z-index:55;align-items:flex-end;
@@ -297,7 +329,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <ol class="steps">
         <li><span class="n">1</span><span>Điện thoại kiểu Free Fire: trái kéo đi · phải kéo xoay nhìn. Máy tính: WASD + chuột.</span></li>
         <li><span class="n">2</span><span>Nút Chạy để tăng tốc. Tới gần lư hương, chuông, mõ rồi bấm hành động.</span></li>
-        <li><span class="n">3</span><span>Góc phải: chọn AK / Bazooka. Ngắm để zoom, Bắn (F) bắn bạn bè online.</span></li>
+        <li><span class="n">3</span><span>Góc phải: AK / Bazooka / dao. Gặp đội BTS gần cổng → xin chữ ký & selfie (hài lắm).</span></li>
       </ol>
       <p class="tiny" style="margin:0 0 10px;text-align:center">Chọn góc nhìn khi vào chùa</p>
       <div class="row" style="margin-bottom:14px">
@@ -329,6 +361,12 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button class="combat-btn" data-act="da" type="button">Đá</button>
       <button class="combat-btn" data-act="tat" type="button">Tát</button>
     </div>
+    <div id="bts-bar">
+      <button class="bts-btn" type="button" data-bts="sign">Xin chữ ký</button>
+      <button class="bts-btn" type="button" data-bts="selfie">Selfie</button>
+      <button class="bts-btn" type="button" data-bts="chat">Hỏi vui</button>
+    </div>
+    <div id="selfie-flash"></div>
     <div id="weapon-bar">
       <button class="weapon-btn on" type="button" data-gun="">Tay không</button>
       <button class="weapon-btn" type="button" data-gun="ak">AK-47</button>
@@ -429,6 +467,7 @@ const S = {
   gun: '', aiming: false, fireUntil: 0, baseFov: 55, projectiles: [], bursts: [],
   fpsMode: false, deadUntil: 0,
   hp: 100, targetHpUntil: 0,
+  nearBts: null, btsSigs: 0, btsSelfies: 0, btsQuotes: [],
 };
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
@@ -526,6 +565,9 @@ function loadSave() {
     if (Array.isArray(d.prayers)) S.prayers = d.prayers.slice(-40);
     if (Array.isArray(d.fortunes)) S.fortunes = d.fortunes.slice(-40);
     if (d.day === S.day && typeof d.visitExtra === 'number') S.visitExtra = d.visitExtra;
+    if (typeof d.btsSigs === 'number') S.btsSigs = d.btsSigs;
+    if (typeof d.btsSelfies === 'number') S.btsSelfies = d.btsSelfies;
+    if (Array.isArray(d.btsQuotes)) S.btsQuotes = d.btsQuotes.slice(-20);
   } catch (_) {}
 }
 function saveAll() {
@@ -534,6 +576,7 @@ function saveAll() {
       name: S.name, incense: S.incense, bestCalm: S.bestCalm,
       prayers: S.prayers.slice(-40), fortunes: S.fortunes.slice(-40),
       day: S.day, visitExtra: S.visitExtra,
+      btsSigs: S.btsSigs, btsSelfies: S.btsSelfies, btsQuotes: S.btsQuotes.slice(-20),
     }));
   } catch (_) {}
 }
@@ -2096,6 +2139,255 @@ function spawnGroup() {
   toast(`Đoàn ${n} khách vừa tới cổng tam quan`);
 }
 
+/* ========== BTS — khách đặc biệt (fanmeet cầu an, hài) ========== */
+const BTS_MEMBERS = [
+  { id: 'rm', name: 'RM', full: 'Kim Namjoon', color: 0x2d1b4e, lines: [
+    'Cầu an trước, album sau 💜', 'IQ 148 nhưng vẫn xếp hàng thắp hương', 'Nam mô… Dynamite?',
+  ]},
+  { id: 'jin', name: 'Jin', full: 'Kim Seokjin', color: 0x4a3040, lines: [
+    'Worldwide handsome… đang cầu cho da đẹp', 'Ăn gì cũng được, miễn là có cơm chùa', 'I am sick — sick of waiting in line',
+  ]},
+  { id: 'suga', name: 'Suga', full: 'Min Yoongi', color: 0x1a1a22, lines: [
+    'Ký nhanh rồi để anh ngủ tiếp', 'Beat drop = tiếng chuông chùa', 'Đừng gọi anh dậy lúc 5 giờ sáng',
+  ]},
+  { id: 'jhope', name: 'J-Hope', full: 'Jung Hoseok', color: 0xb85c20, lines: [
+    'Hope World ngay trên thiên đường!', 'Nhảy một điệu rồi mới xin quẻ', 'ARMY ơi, cười lên nào~',
+  ]},
+  { id: 'jimin', name: 'Jimin', full: 'Park Jimin', color: 0x6b3a5c, lines: [
+    'Chữ ký cute bằng cả một concert', 'Filter sẵn rồi, selfie đi!', 'Cầu cho eo nhỏ… à không, tâm an',
+  ]},
+  { id: 'v', name: 'V', full: 'Kim Taehyung', color: 0x3d4a2a, lines: [
+    'Tae Tae gửi bình an kiểu hộp sữa', 'Chụp nghiêng 45 độ là đẹp nhất', 'Borahe — cầu an version',
+  ]},
+  { id: 'jk', name: 'Jungkook', full: 'Jeon Jungkook', color: 0x2a3548, lines: [
+    'Golden maknae ký bằng cả hai tay', 'Selfie xong còn thỉnh chuông giúp bạn', 'Jeon… mô A Di Đà Phật',
+  ]},
+];
+const BTS_CHAT = [
+  'Jin: “Bạn xếp hàng sau đúng 7 kiếp nữa nhé.”',
+  'Suga: “Ký rồi đó. Đừng tag story lúc anh ngủ.”',
+  'J-Hope: “Cầu an xong nhảy mic drop nhẹ cái!”',
+  'Jimin: “Chụp xong nhớ đăng #Chuafanmeet.”',
+  'V: “Tiệm cơm chùa có kimchi không ta?”',
+  'Jungkook: “Anh đánh chuông chuẩn tempo 120 BPM.”',
+  'RM: “Triết lý: tâm an thì chart cũng an.”',
+  'Cả nhóm: “ARMY cầu an — Billboard cũng phải cúi!”',
+];
+let btsCrew = []; // { mesh, member, label, baseX, baseZ, phase }
+
+function buildBtsCrew() {
+  btsCrew = [];
+  const cx = -6.5, cz = 9.2;
+  BTS_MEMBERS.forEach((m, i) => {
+    const col = i % 4;
+    const row = (i / 4) | 0;
+    const x = cx + col * 1.15 + (row ? 0.4 : 0);
+    const z = cz + row * 1.2;
+    const mesh = buildHumanoid({ robeColor: m.color, scale: 1.02, withFace: true });
+    // Phụ kiện “idol”: khăn tím + mic nhỏ
+    const scarf = new THREE.Mesh(
+      new THREE.TorusGeometry(0.16, 0.035, 6, 12),
+      new THREE.MeshStandardMaterial({ color: 0x7b4bb8, emissive: 0x4a2080, emissiveIntensity: 0.35, roughness: 0.6 })
+    );
+    scarf.rotation.x = Math.PI / 2; scarf.position.y = 1.22; mesh.add(scarf);
+    const mic = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.03, 0.22, 6),
+      new THREE.MeshStandardMaterial({ color: 0x222228, metalness: 0.6, roughness: 0.35 })
+    );
+    mic.position.set(0.42, 0.85, 0.12); mic.rotation.z = 0.5; mesh.add(mic);
+    const star = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05, 6, 4),
+      new THREE.MeshBasicMaterial({ color: 0xffd966 })
+    );
+    star.position.set(0, 1.82, 0); mesh.add(star);
+
+    const root = new THREE.Group();
+    root.add(mesh);
+    root.position.set(x, 0, z);
+    root.rotation.y = Math.atan2(-x, 2 - z); // hướng vào sân
+    scene.add(root);
+
+    const label = document.createElement('div');
+    label.className = 'bubble3d on';
+    label.style.borderColor = 'rgba(180,120,255,.55)';
+    label.style.background = 'rgba(40,20,60,.78)';
+    label.textContent = `🎤 ${m.name}`;
+    nameLabels.appendChild(label);
+
+    btsCrew.push({
+      mesh: root, body: mesh, member: m, label,
+      baseX: x, baseZ: z, phase: i * 0.9, bounce: 0,
+    });
+  });
+  // Biển fanmeet nhỏ
+  const sign = textPlane('BTS FANMEET · Cầu An', 420, 64, '#f3e8ff', '#4a2080', 26);
+  sign.position.set(cx + 1.6, 2.35, cz - 0.8);
+  sign.scale.set(3.2, 0.55, 1);
+  scene.add(sign);
+}
+
+function updateBts(dt, t) {
+  for (const b of btsCrew) {
+    // Nhún nhảy nhẹ kiểu idol
+    b.bounce += dt;
+    const bob = Math.sin(t * 3.2 + b.phase) * 0.04;
+    const sway = Math.sin(t * 2.1 + b.phase) * 0.08;
+    b.body.position.y = bob;
+    const ud = b.body.userData;
+    if (ud) {
+      ud.armL.rotation.z = 0.35 + sway;
+      ud.armR.rotation.z = -0.35 - sway * 0.8;
+      ud.armL.rotation.x = -0.35 + Math.sin(t * 4 + b.phase) * 0.25;
+      ud.armR.rotation.x = -0.55 + Math.cos(t * 4 + b.phase) * 0.3;
+      // J-Hope nhảy mạnh hơn
+      if (b.member.id === 'jhope') {
+        ud.legL.rotation.x = Math.sin(t * 6) * 0.4;
+        ud.legR.rotation.x = -Math.sin(t * 6) * 0.4;
+      }
+    }
+    _v.set(b.mesh.position.x, 2.05, b.mesh.position.z);
+    _v.project(camera);
+    if (_v.z < 1) {
+      b.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
+      b.label.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
+      b.label.classList.add('on');
+    } else b.label.classList.remove('on');
+  }
+}
+
+function pickNearBts() {
+  if (!playerRoot || !btsCrew.length) return null;
+  let best = null, bestD = 2.8;
+  for (const b of btsCrew) {
+    const d = Math.hypot(playerRoot.position.x - b.mesh.position.x, playerRoot.position.z - b.mesh.position.z);
+    if (d < bestD) { bestD = d; best = b; }
+  }
+  return best;
+}
+
+function openBtsMenu(member) {
+  const m = member || BTS_MEMBERS[(Math.random() * BTS_MEMBERS.length) | 0];
+  S.busy = true;
+  openModal(`
+    <h2>🎤 Fanmeet BTS</h2>
+    <p><strong>${m.name}</strong> (${m.full}) đang cầu an tại chùa thiên đường.<br/>Xin gì nào, ARMY?</p>
+    <div class="row">
+      <button class="choice" id="bts-sign">✍️ Xin chữ ký</button>
+      <button class="choice" id="bts-selfie">📸 Selfie</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="choice" id="bts-chat">💬 Hỏi vui</button>
+    </div>
+    <p class="tiny">Đã có ${S.btsSigs} chữ ký · ${S.btsSelfies} selfie</p>
+    <div class="row" style="margin-top:12px"><button class="btn secondary" id="m-cancel">Đóng</button></div>
+  `);
+  $('bts-sign').onclick = () => { closeModal(); askBtsSignature(m); };
+  $('bts-selfie').onclick = () => { closeModal(); takeBtsSelfie(m); };
+  $('bts-chat').onclick = () => { closeModal(); chatBts(m); };
+  $('m-cancel').onclick = () => { closeModal(); S.busy = false; };
+}
+
+function askBtsSignature(m) {
+  S.busy = true;
+  const line = m.lines[(Math.random() * m.lines.length) | 0];
+  // Thỉnh thoảng từ chối hài
+  if (Math.random() < 0.12) {
+    openModal(`
+      <h2>Suýt được chữ ký…</h2>
+      <p><strong>${m.name}</strong>: “Bạn xếp hàng sau <em>7 kiếp nữa</em> nhé. Idol cũng phải thắp hương đã!”</p>
+      <div class="row"><button class="btn" id="m-ok">Khóc thầm rồi đóng</button></div>
+    `);
+    $('m-ok').onclick = () => { closeModal(); S.busy = false; };
+    toast(`${m.name} bảo xếp hàng tiếp 😅`);
+    return;
+  }
+  S.btsSigs++;
+  S.btsQuotes.push({ who: m.name, text: line, at: Date.now() });
+  saveAll();
+  // Pose đưa tay
+  if (player?.userData) {
+    player.userData.armR.rotation.set(-1.2, 0, -0.4);
+    player.userData.armL.rotation.set(-0.4, 0, 0.5);
+  }
+  playWhoosh();
+  openModal(`
+    <h2>Chữ ký của ${m.name}!</h2>
+    <div class="sig-card">
+      <div class="sig-name">To: ${S.name || 'ARMY'}</div>
+      <div class="sig-line">✧ ${m.name} ✧</div>
+      <div class="sig-note">“${line}”</div>
+      <div class="sig-note" style="margin-top:8px">BTS × Chùa An Lạc · ${new Date().toLocaleDateString('vi')}</div>
+    </div>
+    <p class="tiny">Lưu trong Sổ cầu an · Tổng ${S.btsSigs} chữ ký</p>
+    <div class="row"><button class="btn" id="m-ok">Cảm ơn oppa!</button></div>
+  `);
+  $('m-ok').onclick = () => {
+    closeModal(); S.busy = false;
+    if (player?.userData) {
+      player.userData.armL.rotation.set(0, 0, 0);
+      player.userData.armR.rotation.set(0, 0, 0);
+    }
+  };
+  toast(`${m.name} đã ký cho bạn! ✍️💜`);
+}
+
+function takeBtsSelfie(m) {
+  S.busy = true;
+  const flash = $('selfie-flash');
+  if (flash) {
+    flash.classList.add('on');
+    setTimeout(() => flash.classList.remove('on'), 120);
+  }
+  playBell?.(0.35, 1.4);
+  try { playWhoosh(); } catch (_) {}
+  S.btsSelfies++;
+  const cap = [
+    `${S.name} × ${m.name} — chùa rung như concert`,
+    `Selfie với ${m.name}: filter sẵn, tâm cũng an`,
+    `ARMY check-in thiên đường cùng ${m.name}`,
+    `${m.name} photobomb lúc bạn thắp hương`,
+  ][(Math.random() * 4) | 0];
+  S.btsQuotes.push({ who: m.name, text: '📸 ' + cap, at: Date.now() });
+  saveAll();
+  // Pose selfie
+  if (player?.userData) {
+    player.userData.armR.rotation.set(-1.5, 0.2, -0.8);
+    player.userData.armL.rotation.set(-0.8, 0, 0.6);
+  }
+  openModal(`
+    <h2>📸 Selfie với ${m.name}</h2>
+    <div class="selfie-frame">
+      <div class="sf-title">BTS FANMEET · CHÙA AN LẠC</div>
+      <div class="sf-crew">🧍‍♂️🎤✨</div>
+      <div class="sf-cap"><strong>${S.name}</strong> + <strong>${m.name}</strong><br/>${cap}</div>
+    </div>
+    <p class="tiny">Đã lưu · Tổng ${S.btsSelfies} selfie</p>
+    <div class="row"><button class="btn" id="m-ok">Đăng story (tưởng tượng)</button></div>
+  `);
+  $('m-ok').onclick = () => {
+    closeModal(); S.busy = false;
+    if (player?.userData) {
+      player.userData.armL.rotation.set(0, 0, 0);
+      player.userData.armR.rotation.set(0, 0, 0);
+    }
+    toast('Story ảo đã bay vào mây ☁️');
+  };
+}
+
+function chatBts(m) {
+  S.busy = true;
+  const joke = BTS_CHAT[(Math.random() * BTS_CHAT.length) | 0];
+  const personal = m.lines[(Math.random() * m.lines.length) | 0];
+  openModal(`
+    <h2>💬 Nói chuyện với ${m.name}</h2>
+    <p><strong>${m.name}:</strong> “${personal}”</p>
+    <p>${joke}</p>
+    <div class="row"><button class="btn" id="m-ok">Haha đóng</button></div>
+  `);
+  $('m-ok').onclick = () => { closeModal(); S.busy = false; };
+  toast(`${m.name} vừa thả một câu hài`);
+}
+
 /* ========== GIAO DIỆN & ĐIỀU KHIỂN ========== */
 const $ = id => document.getElementById(id);
 function toast(msg) {
@@ -2182,6 +2474,7 @@ function startPlay() {
   toast(S.fpsMode
     ? `FPS: kéo phải xoay · trái đi · Chạy để tăng tốc`
     : `PUBG-style: trái đi · phải xoay nhìn · Chạy · phím V = FPS`);
+  setTimeout(() => toast('💜 BTS đang fanmeet gần cổng — lại xin chữ ký & selfie!'), 2800);
 }
 
 $('btn-view').onclick = () => toggleFpsMode();
@@ -2190,14 +2483,29 @@ $('btn-book').onclick = () => openBook();
 $('btn-share').onclick = () => doShare();
 $('action-btn').onclick = () => {
   if (S.busy) return;
+  if (S.nearBts) {
+    $('bts-bar').classList.add('show');
+    openBtsMenu(S.nearBts.member);
+    return;
+  }
   if (S.nearPlayer) {
     // Hiện thanh tương tác bạn bè
     $('combat-bar').classList.add('show');
+    $('bts-bar').classList.remove('show');
     return;
   }
   $('combat-bar').classList.remove('show');
+  $('bts-bar').classList.remove('show');
   if (S.near) startActivity(S.near.id);
 };
+$('bts-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.bts-btn');
+  if (!btn || !S.nearBts) return;
+  const m = S.nearBts.member;
+  if (btn.dataset.bts === 'sign') askBtsSignature(m);
+  else if (btn.dataset.bts === 'selfie') takeBtsSelfie(m);
+  else chatBts(m);
+});
 $('combat-bar').addEventListener('click', e => {
   const btn = e.target.closest('.combat-btn');
   if (!btn || !S.nearPlayer) return;
@@ -2641,18 +2949,21 @@ function updateFortune(dt) {
 function openBook() {
   const prayers = S.prayers.slice().reverse().map(p => `<li>${p.text}<br><span class="tiny">${p.way==='ribbon'?'Dải lụa':'Hoa đăng'} · ${new Date(p.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa có lời cầu nào</li>';
   const forts = S.fortunes.slice().reverse().slice(0, 8).map(f => `<li>${f.text}</li>`).join('') || '<li>Chưa xin quẻ</li>';
+  const bts = S.btsQuotes.slice().reverse().slice(0, 8).map(q => `<li><strong>${q.who}</strong>: ${q.text}</li>`).join('') || '<li>Chưa xin chữ ký / selfie BTS</li>';
   openModal(`
     <h2>Sổ cầu an của tôi</h2>
     <div class="stat-grid">
       <div class="stat"><div class="v">${S.name}</div><div class="l">Tên</div></div>
       <div class="stat"><div class="v">${S.incense}</div><div class="l">Lần thắp hương</div></div>
-      <div class="stat"><div class="v">${S.bestCalm}</div><div class="l">Tâm an cao nhất</div></div>
-      <div class="stat"><div class="v">${S.fortunes.length}</div><div class="l">Quẻ đã xin</div></div>
+      <div class="stat"><div class="v">${S.btsSigs}</div><div class="l">Chữ ký BTS</div></div>
+      <div class="stat"><div class="v">${S.btsSelfies}</div><div class="l">Selfie BTS</div></div>
     </div>
     <h2 style="font-size:1rem;margin-top:8px">Lời cầu đã viết</h2>
     <ul class="book-list">${prayers}</ul>
     <h2 style="font-size:1rem">Quẻ gần đây</h2>
     <ul class="book-list">${forts}</ul>
+    <h2 style="font-size:1rem">💜 Fanmeet BTS</h2>
+    <ul class="book-list">${bts}</ul>
     <div class="row"><button class="btn" id="m-ok">Đóng</button></div>
   `);
   $('m-ok').onclick = closeModal;
@@ -3786,20 +4097,30 @@ function updatePlayer(dt) {
     if (d < 2.4 && d < pBest) { pBest = d; nearP = { id, name: rp.name, dist: d }; }
   }
   S.nearPlayer = nearP;
+  S.nearBts = pickNearBts();
 
   const btn = $('action-btn');
   const cbar = $('combat-bar');
-  if (!S.busy && nearP) {
+  const bbar = $('bts-bar');
+  if (!S.busy && S.nearBts) {
+    btn.textContent = `Gặp BTS · ${S.nearBts.member.name}`;
+    btn.classList.add('show');
+    bbar.classList.add('show');
+    cbar.classList.remove('show');
+  } else if (!S.busy && nearP) {
     btn.textContent = `Tương tác · ${nearP.name}`;
     btn.classList.add('show');
     cbar.classList.add('show');
+    bbar.classList.remove('show');
   } else if (!S.busy && near) {
     btn.textContent = near.label;
     btn.classList.add('show');
     cbar.classList.remove('show');
+    bbar.classList.remove('show');
   } else {
     btn.classList.remove('show');
     cbar.classList.remove('show');
+    bbar.classList.remove('show');
   }
 
   // Khoá animation đi khi đang đấm đá
@@ -3867,6 +4188,7 @@ function updateWorld(dt, t) {
   updateBursts(dt);
   updateDestroyables(dt);
   updateAI(dt);
+  updateBts(dt, t);
   updateMinigame(dt);
   updateFortune(dt);
   updateRemotes(dt);
@@ -3906,6 +4228,7 @@ function bootGame() {
     buildScene();
     buildPlayer();
     buildAI();
+    buildBtsCrew();
     const tip = document.getElementById('loading-tip');
     if (tip) tip.remove();
     animate();

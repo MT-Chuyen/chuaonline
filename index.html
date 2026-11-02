@@ -1494,7 +1494,12 @@ $('btn-guide-skip').onclick = finishGuide;
 
 function startPlay() {
   S.playing = true; $('hud').style.display = 'block'; updateVisitorUI();
-  toast(`Chào ${S.name}! Kéo nhìn lên trời — có sao, Trái Đất và tàu bay.`);
+  // Trả focus khỏi ô tên / nút — không thì WASD trên máy tính bị nuốt
+  try { document.activeElement && document.activeElement.blur(); } catch (_) {}
+  canvas.setAttribute('tabindex', '0');
+  canvas.style.outline = 'none';
+  setTimeout(() => { try { canvas.focus({ preventScroll: true }); } catch (_) { canvas.focus(); } }, 50);
+  toast(`Chào ${S.name}! Máy tính: WASD / mũi tên · Kéo chuột để nhìn.`);
 }
 
 $('btn-mute').onclick = () => setMute(!S.muted);
@@ -1518,16 +1523,30 @@ $('combat-bar').addEventListener('click', e => {
 $('mg-close').onclick = () => endMinigame(false);
 $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
 
-// Bàn phím (bỏ qua khi đang gõ ô nhập)
+// Bàn phím (bỏ qua khi đang gõ ô nhập đang hiện)
 function typingInField() {
   const el = document.activeElement;
-  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+  if (!el) return false;
+  if (!(el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return false;
+  // Ô tên trên màn hình đã ẩn vẫn có thể giữ focus → vẫn cho WASD
+  const scr = el.closest('.screen');
+  if (scr && scr.classList.contains('hidden')) return false;
+  if (el.disabled || el.readOnly) return false;
+  return true;
+}
+function bindKey(e, down) {
+  S.keys[e.code] = down;
+  // Fallback layout (một số máy / trình duyệt)
+  const k = (e.key || '').toLowerCase();
+  if (k === 'w' || k === 'z') S.keys['KeyW'] = down;
+  if (k === 's') S.keys['KeyS'] = down;
+  if (k === 'a' || k === 'q') S.keys['KeyA'] = down;
+  if (k === 'd') S.keys['KeyD'] = down;
 }
 addEventListener('keydown', e => {
   if (typingInField()) return;
-  S.keys[e.code] = true;
+  bindKey(e, true);
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
-  // Phím tắt khi gần bạn: 1 đấm, 2 đá, 3 tát, 4 chào
   if (S.nearPlayer && !S.busy) {
     if (e.code === 'Digit1' || e.code === 'Numpad1') doFriendAction('dam', S.nearPlayer);
     if (e.code === 'Digit2' || e.code === 'Numpad2') doFriendAction('da', S.nearPlayer);
@@ -1536,9 +1555,9 @@ addEventListener('keydown', e => {
   }
 });
 addEventListener('keyup', e => {
-  if (typingInField()) return;
-  S.keys[e.code] = false;
+  bindKey(e, false);
 });
+addEventListener('blur', () => { for (const k of Object.keys(S.keys)) S.keys[k] = false; });
 
 // Kéo xoay camera
 let lookPtr = null;
@@ -2230,20 +2249,20 @@ function updatePlayer(dt) {
   const blocked = S.busy && ($('minigame').classList.contains('open') || $('modal').classList.contains('open'));
   if (blocked) return;
   let mx = 0, mz = 0;
-  if (S.keys['KeyW'] || S.keys['ArrowUp']) mz -= 1;
+  if (S.keys['KeyW'] || S.keys['ArrowUp'] || S.keys['KeyZ']) mz -= 1;
   if (S.keys['KeyS'] || S.keys['ArrowDown']) mz += 1;
-  if (S.keys['KeyA'] || S.keys['ArrowLeft']) mx -= 1;
+  if (S.keys['KeyA'] || S.keys['ArrowLeft'] || S.keys['KeyQ']) mx -= 1;
   if (S.keys['KeyD'] || S.keys['ArrowRight']) mx += 1;
-  // Joystick: kéo lên (dy < 0) = tiến, giống W
-  if (S.joy.on) { mx += S.joy.dx; mz += S.joy.dy; }
+  // Joystick: đảo trục Y — kéo lên = tiến vào cảnh (khác chiều pixel màn hình)
+  if (S.joy.on) { mx += S.joy.dx; mz -= S.joy.dy; }
   const len = Math.hypot(mx, mz);
   const moving = len > 0.08;
   if (moving) {
     mx /= len; mz /= len;
-    // Camera đứng sau nhân vật tại +yaw → hướng nhìn (tiến) là -yaw
+    // Hướng theo camera yaw (WASD máy tính)
     const spd = 3.6 * dt;
-    const fx = -Math.sin(S.yaw), fz = -Math.cos(S.yaw);
-    const rx = Math.cos(S.yaw), rz = -Math.sin(S.yaw);
+    const fx = Math.sin(S.yaw), fz = Math.cos(S.yaw);
+    const rx = Math.sin(S.yaw + Math.PI / 2), rz = Math.cos(S.yaw + Math.PI / 2);
     const dx = (fx * -mz + rx * mx) * spd;
     const dz = (fz * -mz + rz * mx) * spd;
     const nx = playerRoot.position.x + dx, nz = playerRoot.position.z + dz;

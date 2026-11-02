@@ -1,11 +1,11 @@
 {
   "active": true,
-  "iteration": 3,
+  "iteration": 1,
   "maxIterations": 10,
-  "next": "agent2",
-  "lastAgent": "agent1",
-  "lastTask": "agents/tasks/TASK-20261102-2228-pho-an-lac.md",
-  "goal": "Phố An Lạc 10-loop restart",
-  "focus": "street",
-  "updatedAt": "2026-11-02T22:29:24+07:00"
+  "next": "agent1",
+  "lastAgent": "orchestrator",
+  "lastTask": "",
+  "goal": "Viện Nghiên Cứu Di Truyền — wide animal fantasy yard",
+  "focus": "institute",
+  "updatedAt": "2026-11-02T22:51:00+07:00"
 }

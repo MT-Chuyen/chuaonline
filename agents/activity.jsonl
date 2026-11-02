@@ -180,3 +180,15 @@
 {"ts": "2026-11-02T22:29:24+07:00", "agent": "agent1", "message": "reviewed bóng đá; assigned Phở Bay · Bát Hơi Thăng", "status": "working"}
 {"ts": "2026-11-02T22:29:24+07:00", "agent": "agent1", "message": "Task assigned to Agent 2", "status": "done"}
 {"ts": "2026-11-02T22:29:56+07:00", "agent": "agent2", "message": "Starting Phở Bay build", "status": "working"}
+{"ts": "2026-11-02T22:33:54+07:00", "agent": "agent2", "message": "Finished: Phở Bay hotspot + verbs + persist/Sổ wiring", "status": "working"}
+{"ts": "2026-11-02T22:34:16+07:00", "agent": "agent2", "message": "Build complete — ready for review", "status": "done"}
+{"ts": "2026-11-02T22:37:45+07:00", "agent": "agent1", "message": "reviewed phở bay; assigned Cờ Tướng Bay", "status": "working"}
+{"ts": "2026-11-02T22:37:45+07:00", "agent": "agent1", "message": "Task assigned to Agent 2", "status": "done"}
+{"ts": "2026-11-02T22:38:20+07:00", "agent": "agent2", "message": "Starting Cờ Tướng Bay build", "status": "working"}
+{"ts": "2026-11-02T22:43:53+07:00", "agent": "agent2", "message": "Finished: Cờ Tướng Bay hotspot + verbs + persist", "status": "working"}
+{"ts": "2026-11-02T22:43:53+07:00", "agent": "agent2", "message": "Finished: proximity / Sổ / soft tips / Esc busy", "status": "working"}
+{"ts": "2026-11-02T22:44:13+07:00", "agent": "agent2", "message": "Build complete — ready for review", "status": "done"}
+{"ts": "2026-11-02T22:44:53+07:00", "agent": "agent1", "message": "Reviewing Cờ Tướng Bay (TASK-20261102-2236)", "status": "working"}
+{"ts": "2026-11-02T22:47:25+07:00", "agent": "agent1", "message": "Reviewed Cờ Tướng Bay OK — assigned Bi Ve Bay · Bắn Bi Hè (TASK-20261102-2246)", "status": "done"}
+{"ts": "2026-11-02T22:47:59+07:00", "agent": "agent2", "message": "Starting Bi Ve Bay build", "status": "working"}
+{"ts": "2026-11-02T22:48:52+07:00", "agent": "agent2", "message": "Finished: wiring S state + save/load + flairs", "status": "working"}

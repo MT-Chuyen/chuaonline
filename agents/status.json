@@ -1,64 +1,64 @@
 {
-  "updatedAt": "2026-11-02T22:30:18+07:00",
+  "updatedAt": "2026-11-02T22:50:18+07:00",
   "pipeline": {
     "agent1": {
       "id": "agent1",
       "name": "Agent 1 — Director",
       "role": "Assign · Review · Improve",
       "status": "done",
-      "detail": "Task assigned to Agent 2"
+      "detail": "Reviewed Cờ Tướng Bay OK — assigned Bi Ve Bay · Bắn Bi Hè (TASK-20261102-2246)"
     },
     "agent2": {
       "id": "agent2",
       "name": "Agent 2 — Builder",
       "role": "Implement task in index.html",
       "status": "working",
-      "detail": "Starting Phở Bay build"
+      "detail": "Finished: wiring S state + save/load + flairs"
     },
     "pipelinePhase": "assigned"
   },
   "currentTask": {
-    "file": "agents/tasks/TASK-20261102-2228-pho-an-lac.md",
-    "name": "TASK-20261102-2228-pho-an-lac.md",
-    "title": "Phố An Lạc — Phở Bay · Bát Hơi Thăng",
-    "wish": "Players want the classic VN street food fantasy that is IRL-impossible outside a temple gate: **tô phở thật sự bay lên theo hơi nóng**, mình **gọi phở / hít hơi / ăn bát bay** trước **Phở Bà Tư** — khói thành sân khấu mini, phố “nghiện” một tô như clip viral nhưng chỉ có trên Phố An Lạc.",
+    "file": "agents/tasks/TASK-20261102-2246-pho-an-lac.md",
+    "name": "TASK-20261102-2246-pho-an-lac.md",
+    "title": "Phố An Lạc — Bi Ve Bay · Bắn Bi Hè",
+    "wish": "Players want the classic VN childhood fantasy that is IRL-impossible on a crowded street: **vòng phấn bi ve trên hè**, bi **thật sự bay vòng / lao vào vòng phấn giữa không** — mình **nhặt bi → bắn bi → bi bay vòng**, phố vỗ tay như tay bi sân khấu mini, chỉ có trên Phố An Lạc.",
     "phase": "assigned",
     "checklist": [
       {
         "done": false,
-        "text": "**Phở Bay hotspot** — build simple floating bowl(s) (torus/cylinder + sphere steam puffs) at south curb of Phở Bà Tư ~`{ x: 19.55, z: STREET_Z - 6.55, r: 1.4 }` (just south of shop `pho` door `STREET_SHOP_SPECS` id `'pho'` @ `{ x: 19.6, z: STREET_Z - 6.2 }`). **Clear of:** hốt họ (`HOT_HO_SPOT` ~20.5 / STREET_Z−4.75, r≈2.0 — keep center≈≥2.6m apart), mưa trà (`MUA_TRA_SPOT` ~23.9 / −5.65), paper mail (`PAPER_MAIL_SPOT` ~19.15 / −2.75), tea door (~24.2 / −6.2), karaoke (~20.5 / +4.65), Giờ Vàng mid (~20.2 / STREET_Z, r≈4.8), Boy Phố (~14.9 / +2.35), Bóng Đá (~27.7 / +5.05), cafe/hair/nem doors, music screen. Mesh cue + tip plane **🍜 Phở Bay**. Proximity `nearPhoBay` with verbs **Gọi phở** / **Hít hơi** / **Ăn bát bay** by unlock. Idle: bowls gently bob/float 1.1–1.9m; steam orbit when near. **Deepen/replace plain pho door** like tea→mưa trà: in `pickNearShop()` add `if (s.id === 'pho') continue;` (tea already skipped) so Phở Bay owns the pho curb; still mark `shopVisited.pho` / soft Khách Phố progress on first ăn/gọi finish if not yet."
+        "text": "**Bi Ve Bay hotspot** — build chalk-ring (thin torus/disc + faint ground circle) + 4–6 floating bi spheres at south-west curb ~`{ x: 16.35, z: STREET_Z - 4.05, r: 1.35 }` (west of paper-mail/hốt họ, south of love-light, east of bridge approach). **Clear of:** Boy Phố (`BOY_PHO_SPOT` ~14.9 / STREET_Z+2.35, r≈2.2 — centers ≈≥6m), love light (`LOVE_LIGHT_SPOT` ~16.55 / STREET_Z, r≈2.2 — centers ≈≥3.8m), paper mail (`PAPER_MAIL_SPOT` ~19.15 / STREET_Z−2.75, r≈2.05 — centers ≈≥3.0m preferred), hốt họ (`HOT_HO_SPOT` ~20.5 / −4.75), Phở Bay (`PHO_BAY_SPOT` ~19.55 / −6.55), Cờ Tướng (`CO_TUONG_SPOT` ~22.8 / −2.4), rewind / mưa trà east-south, tea/pho doors, karaoke north, Bóng Đá, cafe/hair/nem doors, music screen, xích lô mid-east. Mesh cue + tip plane **🔮 Bi Ve Bay**. Proximity `nearBiVe` with verbs **Nhặt bi** / **Bắn bi** / **Bi bay vòng** by unlock. Idle: bi gently bob/orbit over chalk ring; denser orbit when near."
       },
       {
         "done": false,
-        "text": "**Proximity priority** — gossip > shop door (cafe/hair; tea+pho skipped) > mưa trà > **Phở Bay** > kỳ ảo (mirror/rewind/love/paper) > karaoke > hốt họ > nem > phóng lợn > xích lô > Boy Phố > Bóng Đá > Giờ Vàng. Insert `nearPhoBay` **after** `nearMuaTra` and **before** Kỳ Ảo / karaoke in the near-pick chain + interact button + `tryInteract` order (mirror `nearMuaTra` pattern). Never steal mưa trà / karaoke / hốt họ / gossip radii — place bowls so they do not overlap those spots; Giờ Vàng still lowest street fantasy."
+        "text": "**Proximity priority** — gossip > shop door (cafe/hair/nem; tea+pho skipped) > mưa trà > Phở Bay > Cờ Tướng Bay > **Bi Ve Bay** > kỳ ảo (mirror/rewind/love/paper) > karaoke > hốt họ > nem > phóng lợn > xích lô > Boy Phố > Bóng Đá > Giờ Vàng. Insert `nearBiVe` **after** `nearCoTuong` and **before** Kỳ Ảo / karaoke in the near-pick chain + interact button + `tryInteract` order (mirror `nearCoTuong` pattern). Never steal mưa trà / Phở Bay / Cờ Tướng / karaoke / hốt họ / gossip radii — place ring so it does not heavily overlap those spots; Giờ Vàng still lowest street fantasy."
       },
       {
         "done": false,
-        "text": "**Gọi phở beat** — Gọi: `S.busy` ~2–3s face bowls/shop, 1–2 VN toasts (playful “hai phở tái?” / “Bà Tư ơi tô bay!”), bump `S.phoBayGois`. Soft steam puff VFX. Playful street-food slang VN (non-creepy, non-idol-romance)."
+        "text": "**Nhặt bi beat** — Nhặt: `S.busy` ~2–3s face ring, 1–2 VN toasts (playful “bi ve hè An Lạc!” / “tay nhớ độ nảy”), bump `S.biVeNhat`. Soft bi wobble into palm-height then back. Playful street-kid slang VN (non-creepy, non-idol-romance)."
       },
       {
         "done": false,
-        "text": "**Hít hơi sequence** — on **Hít hơi**: `S.busy` ~6–9s; lock gentle face toward bowls; steam cone rises + player slight lean/inhale pose; bowls orbit closer; finish toast + bump `S.phoBayHits`. Esc ≥1.2s cancels, restore on curb. Soft-block if `S.xichLoRide` / `S.karaokePerf` / `S.phoVangCall` / `S.hotHoDraw` / `S.muaTraHen` / `S.boyPhoAct` / `S.bongDaAct` active — tip *“đợi hết lượt phố đã”*. Mobile: fewer particles."
+        "text": "**Bắn bi sequence** — on **Bắn bi**: `S.busy` ~6–9s; lock gentle face toward ring; 1–2 bi lerp across chalk into a floating “ô” / ring target + soft click/ting toast; bump `S.biVeBan`. Esc ≥1.2s cancels, restore on curb. Soft-block if `S.xichLoRide` / `S.karaokePerf` / `S.phoVangCall` / `S.hotHoDraw` / `S.muaTraHen` / `S.boyPhoAct` / `S.bongDaAct` / `S.phoBayAct` / `S.coTuongAct` active — tip *“đợi hết lượt phố đã”*. Mobile: fewer particle hops."
       },
       {
         "done": false,
-        "text": "**Ăn bát bay sequence (IRL-impossible)** — on **Ăn bát bay**: `S.busy` ~10–14s; bowl loft to player face height then “slurp” orbit; chopsticks/noodle trail cheap lerp; steam burst + soft street cheer toasts (“nghiện luôn rồi!”). Bump `S.phoBayAns`. Esc ≥1.2s cancels + restore. Mobile: shorter / fewer sparks. **No** free-fly Sen Bay travel."
+        "text": "**Bi bay vòng sequence (IRL-impossible)** — on **Bi bay vòng**: `S.busy` ~10–14s; 3–5 bi loft above chalk then spiral into a mid-air ring clash (cheap lerp + spark/glass trail); soft street cheer toasts (“bi bay vòng hè!”). Bump `S.biVeBay`. Esc ≥1.2s cancels + restore. Mobile: shorter / fewer sparks. **No** free-fly Sen Bay travel; **No** real gambling / money stakes (spectacle only — distinct from hốt họ / cờ tướng)."
       },
       {
         "done": false,
-        "text": "**Rewards + persist** — `S.phoBayGois` / `S.phoBayHits` / `S.phoBayAns` (numbers) + `S.khachPhoBay` + `S.thucThanPho` flairs in `saveAll` / load; first gọi + first ăn higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip / Sổ flair strip like `cauThuPho` / `banTraMua` / `khachPho`."
+        "text": "**Rewards + persist** — `S.biVeNhat` / `S.biVeBan` / `S.biVeBay` (numbers) + `S.tayBiPho` + `S.chuaBiHe` flairs in `saveAll` / load; first nhặt + first bi bay vòng higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip / Sổ flair strip like `tuongPho` / `thucThanPho` / `cauThuPho`."
       },
       {
         "done": false,
-        "text": "**Soft hooks** — after street enter tip for Phở Bay (~7–10s after warp, stagger vs Boy Phố / Bóng Đá / Giờ Vàng / shop tips). Soft duyên if Khách Phố / shop visit / `shopVisited.pho`. Optional dusk/night: warmer steam emissive (do not rewrite Giờ Vàng lamps)."
+        "text": "**Soft hooks** — after street enter tip for Bi Ve (~11–14s after warp, stagger vs Cờ Tướng / Phở Bay / Boy Phố / Bóng Đá / Giờ Vàng / shop tips). Soft duyên if Khách Phố / shop visit / `shopVisited.tea`. Optional dusk/night: cooler glass emissive on bi (do not rewrite Giờ Vàng lamps)."
       },
       {
         "done": false,
-        "text": "**Sổ** — short **🍜 Phố An Lạc · Phở Bay** lines (gọi / hít / ăn / flair). Do not replace shop, gossip, xích lô, karaoke, hốt họ, mưa trà, Giờ Vàng, Boy Phố, or Bóng Đá Sổ blocks."
+        "text": "**Sổ** — short **🔮 Phố An Lạc · Bi Ve Bay** lines (nhặt / bắn / bi bay vòng / flair). Do not replace shop, gossip, xích lô, karaoke, hốt họ, mưa trà, Phở Bay, Cờ Tướng, Giờ Vàng, Boy Phố, or Bóng Đá Sổ blocks."
       },
       {
         "done": false,
-        "text": "**Leave intact** — Bóng Đá · Khung Thành Bay, Boy Phố · Đội Hè, Giờ Vàng đèn bay, mưa trà, hốt họ, karaoke, xích lô, cafe/hair/tea shop visits, gossip/đánh ghen, Nem Chua, Phóng Lợn, Phố Kỳ Ảo hooks, music YouTube / Màn Bay, Ronaldo–Messi poster, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate as-is."
+        "text": "**Leave intact** — Cờ Tướng Bay · Quân Phi, Phở Bay · Bát Hơi Thăng, Bóng Đá · Khung Thành Bay, Boy Phố · Đội Hè, Giờ Vàng đèn bay, mưa trà, hốt họ, karaoke, xích lô, cafe/hair/tea/pho shop visits, gossip/đánh ghen, Nem Chua, Phóng Lợn, Phố Kỳ Ảo hooks, music YouTube / Màn Bay, Ronaldo–Messi poster, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate as-is."
       },
       {
         "done": false,
@@ -70,15 +70,15 @@
       },
       {
         "done": false,
-        "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.busy` + Esc cancel patterns from Bóng Đá / Boy Phố / mưa trà / karaoke / hốt họ"
+        "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.busy` + Esc cancel patterns from Cờ Tướng / Phở Bay / Bóng Đá / Boy Phố / mưa trà"
       },
       {
         "done": false,
-        "text": "**Do NOT** expand BTS / princess / idol romance (phở = street food play only; no husband / dating / idol carry)"
+        "text": "**Do NOT** expand BTS / princess / idol romance (bi ve = street childhood spectacle only; no husband / dating / idol carry)"
       },
       {
         "done": false,
-        "text": "**Do NOT** rewrite Bóng Đá, Boy Phố, karaoke, xích lô, hốt họ, mưa trà, Giờ Vàng, đánh ghen, Phóng Lợn, Kỳ Ảo, or deep cafe/hair/tea menus this pass (pho door may deepen via this slice only)"
+        "text": "**Do NOT** rewrite Cờ Tướng, Phở Bay, Bóng Đá, Boy Phố, karaoke, xích lô, hốt họ, mưa trà, Giờ Vàng, đánh ghen, Phóng Lợn, Kỳ Ảo, or deep cafe/hair/tea/pho menus this pass"
       }
     ],
     "done": 0,
@@ -86,51 +86,51 @@
     "progress": 0.0,
     "hasDoneReport": false,
     "doneReport": "",
-    "mtime": "2026-11-02T22:29:22+07:00"
+    "mtime": "2026-11-02T22:47:23+07:00"
   },
   "tasks": [
     {
-      "file": "agents/tasks/TASK-20261102-2228-pho-an-lac.md",
-      "name": "TASK-20261102-2228-pho-an-lac.md",
-      "title": "Phố An Lạc — Phở Bay · Bát Hơi Thăng",
-      "wish": "Players want the classic VN street food fantasy that is IRL-impossible outside a temple gate: **tô phở thật sự bay lên theo hơi nóng**, mình **gọi phở / hít hơi / ăn bát bay** trước **Phở Bà Tư** — khói thành sân khấu mini, phố “nghiện” một tô như clip viral nhưng chỉ có trên Phố An Lạc.",
+      "file": "agents/tasks/TASK-20261102-2246-pho-an-lac.md",
+      "name": "TASK-20261102-2246-pho-an-lac.md",
+      "title": "Phố An Lạc — Bi Ve Bay · Bắn Bi Hè",
+      "wish": "Players want the classic VN childhood fantasy that is IRL-impossible on a crowded street: **vòng phấn bi ve trên hè**, bi **thật sự bay vòng / lao vào vòng phấn giữa không** — mình **nhặt bi → bắn bi → bi bay vòng**, phố vỗ tay như tay bi sân khấu mini, chỉ có trên Phố An Lạc.",
       "phase": "assigned",
       "checklist": [
         {
           "done": false,
-          "text": "**Phở Bay hotspot** — build simple floating bowl(s) (torus/cylinder + sphere steam puffs) at south curb of Phở Bà Tư ~`{ x: 19.55, z: STREET_Z - 6.55, r: 1.4 }` (just south of shop `pho` door `STREET_SHOP_SPECS` id `'pho'` @ `{ x: 19.6, z: STREET_Z - 6.2 }`). **Clear of:** hốt họ (`HOT_HO_SPOT` ~20.5 / STREET_Z−4.75, r≈2.0 — keep center≈≥2.6m apart), mưa trà (`MUA_TRA_SPOT` ~23.9 / −5.65), paper mail (`PAPER_MAIL_SPOT` ~19.15 / −2.75), tea door (~24.2 / −6.2), karaoke (~20.5 / +4.65), Giờ Vàng mid (~20.2 / STREET_Z, r≈4.8), Boy Phố (~14.9 / +2.35), Bóng Đá (~27.7 / +5.05), cafe/hair/nem doors, music screen. Mesh cue + tip plane **🍜 Phở Bay**. Proximity `nearPhoBay` with verbs **Gọi phở** / **Hít hơi** / **Ăn bát bay** by unlock. Idle: bowls gently bob/float 1.1–1.9m; steam orbit when near. **Deepen/replace plain pho door** like tea→mưa trà: in `pickNearShop()` add `if (s.id === 'pho') continue;` (tea already skipped) so Phở Bay owns the pho curb; still mark `shopVisited.pho` / soft Khách Phố progress on first ăn/gọi finish if not yet."
+          "text": "**Bi Ve Bay hotspot** — build chalk-ring (thin torus/disc + faint ground circle) + 4–6 floating bi spheres at south-west curb ~`{ x: 16.35, z: STREET_Z - 4.05, r: 1.35 }` (west of paper-mail/hốt họ, south of love-light, east of bridge approach). **Clear of:** Boy Phố (`BOY_PHO_SPOT` ~14.9 / STREET_Z+2.35, r≈2.2 — centers ≈≥6m), love light (`LOVE_LIGHT_SPOT` ~16.55 / STREET_Z, r≈2.2 — centers ≈≥3.8m), paper mail (`PAPER_MAIL_SPOT` ~19.15 / STREET_Z−2.75, r≈2.05 — centers ≈≥3.0m preferred), hốt họ (`HOT_HO_SPOT` ~20.5 / −4.75), Phở Bay (`PHO_BAY_SPOT` ~19.55 / −6.55), Cờ Tướng (`CO_TUONG_SPOT` ~22.8 / −2.4), rewind / mưa trà east-south, tea/pho doors, karaoke north, Bóng Đá, cafe/hair/nem doors, music screen, xích lô mid-east. Mesh cue + tip plane **🔮 Bi Ve Bay**. Proximity `nearBiVe` with verbs **Nhặt bi** / **Bắn bi** / **Bi bay vòng** by unlock. Idle: bi gently bob/orbit over chalk ring; denser orbit when near."
         },
         {
           "done": false,
-          "text": "**Proximity priority** — gossip > shop door (cafe/hair; tea+pho skipped) > mưa trà > **Phở Bay** > kỳ ảo (mirror/rewind/love/paper) > karaoke > hốt họ > nem > phóng lợn > xích lô > Boy Phố > Bóng Đá > Giờ Vàng. Insert `nearPhoBay` **after** `nearMuaTra` and **before** Kỳ Ảo / karaoke in the near-pick chain + interact button + `tryInteract` order (mirror `nearMuaTra` pattern). Never steal mưa trà / karaoke / hốt họ / gossip radii — place bowls so they do not overlap those spots; Giờ Vàng still lowest street fantasy."
+          "text": "**Proximity priority** — gossip > shop door (cafe/hair/nem; tea+pho skipped) > mưa trà > Phở Bay > Cờ Tướng Bay > **Bi Ve Bay** > kỳ ảo (mirror/rewind/love/paper) > karaoke > hốt họ > nem > phóng lợn > xích lô > Boy Phố > Bóng Đá > Giờ Vàng. Insert `nearBiVe` **after** `nearCoTuong` and **before** Kỳ Ảo / karaoke in the near-pick chain + interact button + `tryInteract` order (mirror `nearCoTuong` pattern). Never steal mưa trà / Phở Bay / Cờ Tướng / karaoke / hốt họ / gossip radii — place ring so it does not heavily overlap those spots; Giờ Vàng still lowest street fantasy."
         },
         {
           "done": false,
-          "text": "**Gọi phở beat** — Gọi: `S.busy` ~2–3s face bowls/shop, 1–2 VN toasts (playful “hai phở tái?” / “Bà Tư ơi tô bay!”), bump `S.phoBayGois`. Soft steam puff VFX. Playful street-food slang VN (non-creepy, non-idol-romance)."
+          "text": "**Nhặt bi beat** — Nhặt: `S.busy` ~2–3s face ring, 1–2 VN toasts (playful “bi ve hè An Lạc!” / “tay nhớ độ nảy”), bump `S.biVeNhat`. Soft bi wobble into palm-height then back. Playful street-kid slang VN (non-creepy, non-idol-romance)."
         },
         {
           "done": false,
-          "text": "**Hít hơi sequence** — on **Hít hơi**: `S.busy` ~6–9s; lock gentle face toward bowls; steam cone rises + player slight lean/inhale pose; bowls orbit closer; finish toast + bump `S.phoBayHits`. Esc ≥1.2s cancels, restore on curb. Soft-block if `S.xichLoRide` / `S.karaokePerf` / `S.phoVangCall` / `S.hotHoDraw` / `S.muaTraHen` / `S.boyPhoAct` / `S.bongDaAct` active — tip *“đợi hết lượt phố đã”*. Mobile: fewer particles."
+          "text": "**Bắn bi sequence** — on **Bắn bi**: `S.busy` ~6–9s; lock gentle face toward ring; 1–2 bi lerp across chalk into a floating “ô” / ring target + soft click/ting toast; bump `S.biVeBan`. Esc ≥1.2s cancels, restore on curb. Soft-block if `S.xichLoRide` / `S.karaokePerf` / `S.phoVangCall` / `S.hotHoDraw` / `S.muaTraHen` / `S.boyPhoAct` / `S.bongDaAct` / `S.phoBayAct` / `S.coTuongAct` active — tip *“đợi hết lượt phố đã”*. Mobile: fewer particle hops."
         },
         {
           "done": false,
-          "text": "**Ăn bát bay sequence (IRL-impossible)** — on **Ăn bát bay**: `S.busy` ~10–14s; bowl loft to player face height then “slurp” orbit; chopsticks/noodle trail cheap lerp; steam burst + soft street cheer toasts (“nghiện luôn rồi!”). Bump `S.phoBayAns`. Esc ≥1.2s cancels + restore. Mobile: shorter / fewer sparks. **No** free-fly Sen Bay travel."
+          "text": "**Bi bay vòng sequence (IRL-impossible)** — on **Bi bay vòng**: `S.busy` ~10–14s; 3–5 bi loft above chalk then spiral into a mid-air ring clash (cheap lerp + spark/glass trail); soft street cheer toasts (“bi bay vòng hè!”). Bump `S.biVeBay`. Esc ≥1.2s cancels + restore. Mobile: shorter / fewer sparks. **No** free-fly Sen Bay travel; **No** real gambling / money stakes (spectacle only — distinct from hốt họ / cờ tướng)."
         },
         {
           "done": false,
-          "text": "**Rewards + persist** — `S.phoBayGois` / `S.phoBayHits` / `S.phoBayAns` (numbers) + `S.khachPhoBay` + `S.thucThanPho` flairs in `saveAll` / load; first gọi + first ăn higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip / Sổ flair strip like `cauThuPho` / `banTraMua` / `khachPho`."
+          "text": "**Rewards + persist** — `S.biVeNhat` / `S.biVeBan` / `S.biVeBay` (numbers) + `S.tayBiPho` + `S.chuaBiHe` flairs in `saveAll` / load; first nhặt + first bi bay vòng higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip / Sổ flair strip like `tuongPho` / `thucThanPho` / `cauThuPho`."
         },
         {
           "done": false,
-          "text": "**Soft hooks** — after street enter tip for Phở Bay (~7–10s after warp, stagger vs Boy Phố / Bóng Đá / Giờ Vàng / shop tips). Soft duyên if Khách Phố / shop visit / `shopVisited.pho`. Optional dusk/night: warmer steam emissive (do not rewrite Giờ Vàng lamps)."
+          "text": "**Soft hooks** — after street enter tip for Bi Ve (~11–14s after warp, stagger vs Cờ Tướng / Phở Bay / Boy Phố / Bóng Đá / Giờ Vàng / shop tips). Soft duyên if Khách Phố / shop visit / `shopVisited.tea`. Optional dusk/night: cooler glass emissive on bi (do not rewrite Giờ Vàng lamps)."
         },
         {
           "done": false,
-          "text": "**Sổ** — short **🍜 Phố An Lạc · Phở Bay** lines (gọi / hít / ăn / flair). Do not replace shop, gossip, xích lô, karaoke, hốt họ, mưa trà, Giờ Vàng, Boy Phố, or Bóng Đá Sổ blocks."
+          "text": "**Sổ** — short **🔮 Phố An Lạc · Bi Ve Bay** lines (nhặt / bắn / bi bay vòng / flair). Do not replace shop, gossip, xích lô, karaoke, hốt họ, mưa trà, Phở Bay, Cờ Tướng, Giờ Vàng, Boy Phố, or Bóng Đá Sổ blocks."
         },
         {
           "done": false,
-          "text": "**Leave intact** — Bóng Đá · Khung Thành Bay, Boy Phố · Đội Hè, Giờ Vàng đèn bay, mưa trà, hốt họ, karaoke, xích lô, cafe/hair/tea shop visits, gossip/đánh ghen, Nem Chua, Phóng Lợn, Phố Kỳ Ảo hooks, music YouTube / Màn Bay, Ronaldo–Messi poster, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate as-is."
+          "text": "**Leave intact** — Cờ Tướng Bay · Quân Phi, Phở Bay · Bát Hơi Thăng, Bóng Đá · Khung Thành Bay, Boy Phố · Đội Hè, Giờ Vàng đèn bay, mưa trà, hốt họ, karaoke, xích lô, cafe/hair/tea/pho shop visits, gossip/đánh ghen, Nem Chua, Phóng Lợn, Phố Kỳ Ảo hooks, music YouTube / Màn Bay, Ronaldo–Messi poster, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate as-is."
         },
         {
           "done": false,
@@ -142,15 +142,15 @@
         },
         {
           "done": false,
-          "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.busy` + Esc cancel patterns from Bóng Đá / Boy Phố / mưa trà / karaoke / hốt họ"
+          "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.busy` + Esc cancel patterns from Cờ Tướng / Phở Bay / Bóng Đá / Boy Phố / mưa trà"
         },
         {
           "done": false,
-          "text": "**Do NOT** expand BTS / princess / idol romance (phở = street food play only; no husband / dating / idol carry)"
+          "text": "**Do NOT** expand BTS / princess / idol romance (bi ve = street childhood spectacle only; no husband / dating / idol carry)"
         },
         {
           "done": false,
-          "text": "**Do NOT** rewrite Bóng Đá, Boy Phố, karaoke, xích lô, hốt họ, mưa trà, Giờ Vàng, đánh ghen, Phóng Lợn, Kỳ Ảo, or deep cafe/hair/tea menus this pass (pho door may deepen via this slice only)"
+          "text": "**Do NOT** rewrite Cờ Tướng, Phở Bay, Bóng Đá, Boy Phố, karaoke, xích lô, hốt họ, mưa trà, Giờ Vàng, đánh ghen, Phóng Lợn, Kỳ Ảo, or deep cafe/hair/tea/pho menus this pass"
         }
       ],
       "done": 0,
@@ -158,7 +158,149 @@
       "progress": 0.0,
       "hasDoneReport": false,
       "doneReport": "",
-      "mtime": "2026-11-02T22:29:22+07:00"
+      "mtime": "2026-11-02T22:47:23+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-2236-pho-an-lac.md",
+      "name": "TASK-20261102-2236-pho-an-lac.md",
+      "title": "Phố An Lạc — Cờ Tướng Bay · Quân Phi",
+      "wish": "Players want the classic VN vỉa-hè fantasy that is IRL-impossible: **bàn cờ tướng trên ghế nhựa** nhưng **quân thật sự bay lên đấu**, mình **ngồi bàn / đặt quân / xuống tướng bay** — phố vỗ tay như kỳ thủ sân khấu mini, chỉ có trên Phố An Lạc.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Cờ Tướng Bay hotspot** — build simple board (thin box) + 2 stool cyls + 3–5 floating pieces (box/cyl “tướng / mã / pháo” silhouettes) at south-mid east curb ~`{ x: 22.8, z: STREET_Z - 2.4, r: 1.35 }` (east of paper mail, west of rewind, north of mưa trà/hốt họ). **Clear of:** paper mail (`PAPER_MAIL_SPOT` ~19.15 / STREET_Z−2.75, r≈2.05 — keep centers ≈≥3.4m), rewind (`REWIND_LAMP_SPOT` ~24.6 / −3.55, r≈2.15 — centers ≈≥3.5m preferred; if edge-near, priority must still yield correctly), hốt họ (`HOT_HO_SPOT` ~20.5 / −4.75), mưa trà (`MUA_TRA_SPOT` ~23.9 / −5.65), Phở Bay (`PHO_BAY_SPOT` ~19.55 / −6.55), tea door, karaoke north (~20.5 / +4.65), Boy Phố (~14.9 / +2.35), Bóng Đá (~27.7 / +5.05), cafe/hair/nem doors, music screen. Mesh cue + tip plane **♟️ Cờ Tướng Bay**. Proximity `nearCoTuong` with verbs **Ngồi bàn** / **Đặt quân** / **Xuống tướng bay** by unlock. Idle: pieces gently bob/orbit 0.9–1.8m over board; denser orbit when near."
+        },
+        {
+          "done": true,
+          "text": "**Proximity priority** — gossip > shop door (cafe/hair/nem; tea+pho skipped) > mưa trà > Phở Bay > **Cờ Tướng Bay** > kỳ ảo (mirror/rewind/love/paper) > karaoke > hốt họ > nem > phóng lợn > xích lô > Boy Phố > Bóng Đá > Giờ Vàng. Insert `nearCoTuong` **after** `nearPhoBay` and **before** Kỳ Ảo / karaoke in the near-pick chain + interact button + `tryInteract` order (mirror `nearPhoBay` pattern). Never steal mưa trà / Phở Bay / karaoke / hốt họ / gossip radii — place board so it does not heavily overlap those spots; Giờ Vàng still lowest street fantasy (OK if annulus covers this curb)."
+        },
+        {
+          "done": true,
+          "text": "**Ngồi bàn beat** — Ngồi: `S.busy` ~2–3s face board, 1–2 VN toasts (playful “nước này hay!” / “kỳ thủ hè An Lạc”), bump `S.coTuongNgoi`. Soft piece wobble VFX. Playful street-chess slang VN (non-creepy, non-idol-romance)."
+        },
+        {
+          "done": true,
+          "text": "**Đặt quân sequence** — on **Đặt quân**: `S.busy` ~6–9s; lock gentle face toward board; 1–2 pieces lerp to new squares + soft click/ting toast; bump `S.coTuongDat`. Esc ≥1.2s cancels, restore on curb. Soft-block if `S.xichLoRide` / `S.karaokePerf` / `S.phoVangCall` / `S.hotHoDraw` / `S.muaTraHen` / `S.boyPhoAct` / `S.bongDaAct` / `S.phoBayAct` active — tip *“đợi hết lượt phố đã”*. Mobile: fewer particle hops."
+        },
+        {
+          "done": true,
+          "text": "**Xuống tướng bay sequence (IRL-impossible)** — on **Xuống tướng bay**: `S.busy` ~10–14s; two “tướng” pieces loft above board then clash mid-air (cheap lerp + spark trail); soft street cheer toasts (“chiếu tướng bay!”). Bump `S.coTuongXuong`. Esc ≥1.2s cancels + restore. Mobile: shorter / fewer sparks. **No** free-fly Sen Bay travel; **no** real gambling / money stakes (spectacle only — distinct from hốt họ)."
+        },
+        {
+          "done": true,
+          "text": "**Rewards + persist** — `S.coTuongNgoi` / `S.coTuongDat` / `S.coTuongXuong` (numbers) + `S.kyThuPho` + `S.tuongPho` flairs in `saveAll` / load; first ngồi + first xuống tướng higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip / Sổ flair strip like `thucThanPho` / `cauThuPho` / `banTraMua`."
+        },
+        {
+          "done": true,
+          "text": "**Soft hooks** — after street enter tip for Cờ Tướng (~9–12s after warp, stagger vs Phở Bay / Boy Phố / Bóng Đá / Giờ Vàng / shop tips). Soft duyên if Khách Phố / shop visit / `shopVisited.cafe`. Optional dusk/night: warmer piece emissive (do not rewrite Giờ Vàng lamps)."
+        },
+        {
+          "done": true,
+          "text": "**Sổ** — short **♟️ Phố An Lạc · Cờ Tướng Bay** lines (ngồi / đặt / xuống tướng / flair). Do not replace shop, gossip, xích lô, karaoke, hốt họ, mưa trà, Phở Bay, Giờ Vàng, Boy Phố, or Bóng Đá Sổ blocks."
+        },
+        {
+          "done": true,
+          "text": "**Leave intact** — Phở Bay · Bát Hơi Thăng, Bóng Đá · Khung Thành Bay, Boy Phố · Đội Hè, Giờ Vàng đèn bay, mưa trà, hốt họ, karaoke, xích lô, cafe/hair/tea/pho shop visits (pho/tea already deepened), gossip/đánh ghen, Nem Chua, Phóng Lợn, Phố Kỳ Ảo hooks, music YouTube / Màn Bay, Ronaldo–Messi poster, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate as-is."
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry)"
+        },
+        {
+          "done": true,
+          "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.busy` + Esc cancel patterns from Phở Bay / Bóng Đá / Boy Phố / mưa trà / karaoke / hốt họ"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance (cờ = street board spectacle only; no husband / dating / idol carry)"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** rewrite Phở Bay, Bóng Đá, Boy Phố, karaoke, xích lô, hốt họ, mưa trà, Giờ Vàng, đánh ghen, Phóng Lợn, Kỳ Ảo, or deep cafe/hair/tea/pho menus this pass"
+        }
+      ],
+      "done": 14,
+      "total": 14,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`, `agents/loop-state.json` (handoff), this task file\n- What the player can do now:\n  - Street FAB/P → south-mid east curb (~x 22.8, STREET_Z−2.4) → tip **♟️ Cờ Tướng Bay** + board/2 stools/floating tướng·mã·pháo\n  - Cycle **Ngồi bàn** → **Đặt quân** → **Xuống tướng bay** with `S.busy`, Esc/Hủy ≥1.2s counts nhẹ\n  - Persist `coTuongNgoi` / `coTuongDat` / `coTuongXuong` + flairs **Kỳ Thủ Phố** / **Tướng Phố** (after 3 xuống) in save/load, `templeFlairSuffix`, Sổ\n  - Soft tip ~10.5s after street warp; soft-block vs other street acts; duyên if Khách Phố / shop / cafe\n- How to test:\n  1. Courtyard → street FAB/P → walk east of paper-mail curb → see tip + floating pieces\n  2. Interact Ngồi bàn (~3s) → unlock Đặt quân → Đặt → unlock Xuống tướng bay → clash sparks + công đức\n  3. Repeat xuống ×3 → flair Tướng Phố; open Sổ · Cờ Tướng Bay section\n  4. Confirm Phở Bay / mưa trà / rewind / karaoke / Bóng Đá / Boy Phố / Giờ Vàng still work; Esc mid-act restores curb\n- Known limits / next ideas for Agent 1:\n  - Spot sits edge-near rewind (~2.1m centers); priority correctly beats Kỳ Ảo but radii overlap — OK per task\n  - No full Xiangqi rules / AI opponent / multiplayer ranked chess\n  - Mobile trims pieces (3) and sparks for budget\n  - Optional later: spectator NPCs clap, piece glyph textures, dusk-only board emissive pulse without touching Giờ Vàng",
+      "mtime": "2026-11-02T22:44:13+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-2228-pho-an-lac.md",
+      "name": "TASK-20261102-2228-pho-an-lac.md",
+      "title": "Phố An Lạc — Phở Bay · Bát Hơi Thăng",
+      "wish": "Players want the classic VN street food fantasy that is IRL-impossible outside a temple gate: **tô phở thật sự bay lên theo hơi nóng**, mình **gọi phở / hít hơi / ăn bát bay** trước **Phở Bà Tư** — khói thành sân khấu mini, phố “nghiện” một tô như clip viral nhưng chỉ có trên Phố An Lạc.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Phở Bay hotspot** — build simple floating bowl(s) (torus/cylinder + sphere steam puffs) at south curb of Phở Bà Tư ~`{ x: 19.55, z: STREET_Z - 6.55, r: 1.4 }` (just south of shop `pho` door `STREET_SHOP_SPECS` id `'pho'` @ `{ x: 19.6, z: STREET_Z - 6.2 }`). **Clear of:** hốt họ (`HOT_HO_SPOT` ~20.5 / STREET_Z−4.75, r≈2.0 — keep center≈≥2.6m apart), mưa trà (`MUA_TRA_SPOT` ~23.9 / −5.65), paper mail (`PAPER_MAIL_SPOT` ~19.15 / −2.75), tea door (~24.2 / −6.2), karaoke (~20.5 / +4.65), Giờ Vàng mid (~20.2 / STREET_Z, r≈4.8), Boy Phố (~14.9 / +2.35), Bóng Đá (~27.7 / +5.05), cafe/hair/nem doors, music screen. Mesh cue + tip plane **🍜 Phở Bay**. Proximity `nearPhoBay` with verbs **Gọi phở** / **Hít hơi** / **Ăn bát bay** by unlock. Idle: bowls gently bob/float 1.1–1.9m; steam orbit when near. **Deepen/replace plain pho door** like tea→mưa trà: in `pickNearShop()` add `if (s.id === 'pho') continue;` (tea already skipped) so Phở Bay owns the pho curb; still mark `shopVisited.pho` / soft Khách Phố progress on first ăn/gọi finish if not yet."
+        },
+        {
+          "done": true,
+          "text": "**Proximity priority** — gossip > shop door (cafe/hair; tea+pho skipped) > mưa trà > **Phở Bay** > kỳ ảo (mirror/rewind/love/paper) > karaoke > hốt họ > nem > phóng lợn > xích lô > Boy Phố > Bóng Đá > Giờ Vàng. Insert `nearPhoBay` **after** `nearMuaTra` and **before** Kỳ Ảo / karaoke in the near-pick chain + interact button + `tryInteract` order (mirror `nearMuaTra` pattern). Never steal mưa trà / karaoke / hốt họ / gossip radii — place bowls so they do not overlap those spots; Giờ Vàng still lowest street fantasy."
+        },
+        {
+          "done": true,
+          "text": "**Gọi phở beat** — Gọi: `S.busy` ~2–3s face bowls/shop, 1–2 VN toasts (playful “hai phở tái?” / “Bà Tư ơi tô bay!”), bump `S.phoBayGois`. Soft steam puff VFX. Playful street-food slang VN (non-creepy, non-idol-romance)."
+        },
+        {
+          "done": true,
+          "text": "**Hít hơi sequence** — on **Hít hơi**: `S.busy` ~6–9s; lock gentle face toward bowls; steam cone rises + player slight lean/inhale pose; bowls orbit closer; finish toast + bump `S.phoBayHits`. Esc ≥1.2s cancels, restore on curb. Soft-block if `S.xichLoRide` / `S.karaokePerf` / `S.phoVangCall` / `S.hotHoDraw` / `S.muaTraHen` / `S.boyPhoAct` / `S.bongDaAct` active — tip *“đợi hết lượt phố đã”*. Mobile: fewer particles."
+        },
+        {
+          "done": true,
+          "text": "**Ăn bát bay sequence (IRL-impossible)** — on **Ăn bát bay**: `S.busy` ~10–14s; bowl loft to player face height then “slurp” orbit; chopsticks/noodle trail cheap lerp; steam burst + soft street cheer toasts (“nghiện luôn rồi!”). Bump `S.phoBayAns`. Esc ≥1.2s cancels + restore. Mobile: shorter / fewer sparks. **No** free-fly Sen Bay travel."
+        },
+        {
+          "done": true,
+          "text": "**Rewards + persist** — `S.phoBayGois` / `S.phoBayHits` / `S.phoBayAns` (numbers) + `S.khachPhoBay` + `S.thucThanPho` flairs in `saveAll` / load; first gọi + first ăn higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip / Sổ flair strip like `cauThuPho` / `banTraMua` / `khachPho`."
+        },
+        {
+          "done": true,
+          "text": "**Soft hooks** — after street enter tip for Phở Bay (~7–10s after warp, stagger vs Boy Phố / Bóng Đá / Giờ Vàng / shop tips). Soft duyên if Khách Phố / shop visit / `shopVisited.pho`. Optional dusk/night: warmer steam emissive (do not rewrite Giờ Vàng lamps)."
+        },
+        {
+          "done": true,
+          "text": "**Sổ** — short **🍜 Phố An Lạc · Phở Bay** lines (gọi / hít / ăn / flair). Do not replace shop, gossip, xích lô, karaoke, hốt họ, mưa trà, Giờ Vàng, Boy Phố, or Bóng Đá Sổ blocks."
+        },
+        {
+          "done": true,
+          "text": "**Leave intact** — Bóng Đá · Khung Thành Bay, Boy Phố · Đội Hè, Giờ Vàng đèn bay, mưa trà, hốt họ, karaoke, xích lô, cafe/hair/tea shop visits, gossip/đánh ghen, Nem Chua, Phóng Lợn, Phố Kỳ Ảo hooks, music YouTube / Màn Bay, Ronaldo–Messi poster, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate as-is."
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry)"
+        },
+        {
+          "done": true,
+          "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.busy` + Esc cancel patterns from Bóng Đá / Boy Phố / mưa trà / karaoke / hốt họ"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance (phở = street food play only; no husband / dating / idol carry)"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** rewrite Bóng Đá, Boy Phố, karaoke, xích lô, hốt họ, mưa trà, Giờ Vàng, đánh ghen, Phóng Lợn, Kỳ Ảo, or deep cafe/hair/tea menus this pass (pho door may deepen via this slice only)"
+        }
+      ],
+      "done": 14,
+      "total": 14,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`\n- What the player can do now: After street warp (FAB/P), soft tip ~7.8s — **「Khói phở đang bay trước Bà Tư…」**. Walk to Phở Bà Tư south curb (`19.55 / STREET_Z−6.55`): floating bowls + tip **🍜 Phở Bay**. Interact cycles **Gọi phở → Hít hơi → Ăn bát bay** (`S.busy`, Esc ≥1.2s counts nhẹ). First gọi / ăn merit + Sổ; flairs **Khách Phở Bay** (2 gọi / 1 hít unlock ăn, or first ăn) then **Thực Thần Phố** after 3 ăn. Plain pho door skipped; `shopVisited.pho` soft-marked. Persist via saveAll.\n- How to test: Courtyard → street FAB/P → south curb Phở Bà Tư → Gọi phở → Hít hơi → Ăn bát bay; Esc mid-act; check merit chip / Sổ Phở Bay; reload for flairs; confirm mưa trà / karaoke / hốt họ / Boy Phố / Bóng Đá / Giờ Vàng still work.\n- Known limits / next ideas for Agent 1: Spot centers vs hốt họ ≈2.0m (task coords preferred over ≥2.6m note — priority still after mưa trà, before kỳ ảo; hốt họ lower so overlap zone favors Phở Bay). No multiplayer shared tô; no full menu economy. Optional: denser night steam / Bà Tư silhouette cameo next pass.",
+      "mtime": "2026-11-02T22:34:16+07:00"
     },
     {
       "file": "agents/tasks/TASK-20261102-2217-pho-an-lac.md",
@@ -1416,10 +1558,82 @@
   ],
   "git": {
     "indexDirty": true,
-    "indexMtime": "2026-11-02T22:30:15+07:00",
-    "diffStat": "index.html | 1836 ++++++++++++++++++++++++++++++++++++++++++++++++++++--------\n 1 file changed, 1598 insertions(+), 238 deletions(-)"
+    "indexMtime": "2026-11-02T22:49:25+07:00",
+    "diffStat": "index.html | 410 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++---\n 1 file changed, 391 insertions(+), 19 deletions(-)"
   },
   "activity": [
+    {
+      "ts": "2026-11-02T22:48:52+07:00",
+      "agent": "agent2",
+      "message": "Finished: wiring S state + save/load + flairs",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T22:47:59+07:00",
+      "agent": "agent2",
+      "message": "Starting Bi Ve Bay build",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T22:47:25+07:00",
+      "agent": "agent1",
+      "message": "Reviewed Cờ Tướng Bay OK — assigned Bi Ve Bay · Bắn Bi Hè (TASK-20261102-2246)",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T22:44:53+07:00",
+      "agent": "agent1",
+      "message": "Reviewing Cờ Tướng Bay (TASK-20261102-2236)",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T22:44:13+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T22:43:53+07:00",
+      "agent": "agent2",
+      "message": "Finished: proximity / Sổ / soft tips / Esc busy",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T22:43:53+07:00",
+      "agent": "agent2",
+      "message": "Finished: Cờ Tướng Bay hotspot + verbs + persist",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T22:38:20+07:00",
+      "agent": "agent2",
+      "message": "Starting Cờ Tướng Bay build",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T22:37:45+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T22:37:45+07:00",
+      "agent": "agent1",
+      "message": "reviewed phở bay; assigned Cờ Tướng Bay",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T22:34:16+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T22:33:54+07:00",
+      "agent": "agent2",
+      "message": "Finished: Phở Bay hotspot + verbs + persist/Sổ wiring",
+      "status": "working"
+    },
     {
       "ts": "2026-11-02T22:29:56+07:00",
       "agent": "agent2",
@@ -1826,78 +2040,6 @@
       "ts": "2026-11-02T20:39:35+07:00",
       "agent": "agent2",
       "message": "Starting build: Phật Nói · Lời Vàng",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:39:17+07:00",
-      "agent": "agent2",
-      "message": "Building Phật Nói · Lời Vàng",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:38:58+07:00",
-      "agent": "agent1",
-      "message": "Task assigned to Agent 2: TASK-20261102-2038-pagoda-fantasy.md",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T20:38:58+07:00",
-      "agent": "agent1",
-      "message": "Reviewed Tháp Mở Trời — solid; assigning Phật Nói · Lời Vàng",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:37:27+07:00",
-      "agent": "agent1",
-      "message": "Review Tháp Mở Trời + next pagoda fantasy",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:36:53+07:00",
-      "agent": "agent2",
-      "message": "Build complete — ready for review",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T20:36:53+07:00",
-      "agent": "agent2",
-      "message": "Finished: Tháp Mở Trời hotspot + Nhất/Tam/Cửu ride + Sổ",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:33:37+07:00",
-      "agent": "agent2",
-      "message": "Wiring Tháp Mở Trời state + pagoda tiers",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:33:07+07:00",
-      "agent": "agent2",
-      "message": "Starting build: Tháp Mở Trời",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:32:50+07:00",
-      "agent": "agent2",
-      "message": "Building Tháp Bung Mây",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:32:34+07:00",
-      "agent": "agent1",
-      "message": "Task assigned: Tháp Mở Trời → Agent 2",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T20:32:07+07:00",
-      "agent": "agent1",
-      "message": "Review Chuông Đảo Thời OK; invent Tháp Mở Trời",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T20:31:16+07:00",
-      "agent": "agent1",
-      "message": "Review Chuông Đảo Thời + next pagoda fantasy",
       "status": "working"
     }
   ]

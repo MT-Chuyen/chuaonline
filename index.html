@@ -680,7 +680,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
         <li><span class="n">1</span><span>Điện thoại kiểu Free Fire: trái kéo đi · phải kéo xoay nhìn. Máy tính: WASD + chuột.</span></li>
         <li><span class="n">2</span><span>Nút Chạy để tăng tốc. Tới gần lư hương, chuông, mõ rồi bấm hành động.</span></li>
         <li><span class="n">3</span><span>Gặp BTS gần cổng: ôm / hôn / bế / làm chồng · thử <strong>Chế độ Công Chúa</strong>. Bấm Hủy hoặc Esc để thoát.</span></li>
-        <li><span class="n">4</span><span><strong>Phố An Lạc</strong> nằm bên phải sân (đối diện chuông). Bấm nút cam 「TỚI PHỐ AN LẠC」 hoặc phím <strong>P</strong>. Quán đầu phố là <strong>Nem Chua Thanh Hóa</strong>; mỗi quán có biển + ảnh món. Giữa phố có vòng <strong>đánh ghen</strong>; gần tiệm tóc có nhóm thì thầm <strong>ngoại tình</strong>. Lề phố có <strong>Hẻm Phóng Lợn</strong>.</span></li>
+        <li><span class="n">4</span><span><strong>Phố An Lạc</strong> nằm bên phải sân (đối diện chuông). Bấm nút cam 「TỚI PHỐ AN LẠC」 hoặc phím <strong>P</strong>. Quán đầu phố là <strong>Nem Chua Thanh Hóa</strong>; mỗi quán có biển + ảnh món. Giữa phố có vòng <strong>đánh ghen</strong>; gần tiệm tóc có nhóm thì thầm chuyện <strong>boy phố cầm dao đi lượn đêm</strong>. Lề phố có <strong>Hẻm Phóng Lợn</strong>.</span></li>
         <li><span class="n">5</span><span><strong>Viện Nghiên Cứu Di Truyền</strong> nằm bên trái (phía chuông). Bấm nút mint 「TỚI VIỆN NGHIÊN CỨU」 hoặc phím <strong>I</strong> — sân thú biến đổi; Quan sát → Vuốt ve → Chụp ảnh kỳ · đêm có <strong>Show Đột Biến</strong> + <strong>Album Ảnh Kỳ</strong> gần cổng.</span></li>
       </ol>
       <p class="tiny" style="margin:0 0 10px;text-align:center">Chọn góc nhìn khi vào chùa</p>
@@ -1050,10 +1050,11 @@ const S = {
   vienCafePhucVu: 0, vienLyGene: {}, nguoiPhaGene: false, chuCafeBay: false, vienTiecBay: false,
   vienDieuHanh: 0, vienCoGene: {}, nguoiCamCoDieu: false, chuDieuHanh: false, vienDieuHoangKim: false,
   vienKhinhKhi: 0, vienTemBauTroi: {}, nguoiLaiKhinhKhi: false, chuSafariBauTroi: false, vienSafariHoangHon: false,
+  vienHuongDan: 0, vienTheGhiChu: {}, banDongHanhGene: false, huongDanVienSanVien: false, vienTourDenLong: false,
   nearInstituteAnimal: null, nearInstituteShow: false, nearInstituteAlbum: false, nearInstituteWheel: false,
-  nearInstituteCafe: false, nearInstituteParade: false, nearInstituteBalloon: false,
+  nearInstituteCafe: false, nearInstituteParade: false, nearInstituteBalloon: false, nearInstituteGuide: false,
   instituteAnimals: null, instituteRareAnimals: null, instituteAct: null, instituteShowAct: null,
-  instituteWheelAct: null, instituteCafeAct: null, instituteParadeAct: null, instituteBalloonAct: null,
+  instituteWheelAct: null, instituteCafeAct: null, instituteParadeAct: null, instituteBalloonAct: null, instituteGuideAct: null,
   instituteRoot: null, instituteRimAurora: null, instituteGateTip: null,
   instituteShowPad: null, instituteShowLabel: null, instituteAlbumWall: null,
   instituteAlbumSlots: null, instituteAlbumTip: null, instituteAlbumRim: null,
@@ -1072,6 +1073,10 @@ const S = {
   instituteBalloonBasket: null, instituteBalloonRim: null, instituteBalloonBoard: null,
   instituteBalloonBoardTip: null, instituteBalloonTemSlots: null, instituteBalloonZoneRing: null,
   instituteBalloonTrail: null, instituteBalloonSpotLight: null, instituteBalloonConfetti: null,
+  instituteGuideRoot: null, instituteGuideNpc: null, instituteGuideDesk: null, instituteGuidePad: null,
+  instituteGuideRim: null, instituteGuideTip: null, instituteGuideClipboard: null, instituteGuideBoard: null,
+  instituteGuideBoardTip: null, instituteGuideTheSlots: null, instituteGuideZoneRing: null,
+  instituteGuideSpotLight: null, instituteGuideLanterns: null, instituteGuideTrail: null, instituteGuideLastStops: null,
   _instituteEntered: false, _instituteTipAt: 0, _instituteWarpTips: false,
   _instituteCourtyardTip: false, _instituteSoTip: false, _vienDuyenReady: false,
   _vienRareSpawned: false, _vienShowWarpTip: false, _vienAlbumFullTip: false,
@@ -1085,6 +1090,8 @@ const S = {
   _vienBalloonWarpTip: false, _vienBalloonTrailBoost: false, _vienBalloonBoardTip: false,
   _vienBalloonTipOffer: false, _vienBalloonTipAt: 0, _vienSafariHoangHonSession: false,
   _vienBalloonLandGraceUntil: 0, _vienParadeLastKind: null, _vienBalloonLastKind: null,
+  _vienGuideWarpTip: false, _vienGuideTrailBoost: false, _vienGuideBoardTip: false,
+  _vienGuideTipOffer: false, _vienGuideTipAt: 0, _vienTourDenLongSession: false, _vienGuideLastKind: null,
 };
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
@@ -1532,6 +1539,16 @@ function loadSave() {
     if (typeof d.nguoiLaiKhinhKhi === 'boolean') S.nguoiLaiKhinhKhi = d.nguoiLaiKhinhKhi;
     if (typeof d.chuSafariBauTroi === 'boolean') S.chuSafariBauTroi = d.chuSafariBauTroi;
     if (typeof d.vienSafariHoangHon === 'boolean') S.vienSafariHoangHon = d.vienSafariHoangHon;
+    if (typeof d.vienHuongDan === 'number') S.vienHuongDan = Math.max(0, d.vienHuongDan | 0);
+    if (d.vienTheGhiChu && typeof d.vienTheGhiChu === 'object') {
+      S.vienTheGhiChu = {};
+      Object.keys(d.vienTheGhiChu).forEach((k) => {
+        if (d.vienTheGhiChu[k]) S.vienTheGhiChu[String(k).slice(0, 28)] = true;
+      });
+    }
+    if (typeof d.banDongHanhGene === 'boolean') S.banDongHanhGene = d.banDongHanhGene;
+    if (typeof d.huongDanVienSanVien === 'boolean') S.huongDanVienSanVien = d.huongDanVienSanVien;
+    if (typeof d.vienTourDenLong === 'boolean') S.vienTourDenLong = d.vienTourDenLong;
   } catch (_) {}
 }
 function saveAll() {
@@ -1702,6 +1719,11 @@ function saveAll() {
       nguoiLaiKhinhKhi: !!S.nguoiLaiKhinhKhi,
       chuSafariBauTroi: !!S.chuSafariBauTroi,
       vienSafariHoangHon: !!S.vienSafariHoangHon,
+      vienHuongDan: S.vienHuongDan | 0,
+      vienTheGhiChu: S.vienTheGhiChu || {},
+      banDongHanhGene: !!S.banDongHanhGene,
+      huongDanVienSanVien: !!S.huongDanVienSanVien,
+      vienTourDenLong: !!S.vienTourDenLong,
     }));
   } catch (_) {}
 }
@@ -1765,6 +1787,8 @@ function templeFlairSuffix() {
   else if (S.nguoiCamCoDieu) parts.push('Người Cầm Cờ Diễu');
   if (S.chuSafariBauTroi) parts.push('Chủ Safari Bầu Trời Viện');
   else if (S.nguoiLaiKhinhKhi) parts.push('Người Lái Khinh Khí');
+  if (S.huongDanVienSanVien) parts.push('Hướng Dẫn Viên Sân Viện');
+  else if (S.banDongHanhGene) parts.push('Bạn Đồng Hành Gene');
   if (S.streakFlair === 'nhatTu') parts.push('Nhật Tu');
   else if (S.streakFlair === 'chuyenCan') parts.push('Chuyên Cần');
   return parts.length ? ` · ${parts.join(' · ')}` : '';
@@ -3996,7 +4020,7 @@ function buildStreetDistrict() {
   buildBongDaStand();
   buildGioVangStand();
   buildGossipCircle();
-  buildGossipCircleNgoaiTinh();
+  buildGossipCircleBoyDao();
   buildPhoKyAo();
   buildPhongLonAlley();
   buildNemChuaAlley();
@@ -4575,6 +4599,7 @@ function buildInstituteDistrict() {
   buildInstituteCafeBay(root, ix, iz);
   buildInstituteParade(root, ix, iz);
   buildInstituteBalloonSafari(root, ix, iz);
+  buildInstituteGuideTour(root, ix, iz);
   // Restore rare habitats if already unlocked in save
   if (S.daoDienSanVien || ((S.vienShowDem | 0) >= 5 && vienAlbumStampCount() >= 8)) {
     try { spawnInstituteRareHabitats(true); } catch (_) {}
@@ -4584,11 +4609,13 @@ function buildInstituteDistrict() {
   if ((S.vienCafePhucVu | 0) >= 1) S._vienCafeSteamBoost = true;
   if ((S.vienDieuHanh | 0) >= 1) S._vienParadePathBoost = true;
   if ((S.vienKhinhKhi | 0) >= 1) S._vienBalloonTrailBoost = true;
+  if ((S.vienHuongDan | 0) >= 1) S._vienGuideTrailBoost = true;
   refreshInstituteAlbumSlots();
   refreshInstituteVeSlots();
   refreshInstituteCafeLySlots();
   refreshInstituteParadeCoSlots();
   refreshInstituteBalloonTemSlots();
+  refreshInstituteGuideTheSlots();
 }
 
 function buildInstituteShowAlbum(root, ix, iz) {
@@ -5203,7 +5230,7 @@ function refreshInstituteCafeLySlots() {
 }
 
 function pickNearInstituteCafe() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return false;
   if (playerRoot.position.x >= -16) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   const cx = INSTITUTE_X - 10, cz = INSTITUTE_Z + 6;
@@ -5381,7 +5408,7 @@ function escalateInstituteCafeRewards() {
 }
 
 function startInstituteCafeAct(opts = {}) {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -5894,7 +5921,7 @@ function refreshInstituteParadeCoSlots() {
 }
 
 function pickNearInstituteParade() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return false;
   if (playerRoot.position.x >= -14) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   const cx = INSTITUTE_X + 9.5, cz = INSTITUTE_Z + 9.0;
@@ -6026,7 +6053,7 @@ function escalateInstituteParadeRewards() {
 }
 
 function startInstituteParadeAct(opts = {}) {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -6543,7 +6570,7 @@ function refreshInstituteBalloonTemSlots() {
 }
 
 function pickNearInstituteBalloon() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return false;
   if (playerRoot.position.x >= -14) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   const cx = INSTITUTE_X + 11.0, cz = INSTITUTE_Z - 10.5;
@@ -6717,7 +6744,7 @@ function stampBalloonTem(animalId, quiet) {
 }
 
 function startInstituteBalloonAct(opts = {}) {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) {
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) {
     toast('🎈 Khinh khí đang bay — đợi một nhịp');
     return;
   }
@@ -6955,8 +6982,753 @@ function cancelInstituteBalloonAct() {
   finishInstituteBalloonAct(true);
 }
 
+/* ========== Viện · Hướng Dẫn Viên Gene + Thẻ Ghi Chú Tour ========== */
+function vienTheGhiChuCount() {
+  const m = S.vienTheGhiChu || {};
+  return Object.keys(m).filter((k) => m[k]).length;
+}
+function vienTourDenLongUnlocked() {
+  return !!S.huongDanVienSanVien || ((S.vienHuongDan | 0) >= 12 && vienTheGhiChuCount() >= 8);
+}
+function guideFreeTourAnimals() {
+  const now = performance.now();
+  return (S.instituteAnimals || []).filter((a) => {
+    if (!a || !a.mesh || a.landmark || a.rare) return false;
+    if (a.cafeSeat != null) return false;
+    if (a.paradePhase) return false;
+    if (a.geneBuff && (a.geneBuff.until || 0) > now) return false;
+    if (S.instituteShowAct || S.instituteBalloonAct) return false;
+    return true;
+  });
+}
+function pickInstituteGuideVerb() {
+  if (vienTourDenLongUnlocked() && !S._vienTourDenLongSession && !S.vienTourDenLong) return 'tourDenLong';
+  if (vienTourDenLongUnlocked() && !S._vienTourDenLongSession) return 'tourDenLong';
+  const n = S.vienHuongDan | 0;
+  const stamps = vienTheGhiChuCount();
+  if (n < 1) return 'moiTour';
+  const last = S._vienGuideLastKind;
+  if (n >= 1 && (last === 'moiTour' || last === 'tourDenLong')) return 'ghiChu';
+  if ((n >= 5 || stamps >= 4) && last === 'ghiChu') return 'hoiDap';
+  if ((n >= 5 || stamps >= 4) && last === 'hoiDap') return 'moiTour';
+  if (n >= 1 && last === 'ghiChu') return 'moiTour';
+  if (n >= 1) return 'ghiChu';
+  return 'moiTour';
+}
+function instituteGuideVerbLabel(v) {
+  if (v === 'ghiChu') return '📋 Ghi Chú';
+  if (v === 'hoiDap') return '❓ Hỏi Đáp Gene';
+  if (v === 'tourDenLong') return '🏮 Tour Đèn Lồng';
+  return '🔬 Mời Tour';
+}
+const INSTITUTE_GUIDE_NOTES = [
+  (n) => `Ghi chú: ${n} thích flash khi có khách — fantasy only!`,
+  (n) => `Clipboard: ${n} “gene carnival” = cười khà, không phải lab thật.`,
+  (n) => `Bản ghi chú giả tưởng: ${n} hay vẫy khi nghe toast công đức.`,
+  (n) => `Tip hướng dẫn: ${n} ngồi bệ — chỉ spotlight, đừng khiêng!`,
+  (n) => `${n} thì thầm: “Tour gene = đi bộ vui, không CRISPR.”`,
+  (n) => `Note mềm: ${n} đổi màu theo mood sân — chỉ mỹ thuật game.`,
+  (n) => `Hướng dẫn viên ghi: ${n} pose tốt nhất góc −X từ cổng.`,
+  (n) => `${n} thích được gọi tên đầy đủ trên thẻ ghi chú.`,
+  (n) => `Fantasy file: ${n} “đột biến” = pastel + joke bubble.`,
+  (n) => `Checklist: đứng gần ${n} → highlight → cười → stamp thẻ.`,
+];
+function instituteGuideNote(name, salt) {
+  const fn = INSTITUTE_GUIDE_NOTES[(Math.abs(salt | 0) + (name?.length || 0)) % INSTITUTE_GUIDE_NOTES.length];
+  return fn(name || 'thú viện');
+}
+const INSTITUTE_GUIDE_QUIZ = [
+  { q: 'Gene carnival của Cá Chép Rồng Đèn thích gì nhất?', a: ['Flash selfie fantasy', 'Nuôi virus', 'Công thức CRISPR'], ok: 0 },
+  { q: 'Khi thú đang diễu / cafe, hướng dẫn viên nên?', a: ['Chọn thú rảnh khác', 'Kéo bệ đi theo', 'Tắt cả sân'], ok: 0 },
+  { q: 'Thẻ ghi chú dùng để…?', a: ['Ghim joke fantasy đã thăm', 'Viết protocol lab', 'Mở kho vũ khí'], ok: 0 },
+  { q: 'Tour Đèn Lồng mở khi nào?', a: ['Đủ tour + thẻ (≥12 & ≥8)', 'Ngay lần đầu', 'Chỉ khi mưa acid'], ok: 0 },
+  { q: 'Hỏi đáp gene đúng kiểu viện là?', a: ['Chọn đáp án vui · luôn thắng cheer', 'Thi điểm sinh học thật', 'Cấy gene người chơi'], ok: 0 },
+  { q: 'Esc giữa tour thì…?', a: ['Về bàn hướng dẫn · NPC về chỗ', 'Kẹt giữa sân mãi', 'Xóa hết thẻ'], ok: 0 },
+  { q: 'Flair Bạn Đồng Hành Gene mở sau…?', a: ['5 tour hoặc 4 thẻ', '1 lần quan sát', 'Mua ở phố'], ok: 0 },
+  { q: 'Tone Viện Nghiên Cứu là?', a: ['Carnival fantasy PG', 'Horror lab', 'Pathogen sim'], ok: 0 },
+];
+
+function buildInstituteGuideTour(root, ix, iz) {
+  const gx = ix - 11.2, gz = iz - 3.5;
+  const desk = new THREE.Group();
+  desk.position.set(gx, 0, gz);
+  S.instituteGuideRoot = desk;
+  S.instituteGuideDesk = desk;
+
+  const zone = new THREE.Mesh(
+    new THREE.TorusGeometry(1.6, 0.03, 6, 24),
+    new THREE.MeshStandardMaterial({
+      color: 0xc8f0e8, metalness: 0.35, roughness: 0.45,
+      emissive: 0x66ccaa, emissiveIntensity: 0.2,
+    })
+  );
+  zone.rotation.x = Math.PI / 2;
+  zone.position.y = 0.04;
+  desk.add(zone);
+  markIndestructible(zone);
+  S.instituteGuideZoneRing = zone;
+
+  // Soft marker local (−10.4,−3.2) relative desk (−11.2,−3.5) → (+0.8, +0.3)
+  const softMark = new THREE.Mesh(
+    new THREE.TorusGeometry(0.55, 0.02, 5, 16),
+    new THREE.MeshStandardMaterial({
+      color: 0xffe0d0, metalness: 0.3, roughness: 0.5,
+      emissive: 0xffbb88, emissiveIntensity: 0.18,
+    })
+  );
+  softMark.rotation.x = Math.PI / 2;
+  softMark.position.set(0.8, 0.035, 0.3);
+  desk.add(softMark);
+  markIndestructible(softMark);
+
+  const pad = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.45, 1.55, 0.16, 22),
+    new THREE.MeshStandardMaterial({
+      color: 0xe8f5f0, metalness: 0.25, roughness: 0.5,
+      emissive: 0x88ccaa, emissiveIntensity: 0.12,
+    })
+  );
+  pad.position.y = 0.09;
+  desk.add(pad);
+  markIndestructible(pad);
+  S.instituteGuidePad = pad;
+
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(1.48, 0.04, 6, 28),
+    new THREE.MeshStandardMaterial({
+      color: 0xd8fff0, metalness: 0.5, roughness: 0.35,
+      emissive: 0x66eebb, emissiveIntensity: S.banDongHanhGene || S.huongDanVienSanVien ? 0.55 : 0.16,
+    })
+  );
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.18;
+  desk.add(rim);
+  S.instituteGuideRim = rim;
+
+  // Soft clipboard stand
+  const stand = new THREE.Mesh(
+    new THREE.BoxGeometry(0.55, 0.08, 0.4),
+    new THREE.MeshStandardMaterial({ color: 0xc8b090, metalness: 0.2, roughness: 0.65, emissive: 0x886644, emissiveIntensity: 0.1 })
+  );
+  stand.position.set(0.55, 0.55, -0.15);
+  desk.add(stand);
+  markIndestructible(stand);
+  const clip = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.42, 0.55),
+    new THREE.MeshStandardMaterial({
+      color: 0xf5fff8, roughness: 0.55, metalness: 0.1,
+      emissive: 0xaaffee, emissiveIntensity: 0.22, side: THREE.DoubleSide,
+    })
+  );
+  clip.position.set(0.55, 0.9, -0.15);
+  clip.rotation.y = -0.25;
+  desk.add(clip);
+  S.instituteGuideClipboard = clip;
+
+  // Idle researcher NPC — capsule + clipboard plane + soft bob
+  const npc = new THREE.Group();
+  npc.position.set(-0.15, 0, 0.15);
+  const body = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.22, 0.55, 4, 8),
+    new THREE.MeshStandardMaterial({
+      color: 0x88c8b8, roughness: 0.5, metalness: 0.15,
+      emissive: 0x449988, emissiveIntensity: 0.25,
+    })
+  );
+  body.position.y = 0.72;
+  npc.add(body);
+  const head = new THREE.Mesh(
+    new THREE.SphereGeometry(0.18, 10, 8),
+    new THREE.MeshStandardMaterial({ color: 0xffe0c8, roughness: 0.55, metalness: 0.05, emissive: 0xffaa88, emissiveIntensity: 0.12 })
+  );
+  head.position.y = 1.28;
+  npc.add(head);
+  const hat = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.16, 0.18, 0.12, 10),
+    new THREE.MeshStandardMaterial({ color: 0x66aa99, roughness: 0.45, metalness: 0.2, emissive: 0x338877, emissiveIntensity: 0.2 })
+  );
+  hat.position.y = 1.45;
+  npc.add(hat);
+  const handClip = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.22, 0.28),
+    new THREE.MeshStandardMaterial({
+      color: 0xfff8f0, roughness: 0.5, metalness: 0.1,
+      emissive: 0xffe8aa, emissiveIntensity: S._vienGuideTrailBoost ? 0.45 : 0.2,
+      side: THREE.DoubleSide,
+    })
+  );
+  handClip.position.set(0.28, 0.85, 0.12);
+  handClip.rotation.y = -0.4;
+  npc.add(handClip);
+  npc.userData.handClip = handClip;
+  npc.userData.body = body;
+  desk.add(npc);
+  S.instituteGuideNpc = npc;
+
+  const tip = textPlane('🔬 Hướng Dẫn Viên Gene', 380, 48, '#f0fff8', '#2a5048', 14);
+  tip.position.set(0, 1.95, 0.15);
+  tip.scale.set(2.05, 0.34, 1);
+  desk.add(tip);
+  S.instituteGuideTip = tip;
+
+  // Thẻ board local (−11.8,−2.4) relative desk (−11.2,−3.5) → (−0.6, +1.1)
+  const boardG = new THREE.Group();
+  boardG.position.set(-0.6, 0, 1.1);
+  const board = new THREE.Mesh(
+    new THREE.BoxGeometry(1.5, 1.2, 0.1),
+    new THREE.MeshStandardMaterial({
+      color: 0x283830, roughness: 0.55, metalness: 0.2,
+      emissive: 0x203828, emissiveIntensity: 0.18,
+    })
+  );
+  board.position.y = 1.55;
+  boardG.add(board);
+  S.instituteGuideBoard = board;
+  const boardTip = textPlane('📋 Thẻ Ghi Chú', 300, 48, '#f0fff8', '#304840', 14);
+  boardTip.position.set(0, 2.3, 0.08);
+  boardTip.scale.set(1.55, 0.3, 1);
+  boardG.add(boardTip);
+  S.instituteGuideBoardTip = boardTip;
+
+  const theSlots = [];
+  for (let i = 0; i < 10; i++) {
+    const col = i % 5;
+    const row = (i / 5) | 0;
+    const sx = -0.55 + col * 0.28;
+    const sy = 1.78 - row * 0.38;
+    const spec = INSTITUTE_ANIMAL_SPECS[i];
+    const slot = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.24, 0.3),
+      new THREE.MeshStandardMaterial({
+        color: 0x283830, roughness: 0.7, metalness: 0.1,
+        emissive: spec?.color || 0x182820, emissiveIntensity: 0.08,
+        side: THREE.DoubleSide,
+      })
+    );
+    slot.position.set(sx, sy, 0.07);
+    boardG.add(slot);
+    const label = textPlane('·', 80, 40, '#88aa99', '#182820', 12);
+    label.position.set(sx, sy, 0.09);
+    label.scale.set(0.22, 0.18, 1);
+    boardG.add(label);
+    theSlots.push({ id: spec.id, mesh: slot, label, filled: false });
+  }
+  S.instituteGuideTheSlots = theSlots;
+  // Face +X into yard
+  boardG.rotation.y = Math.PI * 0.5;
+  desk.add(boardG);
+
+  const spot = new THREE.Mesh(
+    new THREE.ConeGeometry(0.55, 2.2, 12, 1, true),
+    new THREE.MeshBasicMaterial({
+      color: 0xaaffee, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  spot.rotation.x = Math.PI;
+  spot.visible = false;
+  root.add(spot);
+  S.instituteGuideSpotLight = spot;
+
+  root.add(desk);
+
+  if ((S.vienHuongDan | 0) >= 1) S._vienGuideTrailBoost = true;
+  refreshInstituteGuideTheSlots();
+}
+
+function refreshInstituteGuideTheSlots() {
+  const stamps = S.vienTheGhiChu || {};
+  const slots = S.instituteGuideTheSlots;
+  if (!slots) return;
+  slots.forEach((slot) => {
+    const filled = !!stamps[slot.id];
+    slot.filled = filled;
+    const spec = INSTITUTE_ANIMAL_SPECS.find((s) => s.id === slot.id);
+    if (slot.mesh?.material) {
+      slot.mesh.material.emissiveIntensity = filled ? 0.7 : 0.08;
+      slot.mesh.material.emissive?.setHex?.(spec?.color || 0x182820);
+      slot.mesh.material.color?.setHex?.(filled ? 0x3a5a48 : 0x283830);
+    }
+    if (slot.label) {
+      try {
+        const short = filled ? (spec?.name || '').replace(/^(Cá|Trâu|Mây|Mèo|Gà|Heo|Rùa|Cua|Ngỗng|Sóc)\s*/, '').slice(0, 6) : '·';
+        const cv = document.createElement('canvas');
+        cv.width = 80; cv.height = 40;
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = filled ? '#284038' : '#182820';
+        ctx.fillRect(0, 0, 80, 40);
+        ctx.fillStyle = filled ? '#f0fff8' : '#88aa99';
+        ctx.font = '700 11px "Be Vietnam Pro","Noto Sans",sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(short || '·', 40, 21);
+        if (slot.label.material?.map) {
+          slot.label.material.map.image = cv;
+          slot.label.material.map.needsUpdate = true;
+        } else if (slot.label.userData?.tex) {
+          slot.label.userData.tex.image = cv;
+          slot.label.userData.tex.needsUpdate = true;
+        }
+      } catch (_) {}
+    }
+  });
+  if (S.instituteGuideRim?.material) {
+    const neon = S.huongDanVienSanVien || S.banDongHanhGene;
+    S.instituteGuideRim.material.emissiveIntensity = neon ? 0.55 : 0.16;
+    if (neon) S.instituteGuideRim.material.emissive?.setHex?.(0x66eebb);
+  }
+  if (S.instituteGuideBoard?.material) {
+    S.instituteGuideBoard.material.emissiveIntensity = vienTheGhiChuCount() > 0 ? 0.35 : 0.18;
+  }
+  if (S.instituteGuideNpc?.userData?.handClip?.material) {
+    S.instituteGuideNpc.userData.handClip.material.emissiveIntensity = S._vienGuideTrailBoost ? 0.45 : 0.2;
+  }
+}
+
+function pickNearInstituteGuide() {
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return false;
+  if (playerRoot.position.x >= -14) return false;
+  const px = playerRoot.position.x, pz = playerRoot.position.z;
+  const cx = INSTITUTE_X - 11.2, cz = INSTITUTE_Z - 3.5;
+  const bx = INSTITUTE_X - 11.8, bz = INSTITUTE_Z - 2.4;
+  return Math.hypot(px - cx, pz - cz) < 2.5 || Math.hypot(px - bx, pz - bz) < 2.0;
+}
+
+function openInstituteGuideTheBoard() {
+  if (S.busy || S.instituteGuideAct) return;
+  const stamps = S.vienTheGhiChu || {};
+  const n = vienTheGhiChuCount();
+  const rows = INSTITUTE_ANIMAL_SPECS.map((s) => {
+    const ok = !!stamps[s.id];
+    return `<li>${ok ? '✅' : '⬜'} ${s.name}</li>`;
+  }).join('');
+  refreshInstituteGuideTheSlots();
+  if (S.instituteGuideBoard?.material) {
+    S.instituteGuideBoard.material.emissiveIntensity = 0.75;
+    setTimeout(() => {
+      if (S.instituteGuideBoard?.material) {
+        S.instituteGuideBoard.material.emissiveIntensity = S.banDongHanhGene ? 0.4 : 0.18;
+      }
+    }, 900);
+  }
+  openModal(`
+    <h2>📋 Thẻ Ghi Chú</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ghim <strong>${n}</strong>/10 thẻ · tour <strong>${S.vienHuongDan | 0}</strong>${S.vienTourDenLong ? ' · đã Tour Đèn Lồng' : ''}</p>
+    <ul class="book-list">${rows}</ul>
+    <button class="btn" id="m-guide-ok">Đóng</button>
+  `);
+  $('m-guide-ok').onclick = () => closeModal();
+  toast(n > 0 ? `📋 Thẻ ghi chú · ${n}/10 đang sáng` : '📋 Bảng còn trống — Mời Tour rồi Ghi Chú');
+}
+
+function spawnGuideJokeBubble(animal, text) {
+  if (!animal?.mesh || !text) return null;
+  try {
+    const bubble = textPlane(String(text).slice(0, 52), 400, 56, '#204038', '#f0fff8', 13);
+    bubble.position.set(0, animal.rare ? 1.55 : 2.05, 0);
+    bubble.scale.set(IS_MOBILE ? 1.35 : 1.75, IS_MOBILE ? 0.26 : 0.32, 1);
+    animal.mesh.add(bubble);
+    animal.guideBubble = bubble;
+    animal.guideBubbleUntil = performance.now() + (IS_MOBILE ? 2600 : 3400);
+    return bubble;
+  } catch (_) { return null; }
+}
+function clearGuideJokeBubble(animal) {
+  if (!animal?.guideBubble) return;
+  try {
+    animal.mesh?.remove(animal.guideBubble);
+    animal.guideBubble.geometry?.dispose?.();
+    animal.guideBubble.material?.map?.dispose?.();
+    animal.guideBubble.material?.dispose?.();
+  } catch (_) {}
+  animal.guideBubble = null;
+  animal.guideBubbleUntil = 0;
+}
+function clearGuideSpotHighlight() {
+  const spot = S.instituteGuideSpotLight;
+  if (spot) {
+    spot.visible = false;
+    if (spot.material) spot.material.opacity = 0;
+  }
+  (S.instituteAnimals || []).forEach((a) => {
+    if (a?.guideSpotUntil) a.guideSpotUntil = 0;
+    if (a?.glow?.material && a._guideGlowPrev != null) {
+      a.glow.material.opacity = a._guideGlowPrev;
+      a._guideGlowPrev = null;
+    }
+  });
+}
+function highlightGuideSpot(animal, ms) {
+  if (!animal?.mesh) return;
+  const dur = ms || (IS_MOBILE ? 2200 : 2800);
+  animal.guideSpotUntil = performance.now() + dur;
+  if (animal.glow?.material) {
+    if (animal._guideGlowPrev == null) animal._guideGlowPrev = animal.glow.material.opacity;
+    animal.glow.material.opacity = 0.55;
+  }
+  const spot = S.instituteGuideSpotLight;
+  if (spot) {
+    spot.visible = true;
+    spot.position.set(animal.x, 2.4, animal.z);
+    if (spot.material) spot.material.opacity = 0.35;
+  }
+}
+function clearGuideLanterns() {
+  const list = S.instituteGuideLanterns || [];
+  list.forEach((m) => {
+    try {
+      m.parent?.remove(m);
+      m.geometry?.dispose?.();
+      m.material?.dispose?.();
+    } catch (_) {}
+  });
+  S.instituteGuideLanterns = [];
+}
+function spawnGuideLanterns(stops) {
+  clearGuideLanterns();
+  if (IS_MOBILE) return;
+  const root = S.instituteRoot || scene;
+  const lanterns = [];
+  const deskX = INSTITUTE_X - 11.2, deskZ = INSTITUTE_Z - 3.5;
+  const pts = [{ x: deskX, z: deskZ }, ...(stops || []).map((a) => ({ x: a.x, z: a.z })), { x: deskX, z: deskZ }];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1];
+    for (let k = 0; k < 2; k++) {
+      const u = 0.35 + k * 0.3;
+      const ball = new THREE.Mesh(
+        new THREE.SphereGeometry(0.1, 8, 6),
+        new THREE.MeshStandardMaterial({
+          color: 0xffcc88, roughness: 0.4, metalness: 0.15,
+          emissive: 0xffaa55, emissiveIntensity: 0.7,
+          transparent: true, opacity: 0.85,
+        })
+      );
+      ball.position.set(a.x + (b.x - a.x) * u, 1.6 + Math.sin(i + k) * 0.15, a.z + (b.z - a.z) * u);
+      root.add(ball);
+      lanterns.push(ball);
+    }
+  }
+  S.instituteGuideLanterns = lanterns;
+}
+function spawnGuideTrailSpark(x, z) {
+  if (IS_MOBILE || !S._vienGuideTrailBoost) return;
+  const root = S.instituteRoot || scene;
+  const p = new THREE.Mesh(
+    new THREE.SphereGeometry(0.06, 6, 4),
+    new THREE.MeshBasicMaterial({ color: 0xaaffee, transparent: true, opacity: 0.7 })
+  );
+  p.position.set(x, 0.35, z);
+  p.userData.life = 1.2;
+  root.add(p);
+  S.instituteGuideTrail = (S.instituteGuideTrail || []).concat([p]);
+}
+function clearGuideTrail() {
+  (S.instituteGuideTrail || []).forEach((m) => {
+    try { m.parent?.remove(m); m.geometry?.dispose?.(); m.material?.dispose?.(); } catch (_) {}
+  });
+  S.instituteGuideTrail = [];
+}
+
+function escalateInstituteGuideRewards() {
+  if ((S.vienHuongDan | 0) >= 1 && !S._vienGuideTrailBoost) {
+    S._vienGuideTrailBoost = true;
+    if (S.instituteGuideNpc?.userData?.handClip?.material) {
+      S.instituteGuideNpc.userData.handClip.material.emissiveIntensity = 0.45;
+    }
+    setTimeout(() => toast('📋 Mở · Ghi Chú thẻ sau tour'), 700);
+  }
+  if (((S.vienHuongDan | 0) >= 5 || vienTheGhiChuCount() >= 4) && !S.banDongHanhGene) {
+    S.banDongHanhGene = true;
+    if (S.instituteGuideRim?.material) {
+      S.instituteGuideRim.material.emissiveIntensity = 0.55;
+      S.instituteGuideRim.material.emissive?.setHex?.(0x66eebb);
+    }
+    setTimeout(() => {
+      toast('🔬 Flair · Bạn Đồng Hành Gene · neon bàn mềm');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 900);
+  }
+  if ((S.vienHuongDan | 0) >= 12 && vienTheGhiChuCount() >= 8 && !S.huongDanVienSanVien) {
+    S.huongDanVienSanVien = true;
+    setTimeout(() => {
+      toast('🏮 Flair · Hướng Dẫn Viên Sân Viện · Tour Đèn Lồng mở!');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 1100);
+  }
+  if (vienTheGhiChuCount() >= 3 && !S._vienGuideBoardTip) {
+    S._vienGuideBoardTip = true;
+    setTimeout(() => toast('📋 Bảng thẻ ghi chú đang sáng'), 1200);
+  }
+}
+
+function stampGuideThe(animalId, quiet) {
+  if (!animalId) return false;
+  if (!S.vienTheGhiChu) S.vienTheGhiChu = {};
+  if (S.vienTheGhiChu[animalId]) return false;
+  S.vienTheGhiChu[animalId] = true;
+  refreshInstituteGuideTheSlots();
+  if (!quiet) {
+    const spec = INSTITUTE_ANIMAL_SPECS.find((s) => s.id === animalId);
+    toast(`📋 Thẻ ghi chú · ${spec?.name || animalId}`);
+  }
+  return true;
+}
+
+function resetGuideNpcToDesk() {
+  const npc = S.instituteGuideNpc;
+  if (!npc) return;
+  npc.position.set(-0.15, 0, 0.15);
+  npc.rotation.set(0, 0, 0);
+  if (npc.parent !== S.instituteGuideRoot && S.instituteGuideRoot) {
+    try { npc.parent?.remove(npc); S.instituteGuideRoot.add(npc); } catch (_) {}
+  }
+}
+
+function openInstituteGuideQuiz(onDone) {
+  const qi = (S.vienHuongDan | 0) % INSTITUTE_GUIDE_QUIZ.length;
+  const item = INSTITUTE_GUIDE_QUIZ[qi];
+  const btns = item.a.map((lab, i) => `<button class="btn" data-qi="${i}" style="margin:4px 0;width:100%">${lab}</button>`).join('');
+  openModal(`
+    <h2>❓ Hỏi Đáp Gene</h2>
+    <p class="tiny" style="text-align:center;margin:6px 0 10px">${item.q}</p>
+    ${btns}
+  `);
+  const finish = () => {
+    closeModal();
+    toast('✨ Đáp án carnival · cheer sparkle!');
+    if (typeof onDone === 'function') onDone(true);
+  };
+  [...document.querySelectorAll('#modal-body [data-qi]')].forEach((b) => {
+    b.onclick = finish;
+  });
+}
+
+function startInstituteGuideAct(opts = {}) {
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) {
+    toast('🔬 Tour đang dẫn — đợi một nhịp');
+    return;
+  }
+  if (instituteBusyBlocked()) {
+    toast('🧬 Viện chờ hết lượt khác đã');
+    return;
+  }
+  const kind = opts.kind || pickInstituteGuideVerb();
+  const cx = INSTITUTE_X - 11.2, cz = INSTITUTE_Z - 3.5;
+  const storePose = () => ({
+    x: playerRoot ? playerRoot.position.x : cx,
+    z: playerRoot ? playerRoot.position.z : cz,
+    y: playerRoot ? playerRoot.position.y : 0,
+  });
+
+  if (kind === 'moiTour' || kind === 'tourDenLong') {
+    const lantern = kind === 'tourDenLong';
+    if (lantern) {
+      if (!vienTourDenLongUnlocked() || S._vienTourDenLongSession) {
+        toast(S._vienTourDenLongSession ? '🏮 Tour Đèn Lồng đã mở phiên này' : '🏮 Cần ≥12 tour và ≥8 thẻ ghi chú');
+        return;
+      }
+    }
+    let free = guideFreeTourAnimals().slice();
+    const stamps = S.vienTheGhiChu || {};
+    free.sort((a, b) => {
+      const ua = stamps[a.id] ? 1 : 0;
+      const ub = stamps[b.id] ? 1 : 0;
+      if (ua !== ub) return ua - ub;
+      return Math.random() - 0.5;
+    });
+    if (free.length < 1) {
+      toast('Thú đang bận show/gene/cafe/diễu — đợi một nhịp');
+      return;
+    }
+    const picks = free.slice(0, Math.min(3, free.length));
+    const dur = lantern ? (IS_MOBILE ? 13 : 16) : (IS_MOBILE ? 12 : 14.5);
+    const pose = storePose();
+    S.busy = true;
+    if (playerRoot) playerRoot.position.set(cx + 0.4, 0, cz + 0.5);
+    S.yaw = Math.atan2(-(picks[0].x - cx), -(picks[0].z - cz));
+    if (player) player.rotation.y = S.yaw;
+    S.instituteGuideLastStops = picks.map((p) => p.id);
+    if (lantern) spawnGuideLanterns(picks);
+    S.instituteGuideAct = {
+      kind: lantern ? 'tourDenLong' : 'moiTour',
+      t: 0, dur, rewarded: false, faceYaw: S.yaw,
+      deskX: cx, deskZ: cz,
+      restoreX: pose.x, restoreZ: pose.z, restoreY: pose.y || 0,
+      stopIds: picks.map((p) => p.id),
+      stopIdx: -1,
+      phase: 'toStop', // toStop | pause | toDesk
+      pauseUntil: 0,
+      nextLegAt: 0.35,
+      followToastAt: 0,
+      lantern,
+      autoStamp: lantern,
+    };
+    S._vienGuideLastKind = lantern ? 'tourDenLong' : 'moiTour';
+    try { playWhoosh(); } catch (_) {}
+    toast(lantern
+      ? '🏮 Tour Đèn Lồng · đường đèn mềm qua habitat!'
+      : '🔬 Mời Tour · đi theo hướng dẫn viên clipboard…');
+    return;
+  }
+
+  if (kind === 'ghiChu') {
+    if ((S.vienHuongDan | 0) < 1) {
+      toast('🔬 Mời Tour một vòng trước đã');
+      return;
+    }
+    const last = S.instituteGuideLastStops || [];
+    const stamps = S.vienTheGhiChu || {};
+    let ids = last.filter((id) => !stamps[id]);
+    if (!ids.length) {
+      const free = guideFreeTourAnimals().filter((a) => !stamps[a.id]).map((a) => a.id);
+      ids = free.slice(0, 2);
+    }
+    if (!ids.length) {
+      // already all stamped from last — still soft stamp celebrate existing
+      ids = (last.length ? last : INSTITUTE_ANIMAL_SPECS.map((s) => s.id)).slice(0, 1);
+    }
+    ids = ids.slice(0, IS_MOBILE ? 1 : 2);
+    const pose = storePose();
+    const dur = IS_MOBILE ? 4.5 : 5.5;
+    S.busy = true;
+    if (playerRoot) playerRoot.position.set(cx + 0.2, 0, cz + 0.35);
+    S.instituteGuideAct = {
+      kind: 'ghiChu', t: 0, dur, rewarded: false, faceYaw: S.yaw,
+      deskX: cx, deskZ: cz,
+      restoreX: pose.x, restoreZ: pose.z, restoreY: pose.y || 0,
+      stampIds: ids,
+      stamped: false, stampAt: 1.4,
+    };
+    S._vienGuideLastKind = 'ghiChu';
+    toast(`📋 Ghi Chú · ghim thẻ ${(ids.map((id) => INSTITUTE_ANIMAL_SPECS.find((s) => s.id === id)?.name || id).join(' · '))}`);
+    return;
+  }
+
+  if (kind === 'hoiDap') {
+    if ((S.vienHuongDan | 0) < 5 && vienTheGhiChuCount() < 4) {
+      toast('❓ Cần ≥5 tour hoặc ≥4 thẻ ghi chú');
+      return;
+    }
+    const pose = storePose();
+    const dur = IS_MOBILE ? 5 : 6;
+    S.busy = true;
+    if (playerRoot) playerRoot.position.set(cx + 0.15, 0, cz + 0.4);
+    S.instituteGuideAct = {
+      kind: 'hoiDap', t: 0, dur, rewarded: false, faceYaw: S.yaw,
+      deskX: cx, deskZ: cz,
+      restoreX: pose.x, restoreZ: pose.z, restoreY: pose.y || 0,
+      quizOpened: false, quizDone: false,
+    };
+    S._vienGuideLastKind = 'hoiDap';
+    openInstituteGuideQuiz(() => {
+      if (S.instituteGuideAct && S.instituteGuideAct.kind === 'hoiDap') {
+        S.instituteGuideAct.quizDone = true;
+        S.instituteGuideAct.t = Math.max(S.instituteGuideAct.t, S.instituteGuideAct.dur - 0.8);
+      }
+    });
+    S.instituteGuideAct.quizOpened = true;
+    toast('❓ Hỏi Đáp Gene · chọn đáp án carnival!');
+    return;
+  }
+}
+
+function finishInstituteGuideAct(early) {
+  const act = S.instituteGuideAct;
+  if (!act) return;
+  const elapsed = act.t;
+  const counts = !early || elapsed >= 1.2;
+  const cx = act.deskX != null ? act.deskX : INSTITUTE_X - 11.2;
+  const cz = act.deskZ != null ? act.deskZ : INSTITUTE_Z - 3.5;
+  const allAnimals = S.instituteAnimals || [];
+
+  clearGuideSpotHighlight();
+  clearGuideLanterns();
+  clearGuideTrail();
+  allAnimals.forEach((a) => clearGuideJokeBubble(a));
+
+  if (counts && !act.rewarded) {
+    act.rewarded = true;
+    if (act.kind === 'moiTour' || act.kind === 'tourDenLong') {
+      const first = (S.vienHuongDan | 0) === 0;
+      S.vienHuongDan = (S.vienHuongDan | 0) + 1;
+      let newThe = 0;
+      if (act.kind === 'tourDenLong') {
+        (act.stopIds || []).slice(0, 3).forEach((id) => {
+          if (stampGuideThe(id, true)) newThe += 1;
+        });
+        S.vienTourDenLong = true;
+        S._vienTourDenLongSession = true;
+        if (!S.huongDanVienSanVien) S.huongDanVienSanVien = true;
+      }
+      refreshInstituteGuideTheSlots();
+      let gain = act.kind === 'tourDenLong' ? 10 : (first ? 6 : 3);
+      if (first && (S.chuSafariBauTroi || S.chuDieuHanh || S.chuCafeBay || S.chuQuayCarnival || S.daoDienSanVien || S.nhaNghienCuuSan)) {
+        gain += 1;
+        setTimeout(() => toast('🧬 Duyên Carnival / Viện · +1 công đức tour'), 800);
+      }
+      if (early) gain = Math.max(1, (gain / 2) | 0);
+      if (act.kind === 'tourDenLong') {
+        gainCongDuc(gain, '🧬 Viện · Tour Đèn Lồng', true);
+        toast(`🏮 Tour Đèn Lồng · ${newThe ? `+${newThe} thẻ · ` : ''}+${gain}`);
+        setTimeout(() => toast('📒 Sổ ghi · 🧬 Viện · Tour Đèn Lồng'), 1100);
+      } else {
+        gainCongDuc(gain, first ? '🧬 Viện · Tour Hướng Dẫn Gene' : 'Viện · Mời Tour', true);
+        toast(first
+          ? `🔬 Tour lần đầu · clipboard cười khà · +${gain}`
+          : `🔬 Mời Tour · +${gain}`);
+        if (first) setTimeout(() => toast('📒 Sổ ghi · 🧬 Viện · Tour Hướng Dẫn Gene'), 1100);
+      }
+      escalateInstituteGuideRewards();
+    } else if (act.kind === 'ghiChu') {
+      let newThe = 0;
+      (act.stampIds || []).forEach((id) => {
+        if (stampGuideThe(id, true)) newThe += 1;
+        const a = allAnimals.find((x) => x.id === id);
+        if (a) spawnGuideJokeBubble(a, instituteGuideNote(a.name, (S.vienHuongDan | 0) + newThe));
+      });
+      refreshInstituteGuideTheSlots();
+      const gain = early ? 1 : (newThe ? 3 : 2);
+      gainCongDuc(gain, 'Viện · Ghi Chú Thẻ', true);
+      toast(newThe
+        ? `📋 Ghi Chú · +${newThe} thẻ · +${gain}`
+        : `📋 Ghi Chú · đã có thẻ · +${gain}`);
+      escalateInstituteGuideRewards();
+      if (newThe && (vienTheGhiChuCount() === 1 || vienTheGhiChuCount() === 3 || vienTheGhiChuCount() === 10)) {
+        setTimeout(() => { try { openInstituteGuideTheBoard(); } catch (_) {} }, 1600);
+      }
+    } else if (act.kind === 'hoiDap') {
+      gainCongDuc(2, 'Viện · Hỏi Đáp Gene', true);
+      toast('❓ Hỏi Đáp Gene · cheer sparkle trên sân!');
+      escalateInstituteGuideRewards();
+    }
+    saveAll();
+    try { updateMeritHud(); } catch (_) {}
+  } else if (early && elapsed < 1.2) {
+    toast('🔬 Hủy quá sớm — chưa ghi sổ');
+  }
+
+  // Restore player near desk; NPC returns
+  if (playerRoot) {
+    playerRoot.position.set(cx + 0.35, 0, cz + 0.55);
+    playerRoot.position.y = 0;
+  }
+  resetGuideNpcToDesk();
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+  } catch (_) {}
+
+  S.instituteGuideAct = null;
+  S.busy = false;
+}
+
+function cancelInstituteGuideAct() {
+  if (!S.instituteGuideAct) return;
+  finishInstituteGuideAct(true);
+}
+
 function pickNearInstituteAnimal() {
-  if (!playerRoot || S.instituteAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || !S.instituteAnimals) return null;
+  if (!playerRoot || S.instituteAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct || !S.instituteAnimals) return null;
   if (playerRoot.position.x >= -16) return null;
   let best = null, bestD = 99;
   for (const a of S.instituteAnimals) {
@@ -7081,19 +7853,19 @@ function goToInstituteGate() {
 }
 
 function pickNearInstituteShow() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return false;
   if (playerRoot.position.x >= -16) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   return Math.hypot(px - INSTITUTE_X, pz - (INSTITUTE_Z - 1)) < 2.2;
 }
 function pickNearInstituteAlbum() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return false;
   if (playerRoot.position.x >= -16) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   return Math.hypot(px - INSTITUTE_X, pz - (INSTITUTE_Z + 7)) < 2.0;
 }
 function pickNearInstituteWheel() {
-  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return false;
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return false;
   if (playerRoot.position.x >= -16) return false;
   const px = playerRoot.position.x, pz = playerRoot.position.z;
   // Shared hotspot: wheel (0,-12) + booth (−3.2,-11) → r≈2.4 from wheel center
@@ -7103,7 +7875,7 @@ function pickNearInstituteWheel() {
 }
 
 function openInstituteAlbum() {
-  if (S.busy || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
+  if (S.busy || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return;
   const stamps = S.vienAlbumStamps || {};
   const n = vienAlbumStampCount();
   const rows = INSTITUTE_ALBUM_SLOT_IDS.map((id) => {
@@ -7420,7 +8192,7 @@ function escalateInstituteGeneRewards() {
 }
 
 function startInstituteGeneSpin(opts = {}) {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -7603,7 +8375,7 @@ function cancelInstituteGeneSpin() {
 }
 
 function startInstituteNightShow(opts = {}) {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -7774,7 +8546,7 @@ function cancelInstituteShow() {
 }
 
 function startInstituteAct() {
-  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || !S.nearInstituteAnimal) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || S.instituteCafeAct || S.instituteParadeAct || S.instituteBalloonAct || S.instituteGuideAct || !S.nearInstituteAnimal) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -8391,7 +9163,7 @@ function updateInstitute(dt, t) {
   }
 
   // Soft tip near animal / show / album / wheel / cafe / parade / balloon
-  if (!S.instituteAct && !S.instituteShowAct && !S.instituteWheelAct && !S.instituteCafeAct && !S.instituteParadeAct && !S.instituteBalloonAct) {
+  if (!S.instituteAct && !S.instituteShowAct && !S.instituteWheelAct && !S.instituteCafeAct && !S.instituteParadeAct && !S.instituteBalloonAct && !S.instituteGuideAct) {
     const now = performance.now();
     if (S.nearInstituteAnimal && now - (S._instituteTipAt || 0) > 15000) {
       S._instituteTipAt = now;
@@ -9806,42 +10578,42 @@ Lan nuốt nước mắt. “Tôi đến để nói một câu. Anh ấy có th�
 Ba người phụ nữ đứng thành một bức tường trước Mỹ Duyên. Phố An Lạc — ngay ngoài cổng chùa — chứng kiến một cuộc đánh ghen không đập phá, chỉ bằng sự thật sắc hơn dao.`,
 };
 
-/** Nhóm thứ hai — thì thầm ngoại tình, twist kép */
-const GOSSIP_NGOAI_TINH_STORY = {
-  title: 'Vẫn chưa chia tay',
-  tag: 'Chuyện phố · bất ngờ',
+/** Nhóm thứ hai — thì thầm chuyện boy phố cầm dao đi lượn đêm */
+const GOSSIP_BOY_DAO_STORY = {
+  title: 'Boy phố · cầm dao đi lượn',
+  tag: 'Chuyện phố · đêm hè',
   body:
-`Góc tiệm tóc Mai, ba người đứng thành vòng kín. Giọng thì thào nhưng đủ để cả Phố An Lạc “nghe nhầm”.
+`Góc tiệm tóc Mai, bốn thanh niên đứng thành vòng kín. Giọng thì thào nhưng đủ để cả Phố An Lạc “nghe nhầm”.
 
-“Anh Tuấn vẫn đăng story ‘yêu em’ với chị Hà,” cô Vân chỉ điện thoại, “mà tối qua tao thấy cổ ôm một đứa khác trước Cà phê Sài Gòn. Ôm không phải kiểu bạn bè.”
+“Tối hôm qua tao thấy Hưng với đám cuối phố,” anh Khoa chỉ về hướng đèn vàng, “mỗi đứa một con dao gấp. Không giấu. Cứ lượn chậm như… đang làm chủ hè.”
 
-Chị Trinh — bạn thân Hà từ cấp ba — mặt cắt không còn giọt máu. “Hà đang chăm mẹ ốm ở quê. Tuần nào cổ cũng gọi video, Tuấn vẫn nói ‘anh nhớ em’. Tao tưởng… tốt.”
+Tuấn — áo thun đen, mũ lưỡi trai — cười nhạt. “Lượn thôi mà. Ai cũng biết đám đó. Nhạc trong tai, dao trong túi, nhìn ngang nhìn ngửa cho oai.”
 
-Anh Nam gãi gáy, nhìn xuống đất. “Tao là bạn Tuấn thật. Nhưng tối đó… tao cũng thấy. Cô gái váy trắng, tóc dài, đứng đúng dưới đèn vàng. Tuấn hôn trán cổ như… người yêu.”
+Minh gãi gáy. “Oai gì. Đi ngang quán trà đá là mấy chị đã kéo cửa sớm. Đi ngang hẻm phóng lợn là AI cũng tránh. Phố An Lạc đêm không phải chỗ… khoe lưỡi dao.”
 
-Không khí đặc lại. Rồi người thứ tư trong vòng — cô gái vẫn im từ nãy — nhấc mặt lên. Son đỏ. Váy trắng. Đúng như mô tả.
+Không khí đặc lại. Rồi người thứ tư — Hưng, vẫn im từ nãy — nhấc mặt lên. Áo cam. Dao gấp cài thắt lưng, chuôi lộ một khúc dưới đèn.
 
-“Cô gái đó,” Diễm nói nhẹ, “là tôi.”
+“Đám đó,” Hưng nói nhẹ, “là… tụi tao.”
 
-Trinh suýt lao tới. Vân nắm tay chị lại. Nam lùi nửa bước.
+Khoa suýt bước tới. Tuấn nắm tay anh lại. Minh lùi nửa bước.
 
-Diễm không cười. “Các chị tưởng tôi tiểu tam. Tôi cũng tưởng mình là người yêu chính thức.” Cổ rút điện thoại, mở tin nhắn cũ: Tuấn viết rõ — ‘Anh đã chia tay Hà từ tháng trước. Em yên tâm.’ Timestamp: bốn tuần. “Tôi không chen. Tôi được… mời vào chỗ trống.”
+Hưng không cười. “Các anh tưởng tụi tao đi tìm chuyện. Đêm hôm đó mẹ thằng Đạt gọi. Có hai đứa lạ đứng trước nhà cổ từ tám giờ. Không nói. Chỉ đứng. Đạt sợ. Tụi tao… đi vòng. Cầm dao vì… không biết cầm gì khác.”
 
-Vân đơ. “Vậy Hà…?”
+Khoa đơ. “Vậy không phải… đi lượn khoe?”
 
-“Hà chưa đọc tin chia tay.” Diễm nuốt. “Mẹ ốm, cổ không mở máy. Tuấn sợ nói trực tiếp. Cổ vẫn đăng ảnh đôi — ‘giữ bình thường cho đến khi Hà ổn’. Với tôi thì bảo đã xong. Với Hà thì vẫn là chồng chưa cưới trên story.”
+“Khoe gì.” Hưng nuốt. “Đi hết Phố An Lạc hai vòng. Đến khi đèn nhà Đạt sáng lại, hai bóng kia biến. Sáng nay công an hỏi. Tụi tao nộp dao. Không chém ai. Chỉ… đi cho có bóng.”
 
-Trinh run tay mở group chat. Đúng lúc đó chuông điện thoại ré lên — loa ngoài, giọng Hà khàn vì khóc và vì thức đêm:
+Tuấn run tay mở group chat. Đúng lúc đó chuông điện thoại ré lên — loa ngoài, giọng chị chủ trà đá:
 
-“Trinh… tao đọc được tin rồi. Sáng nay. Đừng đánh Diễm. Đánh giúp tao… cái thói ‘chưa chia tay’ của nó.”
+“Khoa… tối qua tao tưởng đám côn đồ. Hóa ra thằng Hưng hộ tống thằng Đạt về. Lần sau… đừng cầm dao lộ thiên. Nhìn phát sợ hết cả phố.”
 
-Im lặng dài một nhịp. Rồi Diễm cười một cái cười vỡ vụn: “Vậy ra anh ấy ngoại tình với tôi… trong lúc vẫn là người yêu của chị Hà. Và ngoại tình với hình ảnh ‘người tốt’… trong lúc vẫn là người yêu của tôi.”
+Im lặng dài một nhịp. Rồi Hưng cười một cái cười mệt: “Vậy ra phố kể tụi tao là ‘boy cầm dao đi lượn’… trong lúc tụi tao chỉ muốn một đứa bạn về nhà an toàn. Và kể tụi tao là ‘côn đồ’… trong lúc không ai kịp hỏi vì sao.”
 
-Nam thì thào, như tự kết án bạn mình: “Không phải chọn một trong hai. Là lừa cả hai.”
+Minh thì thào: “Không phải khoe dao. Là sợ — mà chọn cách xấu để… đỡ sợ hơn.”
 
-Gió Phố An Lạc thổi qua mái tóc Diễm. Ở cuối phố, bóng một người đàn ông vừa bước ra khỏi quán cà phê — điện thoại đang reo. Hai cái tên hiện trên màn hình, xen kẽ: Hà. Diễm. Hà. Diễm.
+Gió Phố An Lạc thổi qua vành mũ Hưng. Ở cuối phố, bóng vài thanh niên vừa bước ra khỏi quán trà — túi trống, tay không. Đèn vàng vẫn sáng. Dao đã nộp. Chuyện thì còn thì thầm.
 
-Chưa ai tiến tới. Chuyện ngoại tình trên phố này không cần tát. Chỉ cần sự thật đến muộn — và đến cùng một lúc.`,
+Chưa ai tiến tới. Chuyện boy phố đêm này không cần đánh nhau. Chỉ cần nghe hết — trước khi gắn nhãn.`,
 };
 
 let gossipCircles = []; // [{ id, kind, center, members, ... }]
@@ -9873,6 +10645,22 @@ function buildGossipWoman(def) {
   if (def.male) {
     human.scale.x *= 1.06;
     human.scale.z *= 1.04;
+  }
+  if (def.knife) {
+    const blade = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, 0.02, 0.28),
+      new THREE.MeshStandardMaterial({ color: 0xc0c8d0, metalness: 0.85, roughness: 0.25 })
+    );
+    blade.position.set(0.32, 0.95, 0.18);
+    blade.rotation.y = 0.35;
+    human.add(blade);
+    const handle = new THREE.Mesh(
+      new THREE.BoxGeometry(0.045, 0.035, 0.1),
+      new THREE.MeshStandardMaterial({ color: 0x3a2818, roughness: 0.7 })
+    );
+    handle.position.set(0.32, 0.95, 0.02);
+    handle.rotation.y = 0.35;
+    human.add(handle);
   }
   human.position.set(def.x, 0, def.z);
   human.rotation.y = def.rot;
@@ -9960,40 +10748,40 @@ function buildGossipCircle() {
   });
 }
 
-function buildGossipCircleNgoaiTinh() {
+function buildGossipCircleBoyDao() {
   // Gần tiệm tóc / phía đông phố — không đụng vòng đánh ghen giữa đường
   const cx = 24.35, cz = STREET_Z + 2.55;
   pushGossipCircle({
-    id: 'ngoai-tinh',
-    kind: 'ngoai-tinh',
+    id: 'boy-dao',
+    kind: 'boy-dao',
     cx, cz, r: 2.95,
     glowColor: 0xff9944,
     bannerText: 'Thì thầm…',
     bannerBg: '#fff0d8',
     bannerFg: '#5a3010',
     defs: [
-      { id: 'van', name: 'Cô Vân', label: 'Cô Vân · soi', color: 0x6b3a2a, x: cx - 1.05, z: cz + 0.55, rot: 0.85, scale: 0.98 },
-      { id: 'trinh', name: 'Chị Trinh', label: 'Trinh · bạn Hà', color: 0x2a4a6b, x: cx - 1.2, z: cz - 0.7, rot: 0.35, scale: 1.0 },
-      { id: 'nam', name: 'Anh Nam', label: 'Nam · bạn Tuấn', color: 0x3a3a48, x: cx + 0.15, z: cz - 1.15, rot: -0.4, scale: 1.05, male: true },
+      { id: 'khoa', name: 'Anh Khoa', label: 'Khoa · kể chuyện', color: 0x6b3a2a, x: cx - 1.05, z: cz + 0.55, rot: 0.85, scale: 1.02, male: true },
+      { id: 'tuan', name: 'Tuấn', label: 'Tuấn · mũ lưỡi trai', color: 0x2a4a6b, x: cx - 1.2, z: cz - 0.7, rot: 0.35, scale: 1.0, male: true },
+      { id: 'minh', name: 'Minh', label: 'Minh · gãi gáy', color: 0x3a3a48, x: cx + 0.15, z: cz - 1.15, rot: -0.4, scale: 1.04, male: true },
       {
-        id: 'diem', name: 'Diễm', label: 'Diễm · váy trắng',
-        color: 0xb85070, x: cx + 1.25, z: cz + 0.25, rot: -2.2, scale: 1.1, glam: true,
+        id: 'hung', name: 'Hưng', label: 'Hưng · cầm dao',
+        color: 0xc45c2a, x: cx + 1.25, z: cz + 0.25, rot: -2.2, scale: 1.08, male: true, knife: true,
       },
     ],
     ask: {
       title: 'Nghe thì thầm góc tóc',
-      lead: 'Ba người cúi đầu thì thào. Một cô váy trắng đứng im — như đang bị kể… hoặc sắp mở miệng.',
+      lead: 'Ba thanh niên cúi đầu thì thào. Một đứa áo cam đứng im — chuôi dao lộ dưới đèn.',
       lines: `
-      <b style="color:#e8c0a0">Cô Vân</b>: “Anh ấy vẫn chưa chia tay… mà đã ôm đứa khác.”<br/>
-      <b style="color:#a8c8e8">Trinh</b>: “Hà đang ở quê. Đừng nói lớn.”<br/>
-      <b style="color:#ffb0c8">Diễm</b>: “…”`,
-      hearLabel: 'Nghe chuyện ngoại tình',
-      byeToast: 'Bạn tránh sang — nhưng tai vẫn nóng chuyện “chưa chia tay”',
+      <b style="color:#e8c0a0">Khoa</b>: “Tối qua tụi nó cầm dao đi lượn cả phố…”<br/>
+      <b style="color:#a8c8e8">Tuấn</b>: “Khoe oai thôi mà. Đừng nói lớn.”<br/>
+      <b style="color:#ffb088">Hưng</b>: “…”`,
+      hearLabel: 'Nghe chuyện boy phố cầm dao',
+      byeToast: 'Bạn tránh sang — nhưng tai vẫn nóng chuyện “cầm dao đi lượn”',
     },
-    story: GOSSIP_NGOAI_TINH_STORY,
-    toastDone: '💔 “Không phải chọn một trong hai. Là lừa cả hai.” — anh Nam',
-    tipNear: '🔥 Góc tiệm tóc đang thì thầm chuyện ngoại tình — lại nghe thử',
-    btnLabel: 'Hỏi chuyện · ngoại tình?',
+    story: GOSSIP_BOY_DAO_STORY,
+    toastDone: '🗡️ “Không phải khoe dao. Là sợ — chọn cách xấu.” — Minh',
+    tipNear: '🔥 Góc tiệm tóc đang thì thầm chuyện boy phố cầm dao đi lượn đêm — lại nghe thử',
+    btnLabel: 'Hỏi chuyện · boy cầm dao?',
   });
 }
 
@@ -10039,8 +10827,8 @@ function openGossipStory(circle) {
     <span class="story-tag">${st.tag}</span>
     <h2>${st.title}</h2>
     <div class="story">${st.body}</div>
-    <p class="tiny">${g?.kind === 'ngoai-tinh'
-      ? 'Vân · Trinh · Nam · Diễm — và một cuộc gọi từ Hà. Phố An Lạc nghe hết.'
+    <p class="tiny">${g?.kind === 'boy-dao'
+      ? 'Khoa · Tuấn · Minh · Hưng — và một cuộc gọi từ chị trà đá. Phố An Lạc nghe hết.'
       : 'Lan · Mai · Hạnh đối mặt Mỹ Duyên. Phố An Lạc chứng kiến tất cả.'}</p>
     <div class="row">
       <button class="btn" id="m-story-ok" type="button">Đã đọc xong</button>
@@ -10053,7 +10841,7 @@ function openGossipStory(circle) {
     S.busy = false;
     toast(g?.toastDone || '💔 Chuyện phố…');
     try {
-      gainCongDuc?.(2, g?.kind === 'ngoai-tinh' ? 'Nghe chuyện ngoại tình' : 'Nghe chuyện phố', true);
+      gainCongDuc?.(2, g?.kind === 'boy-dao' ? 'Nghe chuyện boy phố cầm dao' : 'Nghe chuyện phố', true);
     } catch (_) {}
     try { markPhoVangDuyen(); } catch (_) {}
   };
@@ -10065,11 +10853,11 @@ function updateGossipCircle(dt, t) {
     g.members.forEach((m, i) => {
       const ud = m.mesh?.userData;
       if (!ud) return;
-      const wave = Math.sin(t * 2.2 + i * 1.3 + (g.kind === 'ngoai-tinh' ? 0.7 : 0));
+      const wave = Math.sin(t * 2.2 + i * 1.3 + (g.kind === 'boy-dao' ? 0.7 : 0));
       if (ud.armR) ud.armR.rotation.x = wave * 0.25 * (m.glam ? 0.55 : 1);
       if (ud.armL) ud.armL.rotation.x = -wave * 0.15;
-      // Nhóm ngoại tình: cúi vào giữa như thì thầm
-      if (g.kind === 'ngoai-tinh' && m.mesh && !m.glam) {
+      // Boy cầm dao: cúi vào giữa như thì thầm
+      if (g.kind === 'boy-dao' && m.mesh) {
         m.mesh.rotation.x = Math.abs(Math.sin(t * 1.4 + i)) * 0.04;
       }
       m.tip.visible = true;
@@ -10077,7 +10865,7 @@ function updateGossipCircle(dt, t) {
     });
     if (g.banner) g.banner.quaternion.copy(camera.quaternion);
     if (g.glow?.material) {
-      g.glow.material.opacity = 0.16 + 0.1 * Math.abs(Math.sin(t * 1.5 + (g.kind === 'ngoai-tinh' ? 1 : 0)));
+      g.glow.material.opacity = 0.16 + 0.1 * Math.abs(Math.sin(t * 1.5 + (g.kind === 'boy-dao' ? 1 : 0)));
     }
   }
 
@@ -10099,7 +10887,7 @@ function updateGossipCircle(dt, t) {
       setTimeout(() => toast('☕ Thử đứng gần biển hiệu quán — nút Ghé quán sẽ hiện'), 4200);
     }
     setTimeout(() => toast('🥩 Ngã ba phía quán tóc → Hẻm Nem Thanh Hóa'), 7000);
-    setTimeout(() => toast('🔥 Gần tiệm tóc còn một nhóm thì thầm chuyện “chưa chia tay”'), 9500);
+    setTimeout(() => toast('🔥 Gần tiệm tóc còn một nhóm thì thầm chuyện boy phố cầm dao đi lượn đêm'), 9500);
     if (!S._xichLoStreetTip) {
       S._xichLoStreetTip = true;
       setTimeout(() => {
@@ -10139,25 +10927,25 @@ const LOVE_LIGHT_SPOT = { x: 16.55, z: STREET_Z, r: 2.2 };
 const PAPER_MAIL_SPOT = { x: 19.15, z: STREET_Z - 2.75, r: 2.05 };
 
 const GOSSIP_BUBBLE_LINES = [
-  '“Anh ấy bảo đi công tác…”',
-  '“Váy đỏ · bàn trong…”',
-  '“Vẫn chưa chia tay!”',
-  '“Hai cái tên trên máy: Hà… Diễm…”',
-  '“Không chọn một — lừa cả hai.”',
-  '“GPS chớp góc cà phê…”',
+  '“Boy phố cầm dao đi lượn!”',
+  '“Không phải khoe — là sợ.”',
+  '“Nộp dao sáng nay rồi…”',
+  '“Đừng cầm dao lộ thiên.”',
   '“Tôi là vợ. Em chỉ là đoạn giữa.”',
-  '“Tin chia tay… Hà chưa đọc.”',
+  '“GPS chớp góc cà phê…”',
+  '“Hộ tống Đạt về nhà…”',
+  '“Dao trong túi · nhạc trong tai.”',
 ];
 
 const PAPER_NOTE_TEXTS = [
-  { from: 'Hà', body: 'Em không cần anh chọn. Em cần anh thôi nói dối.' },
-  { from: 'Diễm', body: 'Anh nói chỗ trống. Hóa ra chỗ đó vẫn còn người ngồi.' },
-  { from: 'Tuấn', body: 'Xin lỗi. Anh không biết xin lỗi hai lần cùng lúc.' },
+  { from: 'Hưng', body: 'Tụi tao không tìm chuyện. Chỉ muốn Đạt về nhà an toàn.' },
+  { from: 'Đạt', body: 'Đêm đó hai bóng đứng trước cửa. May có Hưng.' },
+  { from: 'Tuấn', body: 'Nhìn dao lộ thiên — phố sợ trước khi kịp hỏi vì sao.' },
   { from: 'Lan', body: 'Đánh ghen không cần tát — chỉ cần sự thật.' },
   { from: 'Mỹ Duyên', body: 'Hôn nhân trên giấy vẫn cắt được tay.' },
-  { from: 'Nam', body: 'Bạn tao không ngoại tình vì yêu — vì sợ mất cả hai.' },
+  { from: 'Minh', body: 'Không phải khoe dao. Là sợ — chọn cách xấu.' },
   { from: 'Phố', body: 'An Lạc giữ chuyện. Đêm nào đèn cũng nhớ.' },
-  { from: 'Trinh', body: 'Đừng đánh Diễm. Đánh giúp cái thói chưa chia tay.' },
+  { from: 'Chị trà', body: 'Lần sau đừng cầm dao lộ thiên. Nhìn phát sợ hết cả phố.' },
 ];
 
 function notePhoKyAo(kind, text) {
@@ -10372,7 +11160,7 @@ Trong 5 giây, phố An Lạc mặc bạn thành phản chiếu đó. Ai đi nga
     $('modal-body')?.classList.remove('story-panel');
     closeModal();
     S.busy = false;
-    toast('🪞 Phố mặc bạn thành phản chiếu ngoại tình — vài giây thôi');
+    toast('🪞 Phố mặc bạn thành phản chiếu boy phố đêm — vài giây thôi');
     notePhoKyAo('mirror', '🪞 Vũng gương phản bội');
     try { gainCongDuc(first ? 5 : 2, 'Vũng gương phản bội', true); } catch (_) {}
   };
@@ -10431,7 +11219,7 @@ function actRewindLamp() {
   };
   if (S.rewindLamp.bulb?.material) S.rewindLamp.bulb.material.emissiveIntensity = 2.4;
   try { playWhoosh(); } catch (_) {}
-  toast('⏳ Đèn tua lại đêm ngoại tình — đừng chớp mắt');
+  toast('⏳ Đèn tua lại đêm boy phố cầm dao — đừng chớp mắt');
   notePhoKyAo('rewind', '⏳ Đèn tua lại đêm');
   try { gainCongDuc(first ? 5 : 2, 'Đèn tua lại đêm', true); } catch (_) {}
   S.busy = false;
@@ -26122,7 +26910,7 @@ function updatePlayer(dt) {
     bbar.classList.remove('show');
     S.interactOpen = false;
   } else if (!S.busy && S.nearRewindLamp) {
-    btn.textContent = 'Tua lại đêm ngoại tình';
+    btn.textContent = 'Tua lại đêm boy phố';
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');

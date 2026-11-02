@@ -2662,6 +2662,68 @@ function findGunTarget(maxDist, hitRadius = 0.95) {
   }
   return best;
 }
+
+/** Ray vs hộp AABB (công trình) */
+function rayHitAABB(origin, dir, box, maxDist) {
+  let tmin = 0.05, tmax = maxDist;
+  const o = [origin.x, origin.y, origin.z], d = [dir.x, dir.y, dir.z];
+  const mn = [box.minX, box.minY, box.minZ], mx = [box.maxX, box.maxY, box.maxZ];
+  for (let i = 0; i < 3; i++) {
+    if (Math.abs(d[i]) < 1e-8) {
+      if (o[i] < mn[i] || o[i] > mx[i]) return null;
+      continue;
+    }
+    let t1 = (mn[i] - o[i]) / d[i], t2 = (mx[i] - o[i]) / d[i];
+    if (t1 > t2) { const tmp = t1; t1 = t2; t2 = tmp; }
+    tmin = Math.max(tmin, t1);
+    tmax = Math.min(tmax, t2);
+    if (tmin > tmax) return null;
+  }
+  if (tmin > maxDist) return null;
+  return tmin;
+}
+
+/** Trúng sàn / chùa / tháp / chuông… */
+function findWorldHit(origin, dir, maxDist) {
+  let bestT = maxDist, hit = null;
+  // Sàn đảo
+  if (dir.y < -0.02) {
+    const t = (0.02 - origin.y) / dir.y;
+    if (t > 0.35 && t < bestT) {
+      const p = origin.clone().addScaledVector(dir, t);
+      if (Math.hypot(p.x, p.z) < 55) {
+        bestT = t;
+        hit = { kind: 'ground', dist: t, point: p };
+      }
+    }
+  }
+  for (const c of colliders) {
+    const w = c.b - c.a, depth = c.d - c.c;
+    const h = Math.max(3.5, Math.min(26, Math.max(w, depth) * 1.35));
+    const box = { minX: c.a, maxX: c.b, minY: 0, maxY: h, minZ: c.c, maxZ: c.d };
+    const t = rayHitAABB(origin, dir, box, bestT);
+    if (t != null && t > 0.45 && t < bestT) {
+      bestT = t;
+      hit = { kind: 'building', dist: t, point: origin.clone().addScaledVector(dir, t) };
+    }
+  }
+  return hit;
+}
+
+/** Ưu tiên mục tiêu gần hơn: người hoặc công trình */
+function findShotImpact(maxDist, hitRadius) {
+  const { origin, dir } = getAimRay();
+  const playerHit = findGunTarget(maxDist, hitRadius);
+  const worldHit = findWorldHit(origin, dir, maxDist);
+  if (playerHit && worldHit) {
+    return playerHit.dist <= worldHit.dist
+      ? { kind: 'player', ...playerHit }
+      : { kind: 'world', ...worldHit };
+  }
+  if (playerHit) return { kind: 'player', ...playerHit };
+  if (worldHit) return { kind: 'world', ...worldHit };
+  return null;
+}
 function spawnMuzzleFlash() {
   if (!player?.userData?.gun) return;
   const flash = new THREE.Mesh(
@@ -2692,66 +2754,69 @@ function spawnRocketVisual(from, dir, hitPoint, onDone) {
   playRocket();
 }
 
-/** Nổ bazooka tại mục tiêu — lửa + tia + khói + flash */
+/** Nổ / nổ nhỏ khi trúng người hoặc công trình */
 function spawnExplosionBurst(x, y, z, big = true) {
   const root = new THREE.Group();
   root.position.set(x, y, z);
   scene.add(root);
 
   const core = new THREE.Mesh(
-    new THREE.SphereGeometry(0.35, 12, 10),
-    new THREE.MeshBasicMaterial({ color: 0xfff2aa, transparent: true, opacity: 1, depthWrite: false })
+    new THREE.SphereGeometry(big ? 0.35 : 0.18, 12, 10),
+    new THREE.MeshBasicMaterial({ color: big ? 0xfff2aa : 0xffe8a0, transparent: true, opacity: 1, depthWrite: false })
   );
   root.add(core);
 
   const fire = new THREE.Mesh(
-    new THREE.SphereGeometry(0.55, 12, 10),
-    new THREE.MeshBasicMaterial({ color: 0xff6622, transparent: true, opacity: 0.9, depthWrite: false })
+    new THREE.SphereGeometry(big ? 0.55 : 0.28, 12, 10),
+    new THREE.MeshBasicMaterial({ color: big ? 0xff6622 : 0xff9944, transparent: true, opacity: 0.9, depthWrite: false })
   );
   root.add(fire);
 
   const ring = new THREE.Mesh(
-    new THREE.RingGeometry(0.2, 0.45, 24),
+    new THREE.RingGeometry(0.15, big ? 0.45 : 0.28, 24),
     new THREE.MeshBasicMaterial({ color: 0xffcc66, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false })
   );
   ring.rotation.x = -Math.PI / 2;
   root.add(ring);
 
   const sparks = [];
-  const n = big ? 28 : 16;
+  const n = big ? 28 : 14;
   for (let i = 0; i < n; i++) {
+    // Mảnh vỡ công trình (xám) + lửa
+    const debris = !big || Math.random() > 0.55;
     const sp = new THREE.Mesh(
-      new THREE.SphereGeometry(0.06 + Math.random() * 0.08, 5, 4),
+      new THREE.SphereGeometry(0.05 + Math.random() * (big ? 0.09 : 0.05), 5, 4),
       new THREE.MeshBasicMaterial({
-        color: Math.random() > 0.4 ? 0xffaa33 : 0xff4422,
+        color: debris && Math.random() > 0.4 ? 0xbba88a : (Math.random() > 0.4 ? 0xffaa33 : 0xff4422),
         transparent: true, opacity: 1, depthWrite: false,
       })
     );
     const a = Math.random() * Math.PI * 2;
-    const elev = (Math.random() - 0.2) * Math.PI * 0.7;
-    const spd = (big ? 7 : 4.5) + Math.random() * 6;
+    const elev = (Math.random() - 0.15) * Math.PI * 0.75;
+    const spd = (big ? 7 : 5) + Math.random() * 6;
     sparks.push({
       mesh: sp,
       vx: Math.cos(a) * Math.cos(elev) * spd,
-      vy: Math.sin(elev) * spd + 2,
+      vy: Math.sin(elev) * spd + (big ? 2 : 1.2),
       vz: Math.sin(a) * Math.cos(elev) * spd,
     });
     root.add(sp);
   }
 
-  const light = new THREE.PointLight(0xff8833, big ? 4.5 : 2.5, 18, 2);
+  const light = new THREE.PointLight(0xff8833, big ? 4.5 : 2.2, big ? 18 : 10, 2);
   root.add(light);
 
-  for (let k = 0; k < (big ? 24 : 12); k++) {
-    emitSmoke(x + (Math.random() - 0.5) * 1.8, y + Math.random() * 1.2, z + (Math.random() - 0.5) * 1.8, 2);
+  for (let k = 0; k < (big ? 24 : 10); k++) {
+    emitSmoke(x + (Math.random() - 0.5) * (big ? 1.8 : 0.9), y + Math.random() * 1.2, z + (Math.random() - 0.5) * (big ? 1.8 : 0.9), 2);
   }
 
   S.bursts.push({
     root, core, fire, ring, sparks, light,
-    t: 0, life: big ? 0.85 : 0.55, big,
+    t: 0, life: big ? 0.85 : 0.45, big,
   });
-  playBoom();
-  shakeScreen(big ? 0.32 : 0.18);
+  if (big) playBoom();
+  else playGunshot();
+  shakeScreen(big ? 0.32 : 0.12);
 }
 
 function updateBursts(dt) {
@@ -2811,35 +2876,42 @@ async function fireWeapon() {
 
   const maxDist = isBaz ? 42 : 32;
   const hitR = S.aiming ? (isBaz ? 1.35 : 0.85) : (isBaz ? 1.8 : 1.25);
-  const target = findGunTarget(maxDist, hitR);
+  const impact = findShotImpact(maxDist, hitR);
   const { origin, dir } = getAimRay();
   const muzzle = origin.clone().add(dir.clone().multiplyScalar(0.8));
+  const end = impact
+    ? impact.point.clone()
+    : origin.clone().add(dir.clone().multiplyScalar(Math.min(maxDist, 30)));
 
   if (isBaz) {
-    const end = target
-      ? target.point
-      : origin.clone().add(dir.clone().multiplyScalar(Math.min(maxDist, 30)));
     spawnRocketVisual(muzzle, dir, end, () => {
-      if (target) sendGunHit('bazooka', target);
+      if (impact?.kind === 'player') sendGunHit('bazooka', impact);
     });
-    toast(target ? `Bazooka → ${target.name}!` : 'Bazooka bay vào mây…');
+    if (impact?.kind === 'player') toast(`Bazooka → ${impact.name}!`);
+    else if (impact?.kind === 'world') toast(impact.kind === 'ground' ? 'Bazooka nổ xuống đất! 💥' : 'Bazooka nổ vào công trình! 💥');
+    else toast('Bazooka bay vào mây…');
   } else {
     playGunshot();
     spawnMuzzleFlash();
-    // Vệt đạn nhanh
+    // Vệt đạn tới điểm trúng
+    const hitDist = impact ? impact.dist : 8;
     const streak = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.015, 0.015, 0.9, 4),
+      new THREE.CylinderGeometry(0.012, 0.012, Math.min(hitDist, 12) * 0.35, 4),
       new THREE.MeshBasicMaterial({ color: 0xffe0a0 })
     );
-    streak.position.copy(muzzle);
+    streak.position.copy(muzzle.clone().add(dir.clone().multiplyScalar(0.4)));
     streak.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
     scene.add(streak);
-    setTimeout(() => scene.remove(streak), 50);
-    if (target) {
-      sendGunHit('ak', target);
-      toast(`AK trúng ${target.name}!`);
+    setTimeout(() => scene.remove(streak), 55);
+    if (impact?.kind === 'player') {
+      sendGunHit('ak', impact);
+      spawnExplosionBurst(impact.point.x, impact.point.y, impact.point.z, false);
+      toast(`AK trúng ${impact.name}!`);
+    } else if (impact?.kind === 'world') {
+      spawnExplosionBurst(end.x, end.y, end.z, false);
+      toast(impact.kind === 'ground' ? 'AK trúng đất! 💥' : 'AK bắn trúng công trình! 💥');
     } else {
-      toast('Trượt — ngắm zoom rồi bắn');
+      toast('Trượt — ngắm vào người hoặc công trình');
     }
   }
   // Pose bắn

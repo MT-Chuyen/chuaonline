@@ -11998,48 +11998,40 @@ function updateYardYtOverlay() {
   el.classList.remove('yt-playing');
   el.style.position = 'fixed';
   el.style.transform = 'none';
+  el.style.right = 'auto';
   el.style.bottom = 'auto';
+  el.style.borderRadius = '0';
+  el.style.boxShadow = 'none';
+  el.style.border = '0';
+  el.style.aspectRatio = 'auto';
+  el.style.zIndex = '145';
+  el.style.pointerEvents = 'none';
   el.setAttribute('aria-hidden', 'false');
   if (root) root.setAttribute('aria-hidden', 'false');
 
-  // Luôn giữ iframe đủ lớn để trình duyệt cho phát tiếng (không ẩn hết)
-  if (!anyFront || w < 48 || h < 32 || !onStreet) {
-    // Mini player góc — vẫn nghe được, không che cả màn
-    el.style.left = 'auto';
-    el.style.right = '10px';
-    el.style.top = 'auto';
-    el.style.bottom = `max(12px, calc(10px + var(--sb, 0px)))`;
-    el.style.width = 'min(280px, 42vw)';
-    el.style.height = 'auto';
-    el.style.aspectRatio = '16 / 9';
-    el.style.opacity = '0.92';
-    el.style.pointerEvents = 'auto';
-    el.style.borderRadius = '10px';
-    el.style.boxShadow = '0 8px 28px rgba(0,0,0,.55)';
-    el.style.zIndex = '146';
+  // Chỉ phủ đúng mặt bảng phố — không cửa sổ phụ / mini player
+  const boardVisible = anyFront && onStreet && w >= 40 && h >= 24
+    && maxX > 0 && minX < window.innerWidth
+    && maxY > 0 && minY < window.innerHeight;
+
+  el.style.left = `${minX}px`;
+  el.style.top = `${minY}px`;
+  el.style.width = `${Math.max(80, w)}px`;
+  el.style.height = `${Math.max(45, h)}px`;
+
+  if (boardVisible) {
+    el.style.opacity = '1';
+    if (panel.material) {
+      panel.material.transparent = true;
+      panel.material.opacity = 0.02;
+    }
+  } else {
+    // Ẩn khỏi mắt nhưng giữ iframe chạy (nghe nhạc), không hiện sub-screen
+    el.style.opacity = '0';
     if (panel.material) {
       panel.material.transparent = true;
       panel.material.opacity = 1;
     }
-    return;
-  }
-
-  // Phủ đúng mặt bảng
-  el.style.right = 'auto';
-  el.style.bottom = 'auto';
-  el.style.left = `${minX}px`;
-  el.style.top = `${minY}px`;
-  el.style.width = `${Math.max(120, w)}px`;
-  el.style.height = `${Math.max(68, h)}px`;
-  el.style.aspectRatio = 'auto';
-  el.style.opacity = '1';
-  el.style.pointerEvents = 'auto';
-  el.style.borderRadius = '0';
-  el.style.boxShadow = 'none';
-  el.style.zIndex = '145';
-  if (panel.material) {
-    panel.material.transparent = true;
-    panel.material.opacity = 0.02;
   }
 }
 

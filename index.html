@@ -375,8 +375,11 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button class="combat-btn" data-act="cancel" type="button">Hủy</button>
     </div>
     <div id="bts-bar">
-      <button class="bts-btn" type="button" data-bts="hug">Ôm BTS</button>
-      <button class="bts-btn" type="button" data-bts="sign">Xin chữ ký</button>
+      <button class="bts-btn" type="button" data-bts="hug">Ôm</button>
+      <button class="bts-btn" type="button" data-bts="kiss">Hôn</button>
+      <button class="bts-btn" type="button" data-bts="carry">Bế</button>
+      <button class="bts-btn" type="button" data-bts="marry">Làm chồng</button>
+      <button class="bts-btn" type="button" data-bts="sign">Chữ ký</button>
       <button class="bts-btn" type="button" data-bts="selfie">Selfie</button>
       <button class="bts-btn" type="button" data-bts="chat">Hỏi vui</button>
       <button class="bts-btn" type="button" data-bts="cancel">Hủy</button>
@@ -482,7 +485,8 @@ const S = {
   gun: '', aiming: false, fireUntil: 0, baseFov: 55, projectiles: [], bursts: [],
   fpsMode: false, deadUntil: 0,
   hp: 100, targetHpUntil: 0,
-  nearBts: null, btsSigs: 0, btsSelfies: 0, btsHugs: 0, btsQuotes: [],
+  nearBts: null, btsSigs: 0, btsSelfies: 0, btsHugs: 0, btsKisses: 0, btsQuotes: [],
+  btsHusbandId: '', btsCarryId: '',
   interactOpen: false,
 };
 const MAX_HP = 100;
@@ -584,6 +588,8 @@ function loadSave() {
     if (typeof d.btsSigs === 'number') S.btsSigs = d.btsSigs;
     if (typeof d.btsSelfies === 'number') S.btsSelfies = d.btsSelfies;
     if (typeof d.btsHugs === 'number') S.btsHugs = d.btsHugs;
+    if (typeof d.btsKisses === 'number') S.btsKisses = d.btsKisses;
+    if (typeof d.btsHusbandId === 'string') S.btsHusbandId = d.btsHusbandId;
     if (Array.isArray(d.btsQuotes)) S.btsQuotes = d.btsQuotes.slice(-20);
   } catch (_) {}
 }
@@ -594,6 +600,7 @@ function saveAll() {
       prayers: S.prayers.slice(-40), fortunes: S.fortunes.slice(-40),
       day: S.day, visitExtra: S.visitExtra,
       btsSigs: S.btsSigs, btsSelfies: S.btsSelfies, btsHugs: S.btsHugs,
+      btsKisses: S.btsKisses, btsHusbandId: S.btsHusbandId,
       btsQuotes: S.btsQuotes.slice(-20),
     }));
   } catch (_) {}
@@ -2337,25 +2344,115 @@ function buildBtsCrew() {
   scene.add(sign);
 }
 
+function findBtsById(id) {
+  return btsCrew.find(b => b.member.id === id) || null;
+}
+function setBtsLabel(b, prefix) {
+  if (!b?.label) return;
+  const ring = b.member.id === S.btsHusbandId ? '💍 ' : '';
+  const carry = b.member.id === S.btsCarryId ? '🧺 ' : '';
+  b.label.innerHTML = `<img src="${b.member.photo}" alt=""/><span>${carry}${ring}${prefix || '🎤'} ${b.member.name}</span>`;
+}
+
 function updateBts(dt, t) {
+  const px = playerRoot?.position.x ?? 0;
+  const pz = playerRoot?.position.z ?? 0;
+  const face = player?.rotation.y ?? S.yaw ?? 0;
+  const fx = Math.sin(face), fz = Math.cos(face);
+  const rx = Math.cos(face), rz = -Math.sin(face);
+
   for (const b of btsCrew) {
     if (b.deadUntil) {
       if (performance.now() < b.deadUntil) {
-        // nằm sân khấu
         b.body.rotation.z = 1.35;
         b.label.classList.remove('on');
+        if (b.portrait) b.portrait.visible = false;
         continue;
       }
       respawnBts(b);
     }
-    // Nhún nhảy nhẹ kiểu idol
+    if (b.portrait) b.portrait.visible = b.member.id !== S.btsCarryId;
+
+    // —— Đang được bế ——
+    if (S.btsCarryId && b.member.id === S.btsCarryId && playerRoot) {
+      b.mesh.position.x = px + rx * 0.55 + fx * 0.15;
+      b.mesh.position.z = pz + rz * 0.55 + fz * 0.15;
+      b.mesh.position.y = 0.95;
+      b.mesh.rotation.y = face + Math.PI * 0.5;
+      b.body.position.y = 0;
+      b.body.rotation.set(0.15, 0, 1.15); // nằm ngang trong tay
+      if (b.portrait) {
+        b.portrait.position.set(0, 0.9, 0.35);
+        b.portrait.quaternion.copy(camera.quaternion);
+      }
+      if (player?.userData) {
+        player.userData.armL.rotation.set(-1.2, 0, 0.55);
+        player.userData.armR.rotation.set(-1.05, 0, -0.75);
+      }
+      setBtsLabel(b, '🧺');
+      _v.set(b.mesh.position.x, 2.2, b.mesh.position.z);
+      _v.project(camera);
+      if (_v.z < 1) {
+        b.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
+        b.label.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
+        b.label.classList.add('on');
+      } else b.label.classList.remove('on');
+      continue;
+    }
+
+    // —— Chồng / follow ——
+    if (S.btsHusbandId && b.member.id === S.btsHusbandId && playerRoot && S.btsCarryId !== b.member.id) {
+      b.mesh.position.y = 0;
+      b.body.rotation.set(0, 0, 0);
+      const tx = px - fx * 1.35 + rx * 0.25;
+      const tz = pz - fz * 1.35 + rz * 0.25;
+      const dx = tx - b.mesh.position.x, dz = tz - b.mesh.position.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > 0.12) {
+        const sp = Math.min(5.2, 2.2 + dist * 1.8) * dt;
+        const nx = b.mesh.position.x + (dx / dist) * sp;
+        const nz = b.mesh.position.z + (dz / dist) * sp;
+        if (tryMove(nx, nz) || dist > 3.5) {
+          b.mesh.position.x = nx;
+          b.mesh.position.z = nz;
+        }
+        b.mesh.rotation.y = Math.atan2(dx, dz);
+      } else {
+        b.mesh.rotation.y += (face - b.mesh.rotation.y) * Math.min(1, dt * 6);
+      }
+      const bob = Math.sin(t * 8) * (dist > 0.2 ? 0.04 : 0.01);
+      b.body.position.y = bob;
+      const ud = b.body.userData;
+      if (ud) {
+        const walk = dist > 0.25 ? Math.sin(t * 10) * 0.45 : 0;
+        ud.legL.rotation.x = walk; ud.legR.rotation.x = -walk;
+        ud.armL.rotation.x = -walk * 0.6; ud.armR.rotation.x = walk * 0.6;
+      }
+      if (b.portrait) {
+        b.portrait.position.set(0, 2.35, 0);
+        b.portrait.quaternion.copy(camera.quaternion);
+      }
+      setBtsLabel(b, '💍');
+      _v.set(b.mesh.position.x, 2.55, b.mesh.position.z);
+      _v.project(camera);
+      if (_v.z < 1) {
+        b.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
+        b.label.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
+        b.label.classList.add('on');
+      } else b.label.classList.remove('on');
+      continue;
+    }
+
+    // Idol idle tại fanmeet
+    b.mesh.position.y = 0;
     b.bounce += dt;
     const bob = Math.sin(t * 3.2 + b.phase) * 0.04;
     const sway = Math.sin(t * 2.1 + b.phase) * 0.08;
     b.body.position.y = bob;
+    b.body.rotation.set(0, 0, 0);
     if (b.portrait) {
-      b.portrait.position.y = 2.35 + bob * 0.5;
-      b.portrait.quaternion.copy(camera.quaternion); // luôn quay mặt vào camera
+      b.portrait.position.set(0, 2.35 + bob * 0.5, 0);
+      b.portrait.quaternion.copy(camera.quaternion);
     }
     const ud = b.body.userData;
     if (ud) {
@@ -2363,12 +2460,12 @@ function updateBts(dt, t) {
       ud.armR.rotation.z = -0.35 - sway * 0.8;
       ud.armL.rotation.x = -0.35 + Math.sin(t * 4 + b.phase) * 0.25;
       ud.armR.rotation.x = -0.55 + Math.cos(t * 4 + b.phase) * 0.3;
-      // J-Hope nhảy mạnh hơn
       if (b.member.id === 'jhope') {
         ud.legL.rotation.x = Math.sin(t * 6) * 0.4;
         ud.legR.rotation.x = -Math.sin(t * 6) * 0.4;
       }
     }
+    setBtsLabel(b, '🎤');
     _v.set(b.mesh.position.x, 2.55, b.mesh.position.z);
     _v.project(camera);
     if (_v.z < 1) {
@@ -2381,11 +2478,18 @@ function updateBts(dt, t) {
 
 function pickNearBts() {
   if (!playerRoot || !btsCrew.length) return null;
+  // Đang bế ai → luôn coi là gần người đó
+  if (S.btsCarryId) {
+    const carried = findBtsById(S.btsCarryId);
+    if (carried && btsAlive(carried)) return carried;
+  }
   let best = null, bestD = 2.8;
   for (const b of btsCrew) {
     if (!btsAlive(b)) continue;
+    // Chồng theo sau: tầm tương tác rộng hơn
+    const maxD = b.member.id === S.btsHusbandId ? 3.6 : 2.8;
     const d = Math.hypot(playerRoot.position.x - b.mesh.position.x, playerRoot.position.z - b.mesh.position.z);
-    if (d < bestD) { bestD = d; best = b; }
+    if (d < Math.min(bestD, maxD)) { bestD = d; best = b; }
   }
   return best;
 }
@@ -2396,7 +2500,8 @@ function cancelNpcInteract() {
   S.interactOpen = false;
   $('bts-bar')?.classList.remove('show');
   $('combat-bar')?.classList.remove('show');
-  if (player?.userData) {
+  // Không hủy bế/chồng — chỉ đóng menu
+  if (!S.btsCarryId && player?.userData) {
     player.userData.armL.rotation.set(0, 0, 0);
     player.userData.armR.rotation.set(0, 0, 0);
   }
@@ -2407,26 +2512,169 @@ function openBtsMenu(member) {
   const m = member || BTS_MEMBERS[(Math.random() * BTS_MEMBERS.length) | 0];
   S.busy = true;
   S.interactOpen = true;
+  const isHubby = S.btsHusbandId === m.id;
+  const carrying = S.btsCarryId === m.id;
+  const hubbyName = BTS_MEMBERS.find(x => x.id === S.btsHusbandId)?.name;
   openModal(`
     <h2>🎤 Fanmeet BTS</h2>
     ${btsPhotoHtml(m)}
     <p><strong>${m.name}</strong> (${m.full}) đang cầu an tại chùa thiên đường.<br/>Xin gì nào, ARMY?</p>
+    ${hubbyName ? `<p class="tiny">💍 Chồng hiện tại: <strong>${hubbyName}</strong>${carrying ? ' · đang bế' : ' · đang theo sau'}</p>` : ''}
     <div class="row">
-      <button class="choice" id="bts-hug">🤗 Ôm chặt</button>
-      <button class="choice" id="bts-sign">✍️ Xin chữ ký</button>
+      <button class="choice" id="bts-kiss">💋 Hôn</button>
+      <button class="choice" id="bts-hug">🤗 Ôm</button>
     </div>
     <div class="row" style="margin-top:8px">
+      <button class="choice" id="bts-carry">${carrying ? '🧺 Đặt xuống' : '🧺 Bế lên'}</button>
+      <button class="choice" id="bts-marry">${isHubby ? '💔 Tha chồng' : '💍 Làm chồng'}</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button class="choice" id="bts-sign">✍️ Chữ ký</button>
       <button class="choice" id="bts-selfie">📸 Selfie</button>
       <button class="choice" id="bts-chat">💬 Hỏi vui</button>
     </div>
-    <p class="tiny">${S.btsSigs} chữ ký · ${S.btsSelfies} selfie · ${S.btsHugs} cái ôm</p>
+    <p class="tiny">${S.btsSigs} chữ ký · ${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm</p>
     <div class="row" style="margin-top:12px"><button class="btn secondary" id="m-cancel" type="button">Hủy / Đóng</button></div>
   `);
+  $('bts-kiss').onclick = () => { closeModal(); kissBts(m); };
   $('bts-hug').onclick = () => { closeModal(); hugBts(m); };
+  $('bts-carry').onclick = () => { closeModal(); carryBts(m); };
+  $('bts-marry').onclick = () => { closeModal(); marryBts(m); };
   $('bts-sign').onclick = () => { closeModal(); askBtsSignature(m); };
   $('bts-selfie').onclick = () => { closeModal(); takeBtsSelfie(m); };
   $('bts-chat').onclick = () => { closeModal(); chatBts(m); };
   $('m-cancel').onclick = () => cancelNpcInteract();
+}
+
+const BTS_KISS_LINES = [
+  'hôn nhẹ trên sân chùa — đèn lồng đỏ hết cả mặt',
+  'chùa an lạc… môi cũng an lạc',
+  'ARMY mode: smooch unlocked',
+  'hôn xong còn phải xin lỗi Phật một câu',
+  'ngọt như trà sữa sau concert',
+];
+function kissBts(m) {
+  S.busy = true; S.interactOpen = true;
+  const b = findBtsById(m.id);
+  if (player?.userData) {
+    player.userData.armL.rotation.set(-0.9, 0, 0.4);
+    player.userData.armR.rotation.set(-1.3, 0, -0.2);
+  }
+  if (b?.body?.userData) {
+    b.body.userData.armL.rotation.set(-1.0, 0, 0.35);
+    b.body.userData.armR.rotation.set(-1.0, 0, -0.35);
+  }
+  if (b && playerRoot) {
+    // cúi lại gần
+    const dx = playerRoot.position.x - b.mesh.position.x;
+    const dz = playerRoot.position.z - b.mesh.position.z;
+    b.mesh.rotation.y = Math.atan2(dx, dz);
+  }
+  playWhoosh();
+  S.btsKisses++;
+  const line = BTS_KISS_LINES[(Math.random() * BTS_KISS_LINES.length) | 0];
+  S.btsQuotes.push({ who: m.name, text: `💋 Hôn: ${line}`, at: Date.now() });
+  saveAll();
+  openModal(`
+    <h2>💋 Hôn ${m.name}</h2>
+    ${btsPhotoHtml(m, { round: true })}
+    <p><strong>${m.name}</strong>: “${line}”</p>
+    <p class="tiny">Tổng ${S.btsKisses} nụ hôn</p>
+    <div class="row">
+      <button class="btn" id="m-ok" type="button">Ngại quá… đóng</button>
+      <button class="btn secondary" id="m-cancel" type="button">Hủy</button>
+    </div>
+  `);
+  $('m-ok').onclick = () => cancelNpcInteract();
+  $('m-cancel').onclick = () => cancelNpcInteract();
+  toast(`Đã hôn ${m.name}! 💋`);
+}
+
+function carryBts(m) {
+  const b = findBtsById(m.id);
+  if (!b || !btsAlive(b)) { toast('Không bế được…'); return; }
+  // Đang bế người này → đặt xuống
+  if (S.btsCarryId === m.id) {
+    S.btsCarryId = '';
+    b.mesh.position.y = 0;
+    b.body.rotation.set(0, 0, 0);
+    if (player?.userData) {
+      player.userData.armL.rotation.set(0, 0, 0);
+      player.userData.armR.rotation.set(0, 0, 0);
+    }
+    // đặt cạnh chân
+    if (playerRoot) {
+      const face = player.rotation.y;
+      b.mesh.position.x = playerRoot.position.x + Math.cos(face) * 0.7;
+      b.mesh.position.z = playerRoot.position.z - Math.sin(face) * 0.7;
+    }
+    toast(`Đã đặt ${m.name} xuống`);
+    cancelNpcInteract();
+    return;
+  }
+  // Bế người khác / bắt đầu bế
+  S.btsCarryId = m.id;
+  // Nếu chưa là chồng thì vẫn bế được (fan service)
+  S.btsQuotes.push({ who: m.name, text: '🧺 Được bế đi quanh chùa', at: Date.now() });
+  saveAll();
+  playWhoosh();
+  openModal(`
+    <h2>🧺 Bế ${m.name}</h2>
+    ${btsPhotoHtml(m, { round: true })}
+    <p>Bạn bế <strong>${m.name}</strong> đi quanh chùa An Lạc. Idol: “Ê… ARMY mạnh thật!”</p>
+    <p class="tiny">Bấm <strong>Bế</strong> lần nữa để đặt xuống · đi lại bình thường</p>
+    <div class="row">
+      <button class="btn" id="m-ok" type="button">OK, đi thôi</button>
+      <button class="btn secondary" id="m-cancel" type="button">Hủy</button>
+    </div>
+  `);
+  $('m-ok').onclick = () => { closeModal(); S.busy = false; S.interactOpen = false; $('bts-bar')?.classList.remove('show'); };
+  $('m-cancel').onclick = () => { S.btsCarryId = ''; cancelNpcInteract(); };
+  toast(`Đang bế ${m.name}! 🧺`);
+}
+
+function marryBts(m) {
+  S.busy = true; S.interactOpen = true;
+  // Tha chồng hiện tại
+  if (S.btsHusbandId === m.id) {
+    const was = m.name;
+    if (S.btsCarryId === m.id) S.btsCarryId = '';
+    S.btsHusbandId = '';
+    saveAll();
+    openModal(`
+      <h2>💔 Tha ${was}</h2>
+      ${btsPhotoHtml(m, { round: true })}
+      <p><strong>${was}</strong> hết nhiệm vụ chồng ảo — trở lại fanmeet. “Vẫn là bạn… ARMY.”</p>
+      <div class="row">
+        <button class="btn" id="m-ok" type="button">Xong</button>
+        <button class="btn secondary" id="m-cancel" type="button">Hủy</button>
+      </div>
+    `);
+    $('m-ok').onclick = () => cancelNpcInteract();
+    $('m-cancel').onclick = () => cancelNpcInteract();
+    toast(`${was} không còn theo bạn`);
+    return;
+  }
+  const prev = BTS_MEMBERS.find(x => x.id === S.btsHusbandId);
+  S.btsHusbandId = m.id;
+  S.btsQuotes.push({ who: m.name, text: '💍 Làm chồng — theo sát bạn trong chùa', at: Date.now() });
+  saveAll();
+  playBell?.(0.4, 1.2);
+  playWhoosh();
+  openModal(`
+    <h2>💍 ${m.name} — chồng của ${S.name || 'bạn'}!</h2>
+    ${btsPhotoHtml(m, { round: true })}
+    <p><strong>${m.name}</strong> nhận lời: “Em theo anh/chị hết chùa này luôn.”</p>
+    <p>${prev ? `👋 ${prev.name} được tha nhẹ nhàng. ` : ''}Giờ <strong>${m.name}</strong> sẽ <em>đi theo bạn</em> mọi nơi.</p>
+    <p class="tiny">Có thể <strong>Bế</strong> chồng · chọn người khác để đổi chồng · bấm lại để tha</p>
+    <div class="row">
+      <button class="btn" id="m-ok" type="button">Hạnh phúc quá</button>
+      <button class="btn secondary" id="m-cancel" type="button">Hủy</button>
+    </div>
+  `);
+  $('m-ok').onclick = () => { closeModal(); S.busy = false; S.interactOpen = false; $('bts-bar')?.classList.remove('show'); toast(`${m.name} đang theo bạn 💍`); };
+  $('m-cancel').onclick = () => cancelNpcInteract();
+  toast(`💍 ${m.name} là chồng — sẽ follow bạn!`);
 }
 
 const BTS_HUG_LINES = [
@@ -2725,9 +2973,19 @@ $('bts-bar').addEventListener('click', e => {
   const btn = e.target.closest('.bts-btn');
   if (!btn) return;
   if (btn.dataset.bts === 'cancel') { cancelNpcInteract(); return; }
-  if (!S.nearBts) return;
-  const m = S.nearBts.member;
+  // Bế / tha khi đang ôm theo — vẫn dùng gần chồng
+  let m = S.nearBts?.member;
+  if (!m && (btn.dataset.bts === 'carry' || btn.dataset.bts === 'marry') && S.btsHusbandId) {
+    m = BTS_MEMBERS.find(x => x.id === S.btsHusbandId);
+  }
+  if (!m && S.btsCarryId && btn.dataset.bts === 'carry') {
+    m = BTS_MEMBERS.find(x => x.id === S.btsCarryId);
+  }
+  if (!m) return;
   if (btn.dataset.bts === 'hug') hugBts(m);
+  else if (btn.dataset.bts === 'kiss') kissBts(m);
+  else if (btn.dataset.bts === 'carry') carryBts(m);
+  else if (btn.dataset.bts === 'marry') marryBts(m);
   else if (btn.dataset.bts === 'sign') askBtsSignature(m);
   else if (btn.dataset.bts === 'selfie') takeBtsSelfie(m);
   else if (btn.dataset.bts === 'chat') chatBts(m);
@@ -3226,8 +3484,9 @@ function openBook() {
       <div class="stat"><div class="v">${S.name}</div><div class="l">Tên</div></div>
       <div class="stat"><div class="v">${S.incense}</div><div class="l">Lần thắp hương</div></div>
       <div class="stat"><div class="v">${S.btsSigs}</div><div class="l">Chữ ký BTS</div></div>
-      <div class="stat"><div class="v">${S.btsHugs}</div><div class="l">Ôm BTS</div></div>
+      <div class="stat"><div class="v">${S.btsHusbandId ? (BTS_MEMBERS.find(x => x.id === S.btsHusbandId)?.name || '—') : '—'}</div><div class="l">Chồng BTS</div></div>
     </div>
+    <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm</p>
     <h2 style="font-size:1rem;margin-top:8px">Lời cầu đã viết</h2>
     <ul class="book-list">${prayers}</ul>
     <h2 style="font-size:1rem">Quẻ gần đây</h2>

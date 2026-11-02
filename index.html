@@ -11471,15 +11471,24 @@ function mountStreetVideo(videoId, title, muted, startSec = 0) {
     frame.innerHTML = '';
     return;
   }
-  const origin = encodeURIComponent(location.origin || 'https://localhost');
-  const mute = muted ? '&mute=1' : '';
-  const start = (startSec | 0) > 0 ? `&start=${startSec | 0}` : '';
   const nice = String(title || 'YouTube').replace(/"/g, '');
-  // youtube.com + Referrer-Policy — tránh Error 153; start= để mọi người nghe cùng chỗ
-  const src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&controls=1${mute}${start}&origin=${origin}`;
+  // Relay cùng origin (yt-embed.html) — gửi Referer đúng, tránh Error 153 trên github.io
+  const q = new URLSearchParams({
+    v: id,
+    autoplay: '1',
+    controls: '1',
+    mute: muted ? '1' : '0',
+  });
+  if ((startSec | 0) > 0) q.set('start', String(startSec | 0));
+  let relay;
+  try {
+    relay = new URL('yt-embed.html', location.href).href + '?' + q.toString();
+  } catch (_) {
+    relay = 'yt-embed.html?' + q.toString();
+  }
   frame.innerHTML = `<iframe
-    src="${src}"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    src="${relay}"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
     allowfullscreen
     referrerpolicy="strict-origin-when-cross-origin"
     title="${nice}"
@@ -11676,8 +11685,7 @@ function playMusicOnYard(videoId, title, opts = {}) {
   for (let i = 0; i < 4; i++) setTimeout(() => spawnMusicNote(), 200 + i * 120);
 
   closeMusicPanel();
-  if (!remote && isOnAnLacStreet()) goToMusicScreen();
-  else if (!remote) goToMusicScreen();
+  if (!remote) goToMusicScreen();
   updateMusicBtn();
   const stopBtn = $('music-stop');
   if (stopBtn) stopBtn.style.display = '';

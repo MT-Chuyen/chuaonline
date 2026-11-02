@@ -2120,7 +2120,7 @@ function updatePlayer(dt) {
   if (S.keys['KeyS'] || S.keys['ArrowDown']) mz += 1;
   if (S.keys['KeyA'] || S.keys['ArrowLeft']) mx -= 1;
   if (S.keys['KeyD'] || S.keys['ArrowRight']) mx += 1;
-  if (S.joy.on) { mx += S.joy.dx; mz += S.joy.dy; }
+  if (S.joy.on) { mx += S.joy.dx; mz -= S.joy.dy; } // đảo tiến/lùi joystick
   const len = Math.hypot(mx, mz);
   const moving = len > 0.08;
   if (moving) {

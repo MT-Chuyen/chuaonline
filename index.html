@@ -516,7 +516,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 }
 #yt-yard.on{opacity:1}
 #yt-yard.yt-board{
-  border:0;border-radius:0;box-shadow:none;pointer-events:none;
+  border:0;border-radius:0;box-shadow:none;pointer-events:auto;overflow:hidden;background:#000;
 }
 #yt-yard.yt-board #yt-yard-top,
 #yt-yard.yt-board #yt-yard-side,
@@ -11460,6 +11460,21 @@ function streetMusicElapsedSec(startedAt) {
   return Math.max(0, Math.min(60 * 60 * 4, Math.floor((Date.now() - t0) / 1000)));
 }
 
+function streetEmbedUrl(id, muted, startSec) {
+  const q = new URLSearchParams({
+    v: id,
+    autoplay: '1',
+    controls: '1',
+    mute: muted ? '1' : '0',
+  });
+  if ((startSec | 0) > 0) q.set('start', String(startSec | 0));
+  try {
+    return new URL('yt-embed.html', location.href).href + '?' + q.toString();
+  } catch (_) {
+    return 'yt-embed.html?' + q.toString();
+  }
+}
+
 function mountStreetVideo(videoId, title, muted, startSec = 0) {
   const frame = $('yt-yard-frame');
   const yard = $('yt-yard');
@@ -11470,21 +11485,11 @@ function mountStreetVideo(videoId, title, muted, startSec = 0) {
     return;
   }
   const nice = String(title || 'YouTube').replace(/"/g, '');
-  // Relay cùng origin (yt-embed.html) — gửi Referer đúng, tránh Error 153 trên github.io
-  const q = new URLSearchParams({
-    v: id,
-    autoplay: '1',
-    controls: '1',
-    mute: muted ? '1' : '0',
-  });
-  if ((startSec | 0) > 0) q.set('start', String(startSec | 0));
-  let relay;
-  try {
-    relay = new URL('yt-embed.html', location.href).href + '?' + q.toString();
-  } catch (_) {
-    relay = 'yt-embed.html?' + q.toString();
-  }
+  // Autoplay: luôn bắt đầu mute (trình duyệt cho phép), rồi chuyển có tiếng sau cử chỉ
+  const wantSound = !muted;
+  const relay = streetEmbedUrl(id, true, startSec);
   frame.innerHTML = `<iframe
+    id="yt-street-iframe"
     src="${relay}"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
     allowfullscreen
@@ -11498,7 +11503,30 @@ function mountStreetVideo(videoId, title, muted, startSec = 0) {
   yard.setAttribute('aria-hidden', 'false');
   const cssRoot = $('yt-css3d');
   if (cssRoot) cssRoot.setAttribute('aria-hidden', 'false');
+  S.musicMuted = true;
   try { updateYardYtOverlay(); } catch (_) {}
+
+  const kickPlay = () => {
+    const ifr = $('yt-street-iframe');
+    if (!ifr?.contentWindow || S.musicVideoId !== id) return;
+    try { ifr.contentWindow.postMessage('pho-play', '*'); } catch (_) {}
+  };
+  setTimeout(kickPlay, 500);
+  setTimeout(kickPlay, 1500);
+
+  if (wantSound) {
+    // Remount có tiếng trong cùng phiên tương tác (chọn bài / bấm Phố)
+    setTimeout(() => {
+      if (S.musicVideoId !== id) return;
+      const ifr = $('yt-street-iframe');
+      if (!ifr) return;
+      S.musicMuted = false;
+      const sec = streetMusicElapsedSec(S.musicStartedAt);
+      ifr.src = streetEmbedUrl(id, false, sec);
+      setTimeout(kickPlay, 400);
+      toast('🔊 Đang phát trên bảng phố');
+    }, 900);
+  }
 }
 
 function publishStreetMusic(id, title) {
@@ -11719,12 +11747,17 @@ function playMusicOnYard(videoId, title, opts = {}) {
 function unmuteStreetMusic() {
   if (!S.musicPlaying || !S.musicVideoId) return;
   S.musicMuted = false;
-  mountStreetVideo(
-    S.musicVideoId,
-    S.musicTitle || 'YouTube',
-    false,
-    streetMusicElapsedSec(S.musicStartedAt)
-  );
+  const ifr = $('yt-street-iframe');
+  const sec = streetMusicElapsedSec(S.musicStartedAt);
+  if (ifr) {
+    ifr.src = streetEmbedUrl(S.musicVideoId, false, sec);
+    setTimeout(() => {
+      try { ifr.contentWindow?.postMessage('pho-play', '*'); } catch (_) {}
+      try { ifr.contentWindow?.postMessage('pho-unmute', '*'); } catch (_) {}
+    }, 500);
+  } else {
+    mountStreetVideo(S.musicVideoId, S.musicTitle || 'YouTube', false, sec);
+  }
   toast('🔊 Đã bật tiếng — nghe cùng phố');
 }
 
@@ -11894,20 +11927,27 @@ function updateYardYtOverlay() {
     panel.getWorldPosition(S.musicScreenAnchor);
   }
 
+  // Tắt CSS3D cam — dùng tọa độ màn hình cố định (ổn định hơn)
+  if (camEl) camEl.style.transform = 'none';
+  if (root) {
+    root.style.perspective = 'none';
+    root.style.pointerEvents = 'none';
+  }
+
   const searching = el.classList.contains('yt-searching') || document.activeElement === $('yt-yard-q');
   if (searching) {
     el.classList.add('on');
     el.classList.remove('yt-board');
+    el.style.position = 'fixed';
     el.style.width = '';
     el.style.height = '';
+    el.style.left = '50%';
+    el.style.top = '50%';
+    el.style.bottom = 'auto';
     el.style.opacity = '1';
     el.style.pointerEvents = 'auto';
     el.style.transform = 'translate(-50%, -50%)';
-    if (camEl) camEl.style.transform = '';
-    if (root) {
-      root.style.perspective = '';
-      root.setAttribute('aria-hidden', 'false');
-    }
+    if (root) root.setAttribute('aria-hidden', 'false');
     el.setAttribute('aria-hidden', 'false');
     return;
   }
@@ -11923,49 +11963,83 @@ function updateYardYtOverlay() {
     return;
   }
 
-  // Gắn iframe YouTube lên mặt bảng 3D (CSS3D) — không cửa sổ phụ
+  // Gắn video đúng chỗ bảng trên màn hình (chiếu 4 góc plane)
   panel.updateWorldMatrix(true, false);
   panel.getWorldPosition(_v);
-  panel.getWorldQuaternion(_ytQ);
+  const hw = 4.3, hh = 2.425;
+  _ytC[0].set(-hw, hh, 0.04);
+  _ytC[1].set(hw, hh, 0.04);
+  _ytC[2].set(hw, -hh, 0.04);
+  _ytC[3].set(-hw, -hh, 0.04);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  let anyFront = false;
+  for (let i = 0; i < 4; i++) {
+    _ytC[i].applyMatrix4(panel.matrixWorld);
+    _v2.copy(_ytC[i]).project(camera);
+    if (_v2.z < 1) anyFront = true;
+    const sx = (_v2.x * 0.5 + 0.5) * window.innerWidth;
+    const sy = (-_v2.y * 0.5 + 0.5) * window.innerHeight;
+    if (sx < minX) minX = sx;
+    if (sx > maxX) maxX = sx;
+    if (sy < minY) minY = sy;
+    if (sy > maxY) maxY = sy;
+  }
   _v2.set(0, 0, 1).transformDirection(panel.matrixWorld);
-  const toCam = new THREE.Vector3().copy(camera.position).sub(_v).normalize();
-  const facing = _v2.dot(toCam) > 0.08;
-
-  // Object scale: 860×485 px ↔ panel 8.6×4.85 world
-  if (!S._ytCssObj) S._ytCssObj = new THREE.Object3D();
-  S._ytCssObj.position.copy(_v);
-  S._ytCssObj.quaternion.copy(_ytQ);
-  S._ytCssObj.scale.set(8.6 / 860, 4.85 / 485, 1);
-  S._ytCssObj.updateMatrixWorld(true);
-
-  camera.updateMatrixWorld();
-  const w = window.innerWidth;
-  const h = window.innerHeight;
-  const fov = camera.projectionMatrix.elements[5] * (h * 0.5);
-  if (root) {
-    root.style.perspective = `${fov}px`;
-    root.setAttribute('aria-hidden', 'false');
+  {
+    const toCam = _v.copy(camera.position).sub(S.musicScreenAnchor).normalize();
+    if (_v2.dot(toCam) < 0.02) anyFront = false;
   }
-  if (camEl) {
-    camEl.style.transform = `translateZ(${fov}px) ${css3dCameraMatrix(camera.matrixWorldInverse)}`;
-  }
+  let w = maxX - minX;
+  let h = maxY - minY;
+  const onStreet = isOnAnLacStreet();
+
   el.classList.add('on');
   el.classList.add('yt-board');
   el.classList.remove('yt-playing');
-  el.style.width = '860px';
-  el.style.height = '485px';
-  el.style.left = '0';
-  el.style.top = '0';
+  el.style.position = 'fixed';
+  el.style.transform = 'none';
   el.style.bottom = 'auto';
-  el.style.transform = css3dObjectMatrix(S._ytCssObj.matrixWorld);
-  el.style.opacity = facing ? '1' : '0';
-  el.style.pointerEvents = 'none';
   el.setAttribute('aria-hidden', 'false');
+  if (root) root.setAttribute('aria-hidden', 'false');
 
-  // Ẩn poster mesh khi nhìn thấy video (tránh đè hình tĩnh)
+  // Luôn giữ iframe đủ lớn để trình duyệt cho phát tiếng (không ẩn hết)
+  if (!anyFront || w < 48 || h < 32 || !onStreet) {
+    // Mini player góc — vẫn nghe được, không che cả màn
+    el.style.left = 'auto';
+    el.style.right = '10px';
+    el.style.top = 'auto';
+    el.style.bottom = `max(12px, calc(10px + var(--sb, 0px)))`;
+    el.style.width = 'min(280px, 42vw)';
+    el.style.height = 'auto';
+    el.style.aspectRatio = '16 / 9';
+    el.style.opacity = '0.92';
+    el.style.pointerEvents = 'auto';
+    el.style.borderRadius = '10px';
+    el.style.boxShadow = '0 8px 28px rgba(0,0,0,.55)';
+    el.style.zIndex = '146';
+    if (panel.material) {
+      panel.material.transparent = true;
+      panel.material.opacity = 1;
+    }
+    return;
+  }
+
+  // Phủ đúng mặt bảng
+  el.style.right = 'auto';
+  el.style.bottom = 'auto';
+  el.style.left = `${minX}px`;
+  el.style.top = `${minY}px`;
+  el.style.width = `${Math.max(120, w)}px`;
+  el.style.height = `${Math.max(68, h)}px`;
+  el.style.aspectRatio = 'auto';
+  el.style.opacity = '1';
+  el.style.pointerEvents = 'auto';
+  el.style.borderRadius = '0';
+  el.style.boxShadow = 'none';
+  el.style.zIndex = '145';
   if (panel.material) {
     panel.material.transparent = true;
-    panel.material.opacity = facing ? 0.05 : 1;
+    panel.material.opacity = 0.02;
   }
 }
 

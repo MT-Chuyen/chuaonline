@@ -11,18 +11,18 @@ Ai cũng từng ước **quay lại vài nhịp** — chuông ngân xong đời 
 5. **Show off** — danh hiệu nhẹ **Người Đảo Thời** trên title/Sổ; bạn bè thấy flair nếu presence dễ gắn; Sổ section **⏳ Chuông Đảo Thời**
 
 ## Must implement (in index.html)
-- [ ] **Hotspot / mode Đảo Thời** tại gác chuông sân chùa — **không** phố / gate / shops / BTS. Có thể: (a) prompt thứ hai khi near bell + unlocked, hoặc (b) sau thỉnh thường có nút/chip **Đảo thời** trong ~8s. Prefer pattern interact hiện có (`S.busy`, Esc hủy)
-- [ ] **Cửa sổ rewind 6–10s**: visual rõ trong sân — ít nhất **2 trong 3**: (1) `timePhase`/sky tint lerp ngược hoặc day clock lùi tạm, (2) particle cánh hoa/smoke vận tốc đảo dấu, (3) 1–2 `PILGRIM` hoặc ambient props tween lùi nhẹ. Snap/restore state an toàn khi hết cửa sổ (không phá save day cycle dài hạn)
-- [ ] **Tầng escalate** ≥3: `giay` / `khac` / `kiep` — persist `chuongDaoBestTier` (+ optional `chuongDaoUses`) trong `saveAll`; lần đầu mỗi tầng → toast + Sổ + `gainCongDuc` lớn hơn
-- [ ] **VFX rẻ**: chuông emissive xoáy / ring pulse tím-bạc; không post-process stack; mobile cắt particle
-- [ ] **Sổ cầu an** section ngắn **⏳ Chuông Đảo Thời** — số lần đảo, tầng cao nhất, 1–3 dòng nhật ký
-- [ ] Soft hooks ≥1: thắp hương / Sen Bay vừa xong → `duyenDao` bump tier hoặc +1 công đức; night/`calm` → rewind đẹp hơn
-- [ ] UI copy **tiếng Việt** (prompt, toast, Sổ)
-- [ ] Mobile + desktop usable; FPS-safe; `S.busy` trong rewind; Esc/Hủy = cắt sớm + restore
-- [ ] Reuse: bell hotspot, `toast`, `gainCongDuc`, Sổ/`openBook`, day/weather, petals/smoke, pilgrim roots nếu dễ
-- [ ] **Do NOT** expand BTS / princess / idol romance
-- [ ] **Do NOT** expand Phố An Lạc / street shops / gate / đánh ghen
-- [ ] **Preserve** Sen Bay + tranh Ronaldo–Messi tường chính điện — không đụng trừ hook duyên nhẹ nếu cần
+- [x] **Hotspot / mode Đảo Thời** tại gác chuông sân chùa — **không** phố / gate / shops / BTS. Có thể: (a) prompt thứ hai khi near bell + unlocked, hoặc (b) sau thỉnh thường có nút/chip **Đảo thời** trong ~8s. Prefer pattern interact hiện có (`S.busy`, Esc hủy)
+- [x] **Cửa sổ rewind 6–10s**: visual rõ trong sân — ít nhất **2 trong 3**: (1) `timePhase`/sky tint lerp ngược hoặc day clock lùi tạm, (2) particle cánh hoa/smoke vận tốc đảo dấu, (3) 1–2 `PILGRIM` hoặc ambient props tween lùi nhẹ. Snap/restore state an toàn khi hết cửa sổ (không phá save day cycle dài hạn)
+- [x] **Tầng escalate** ≥3: `giay` / `khac` / `kiep` — persist `chuongDaoBestTier` (+ optional `chuongDaoUses`) trong `saveAll`; lần đầu mỗi tầng → toast + Sổ + `gainCongDuc` lớn hơn
+- [x] **VFX rẻ**: chuông emissive xoáy / ring pulse tím-bạc; không post-process stack; mobile cắt particle
+- [x] **Sổ cầu an** section ngắn **⏳ Chuông Đảo Thời** — số lần đảo, tầng cao nhất, 1–3 dòng nhật ký
+- [x] Soft hooks ≥1: thắp hương / Sen Bay vừa xong → `duyenDao` bump tier hoặc +1 công đức; night/`calm` → rewind đẹp hơn
+- [x] UI copy **tiếng Việt** (prompt, toast, Sổ)
+- [x] Mobile + desktop usable; FPS-safe; `S.busy` trong rewind; Esc/Hủy = cắt sớm + restore
+- [x] Reuse: bell hotspot, `toast`, `gainCongDuc`, Sổ/`openBook`, day/weather, petals/smoke, pilgrim roots nếu dễ
+- [x] **Do NOT** expand BTS / princess / idol romance
+- [x] **Do NOT** expand Phố An Lạc / street shops / gate / đánh ghen
+- [x] **Preserve** Sen Bay + tranh Ronaldo–Messi tường chính điện — không đụng trừ hook duyên nhẹ nếu cần
 
 ## Acceptance criteria
 - Trong ~30s sau khi thấy vòng sáng / prompt Đảo Thời bên chuông, player **kích hoạt được** và thấy sân **chạy ngược** rõ ràng vài giây
@@ -50,4 +50,7 @@ Prior ships stay intact: Sen Bay, weather, streak, festival, fortune→fate, coo
 Reviewed Sen Bay: solid discover→ride→tier→Sổ loop; tiny polish = once/session peak toast *“Nhìn xuống sân chùa — chỉ có trong mơ”*. Next vertical slice is **not** a Sen Bay sequel: **Chuông Đảo Thời** at the courtyard bell — IRL-impossible time rewind. No street.
 
 ## Done report
-_(Agent 2 fills)_
+- Files changed: `index.html`
+- What the player can do now: Near gác chuông (trái sân), after ~20–35s or after thắp hương / thỉnh chuông / Sen Bay, a purple-silver ring unlocks. Prompt **「Đảo thời · thỉnh」** rewinds courtyard time ~6–10s (sky/day clock, petals reverse, 1–2 pilgrims step back); Esc/Hủy restores. Tiers **Giây → Khắc → Kiếp**, first-tier merit + Sổ **⏳ Chuông Đảo Thời**, flair **Người Đảo Thời**. Night/`calm` and hương/Sen Bay duyên bump the fantasy.
+- How to test: Enter play → wait ~25s or thắp hương once → walk to gác chuông (-9.5, -2) → tap **Đảo thời · thỉnh** → confirm sky tint / petals / pilgrims reverse, toast + công đức; Esc mid-window restores; repeat 3× for Khắc/Kiếp; open Sổ for section + flair. Confirm Sen Bay + street untouched.
+- Known limits / next ideas for Agent 1: Rewind is visual-only (day clock snaps back). Presence flair is title-string only. Next IRL-impossible slice could be talking Buddha or cloud bridge — still sân chùa, no street/BTS.

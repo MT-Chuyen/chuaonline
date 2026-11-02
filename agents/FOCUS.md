@@ -2,11 +2,14 @@
 
 **Deprioritize BTS / princess / idol romance** for new tasks unless the user explicitly asks again.
 
-## Current loop theme (iterations 1–10)
-**Pagoda-area wonders that are NOT reasonable in real life** — dreamlike, IRL-impossible temple fantasies at/near sân chùa, tháp, chuông, tượng Phật. Wish-fulfillment only possible in this game. Prefer one strong vertical slice per task.
+## Current loop theme (user pivot)
+**Phố An Lạc street innovations** — shops, street NPCs, đánh ghen circle, gate UX, café/phở/hair/tea, funny street events. Prefer one strong addictive vertical slice per task. Can be playful / slightly IRL-unreasonable **on the street**.
 
-### Hard exclude this loop
-**Do NOT assign or build Phố An Lạc / street shops / đánh ghen / gate-to-street work.** That area already exists; leave it alone. Agent 1 + Agent 2 stay on **pagoda / sân chùa** only.
+### Also OK (lower priority this phase)
+Pagoda fantasies already shipped (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói) — preserve; do not break. New pagoda wonders only if user asks again.
+
+### Still exclude
+**Do NOT expand BTS / princess / idol romance** unless the user asks.
 
 ## Prioritize GLOBAL systems that reinvent the whole game
 Pick features that change how *anyone* plays Lên Chùa Cầu An — temple, multiplayer, progression, exploration — not one cameo.
@@ -22,4 +25,4 @@ Pick features that change how *anyone* plays Lên Chùa Cầu An — temple, mul
 8. **Impossible pagoda magic** — floating lotus rides, talking Buddha, time-rewind chuông, cloud bridges, living petal dragons, sky-unfolding tháp (must feel IRL-impossible)
 
 ### Rule for Agent 1
-Every new `agents/tasks/TASK-*.md` must be **≥80% global systems** and, for this loop, rooted in the **pagoda / sân chùa** with an **IRL-impossible** fantasy. BTS may stay as existing content; do not expand it in the loop.
+Every new `agents/tasks/TASK-*.md` must be **≥80% Phố An Lạc / street systems** for this phase (shops, street story, street progression, street fantasy). Preserve pagoda features. BTS may stay as existing content; do not expand it in the loop.

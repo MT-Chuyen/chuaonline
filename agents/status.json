@@ -1,64 +1,68 @@
 {
-  "updatedAt": "2026-11-02T20:24:19+07:00",
+  "updatedAt": "2026-11-02T21:17:18+07:00",
   "pipeline": {
     "agent1": {
       "id": "agent1",
       "name": "Agent 1 — Director",
       "role": "Assign · Review · Improve",
       "status": "done",
-      "detail": "Task assigned to Agent 2: TASK-20261102-2023-pagoda-fantasy.md"
+      "detail": "Task assigned to Agent 2: TASK-20261102-2115-pho-an-lac.md"
     },
     "agent2": {
       "id": "agent2",
       "name": "Agent 2 — Builder",
       "role": "Implement task in index.html",
-      "status": "done",
-      "detail": "Build complete — Sen Bay ready for review"
+      "status": "working",
+      "detail": "Starting build: Giờ Vàng · Đèn Bay"
     },
-    "pipelinePhase": "review"
+    "pipelinePhase": "assigned"
   },
   "currentTask": {
-    "file": "agents/tasks/TASK-20261102-2023-pagoda-fantasy.md",
-    "name": "TASK-20261102-2023-pagoda-fantasy.md",
-    "title": "Chuông Đảo Thời — chuông sân chùa đảo ngược thời gian",
-    "wish": "Ai cũng từng ước **quay lại vài nhịp** — chuông ngân xong đời vẫn trôi thẳng. Game cho họ điều không thể IRL: **Chuông Đảo Thời** tại gác chuông sân chùa — thỉnh một nhịp đặc biệt và **thời gian sân chùa chạy ngược** vài giây (ánh ngày/đêm, cánh hoa, hành hương), rồi khóa lại như một phép lành.",
-    "phase": "review",
+    "file": "agents/tasks/TASK-20261102-2115-pho-an-lac.md",
+    "name": "TASK-20261102-2115-pho-an-lac.md",
+    "title": "Phố An Lạc — Giờ Vàng · Đèn Bay",
+    "wish": "Players want the soft IRL-impossible street fantasy: **đèn đường thật sự nhấc khỏi trụ**, bay lơ lửng, and for a dozen seconds both Phố An Lạc becomes a private **Giờ Vàng** — chợ-đêm warmth without leaving the temple gate. Closing street slice: whole phố spectacle, not another shop/karaoke/xích lô sequel.",
+    "phase": "assigned",
     "checklist": [
       {
         "done": false,
-        "text": "**Hotspot / mode Đảo Thời** tại gác chuông sân chùa — **không** phố / gate / shops / BTS. Có thể: (a) prompt thứ hai khi near bell + unlocked, hoặc (b) sau thỉnh thường có nút/chip **Đảo thời** trong ~8s. Prefer pattern interact hiện có (`S.busy`, Esc hủy)"
+        "text": "**Giờ Vàng hotspot** — mid-street mesh cue (soft gold ring + tip plane **✨ Giờ Vàng · đèn bay**) near ~`20.2, STREET_Z` (center lane), **north of** hốt họ south curb (~20.5/−4.75) and **clear of** mưa trà (~23.9/−5.65), karaoke north, xích lô (~26), shop door centers. Proximity `nearGioVang` with Vietnamese verb **Gọi Giờ Vàng**. **Priority:** gossip > shop door (cafe/pho/hair/tea) > mưa trà > karaoke > hốt họ > xích lô > **Giờ Vàng** — never steal higher hooks; Giờ Vàng only wins when those are null."
       },
       {
         "done": false,
-        "text": "**Cửa sổ rewind 6–10s**: visual rõ trong sân — ít nhất **2 trong 3**: (1) `timePhase`/sky tint lerp ngược hoặc day clock lùi tạm, (2) particle cánh hoa/smoke vận tốc đảo dấu, (3) 1–2 `PILGRIM` hoặc ambient props tween lùi nhẹ. Snap/restore state an toàn khi hết cửa sổ (không phá save day cycle dài hạn)"
+        "text": "**Đèn bay sequence** — on interact: `S.busy`, timed ~12–16s; lock gentle face toward mid-street (player stays on ground — **no** free-fly). Must use existing `S.streetLamps[]` (already built in `buildStreetDistrict`): store/restore `homeY` / intensity / emissive; lerp bulbs + lights up + slow orbit; end/Esc → lerp home. **During Giờ Vàng**, own lamp look; do **not** let karaoke Đêm loa / xích lô đêm / hốt họ Chủ Họ lamp pulses fight mid-sequence (yield: if those modes are active, either soft-block Giờ Vàng with tip *“đèn đang thuộc đêm loa / xích lô / họ”* or pause their pulse until restore). Mobile: fewer particles / fewer lamps lift."
       },
       {
         "done": false,
-        "text": "**Tầng escalate** ≥3: `giay` / `khac` / `kiep` — persist `chuongDaoBestTier` (+ optional `chuongDaoUses`) trong `saveAll`; lần đầu mỗi tầng → toast + Sổ + `gainCongDuc` lớn hơn"
+        "text": "**Fantasy beats** — gold dust or cheap sparks on road; 2–4 short VN toast lines (playful chợ-đêm / giờ vàng, non-idol, non-BTS). Optional soft mid-street ring pulse. Mobile: fewer particles."
       },
       {
         "done": false,
-        "text": "**VFX rẻ**: chuông emissive xoáy / ring pulse tím-bạc; không post-process stack; mobile cắt particle"
+        "text": "**Rewards + persist** — `S.phoVangUses` (number) + `S.phoVangBestTier` (`lap`/`ruc`/`rang`) + `S.khachGioVang` flair in `saveAll` / load; first call higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip like `banTraMua` / `chuHo` / `caSiViaHe` / `khachPho`."
       },
       {
         "done": false,
-        "text": "**Sổ cầu an** section ngắn **⏳ Chuông Đảo Thời** — số lần đảo, tầng cao nhất, 1–3 dòng nhật ký"
+        "text": "**Soft hooks** — night / `calm` / dusk: taller lift or brighter first toast; optional once-per-weather-window bonus (`weatherBonus.phoVang` or similar). After shop visit or gossip in session: `duyenPhoVang` soft tip or +1 công đức on next finish (do not rewrite shop/gossip content)."
       },
       {
         "done": false,
-        "text": "Soft hooks ≥1: thắp hương / Sen Bay vừa xong → `duyenDao` bump tier hoặc +1 công đức; night/`calm` → rewind đẹp hơn"
+        "text": "**Sổ** — short **🛤️ Phố An Lạc · Giờ Vàng đèn bay** lines (số lần / bậc cao nhất / 1–3 nhật ký). Do not replace shop list, gossip, xích lô, karaoke, hốt họ, or mưa trà Sổ blocks."
       },
       {
         "done": false,
-        "text": "UI copy **tiếng Việt** (prompt, toast, Sổ)"
+        "text": "**Leave intact** — mưa trà ghế đôi + Bạn Trà Mưa, hốt họ + Chủ Họ, karaoke loa kéo + Đêm loa vàng, xích lô + bến, 4 shops + Khách Phố, gossip/đánh ghen, Nem Chua, Phóng Lợn, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate systems as-is, Ronaldo–Messi poster."
       },
       {
         "done": false,
-        "text": "Mobile + desktop usable; FPS-safe; `S.busy` trong rewind; Esc/Hủy = cắt sớm + restore"
+        "text": "UI copy in Vietnamese where the game already uses Vietnamese"
       },
       {
         "done": false,
-        "text": "Reuse: bell hotspot, `toast`, `gainCongDuc`, Sổ/`openBook`, day/weather, petals/smoke, pilgrim roots nếu dễ"
+        "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry)"
+      },
+      {
+        "done": false,
+        "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.streetLamps` / weatherMood / day phase / `S.busy` patterns from mưa trà / karaoke / xích lô / hốt họ"
       },
       {
         "done": false,
@@ -66,21 +70,548 @@
       },
       {
         "done": false,
-        "text": "**Do NOT** expand Phố An Lạc / street shops / gate / đánh ghen"
-      },
-      {
-        "done": false,
-        "text": "**Preserve** Sen Bay + tranh Ronaldo–Messi tường chính điện — không đụng trừ hook duyên nhẹ nếu cần"
+        "text": "**Do NOT** rewrite karaoke, xích lô, hốt họ, mưa trà, đánh ghen narrative, or deep cafe/pho/hair/tea menus this pass (Giờ Vàng is the vertical slice; lamps are shared carefully)"
       }
     ],
     "done": 0,
     "total": 12,
     "progress": 0.0,
-    "hasDoneReport": true,
-    "doneReport": "_(Agent 2 fills)_",
-    "mtime": "2026-11-02T20:24:14+07:00"
+    "hasDoneReport": false,
+    "doneReport": "",
+    "mtime": "2026-11-02T21:16:18+07:00"
   },
   "tasks": [
+    {
+      "file": "agents/tasks/TASK-20261102-2115-pho-an-lac.md",
+      "name": "TASK-20261102-2115-pho-an-lac.md",
+      "title": "Phố An Lạc — Giờ Vàng · Đèn Bay",
+      "wish": "Players want the soft IRL-impossible street fantasy: **đèn đường thật sự nhấc khỏi trụ**, bay lơ lửng, and for a dozen seconds both Phố An Lạc becomes a private **Giờ Vàng** — chợ-đêm warmth without leaving the temple gate. Closing street slice: whole phố spectacle, not another shop/karaoke/xích lô sequel.",
+      "phase": "assigned",
+      "checklist": [
+        {
+          "done": false,
+          "text": "**Giờ Vàng hotspot** — mid-street mesh cue (soft gold ring + tip plane **✨ Giờ Vàng · đèn bay**) near ~`20.2, STREET_Z` (center lane), **north of** hốt họ south curb (~20.5/−4.75) and **clear of** mưa trà (~23.9/−5.65), karaoke north, xích lô (~26), shop door centers. Proximity `nearGioVang` with Vietnamese verb **Gọi Giờ Vàng**. **Priority:** gossip > shop door (cafe/pho/hair/tea) > mưa trà > karaoke > hốt họ > xích lô > **Giờ Vàng** — never steal higher hooks; Giờ Vàng only wins when those are null."
+        },
+        {
+          "done": false,
+          "text": "**Đèn bay sequence** — on interact: `S.busy`, timed ~12–16s; lock gentle face toward mid-street (player stays on ground — **no** free-fly). Must use existing `S.streetLamps[]` (already built in `buildStreetDistrict`): store/restore `homeY` / intensity / emissive; lerp bulbs + lights up + slow orbit; end/Esc → lerp home. **During Giờ Vàng**, own lamp look; do **not** let karaoke Đêm loa / xích lô đêm / hốt họ Chủ Họ lamp pulses fight mid-sequence (yield: if those modes are active, either soft-block Giờ Vàng with tip *“đèn đang thuộc đêm loa / xích lô / họ”* or pause their pulse until restore). Mobile: fewer particles / fewer lamps lift."
+        },
+        {
+          "done": false,
+          "text": "**Fantasy beats** — gold dust or cheap sparks on road; 2–4 short VN toast lines (playful chợ-đêm / giờ vàng, non-idol, non-BTS). Optional soft mid-street ring pulse. Mobile: fewer particles."
+        },
+        {
+          "done": false,
+          "text": "**Rewards + persist** — `S.phoVangUses` (number) + `S.phoVangBestTier` (`lap`/`ruc`/`rang`) + `S.khachGioVang` flair in `saveAll` / load; first call higher công đức; escalate as above; include flair in `templeFlairSuffix` / title chip like `banTraMua` / `chuHo` / `caSiViaHe` / `khachPho`."
+        },
+        {
+          "done": false,
+          "text": "**Soft hooks** — night / `calm` / dusk: taller lift or brighter first toast; optional once-per-weather-window bonus (`weatherBonus.phoVang` or similar). After shop visit or gossip in session: `duyenPhoVang` soft tip or +1 công đức on next finish (do not rewrite shop/gossip content)."
+        },
+        {
+          "done": false,
+          "text": "**Sổ** — short **🛤️ Phố An Lạc · Giờ Vàng đèn bay** lines (số lần / bậc cao nhất / 1–3 nhật ký). Do not replace shop list, gossip, xích lô, karaoke, hốt họ, or mưa trà Sổ blocks."
+        },
+        {
+          "done": false,
+          "text": "**Leave intact** — mưa trà ghế đôi + Bạn Trà Mưa, hốt họ + Chủ Họ, karaoke loa kéo + Đêm loa vàng, xích lô + bến, 4 shops + Khách Phố, gossip/đánh ghen, Nem Chua, Phóng Lợn, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate systems as-is, Ronaldo–Messi poster."
+        },
+        {
+          "done": false,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": false,
+          "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry)"
+        },
+        {
+          "done": false,
+          "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.streetLamps` / weatherMood / day phase / `S.busy` patterns from mưa trà / karaoke / xích lô / hốt họ"
+        },
+        {
+          "done": false,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": false,
+          "text": "**Do NOT** rewrite karaoke, xích lô, hốt họ, mưa trà, đánh ghen narrative, or deep cafe/pho/hair/tea menus this pass (Giờ Vàng is the vertical slice; lamps are shared carefully)"
+        }
+      ],
+      "done": 0,
+      "total": 12,
+      "progress": 0.0,
+      "hasDoneReport": false,
+      "doneReport": "",
+      "mtime": "2026-11-02T21:16:18+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-2107-pho-an-lac.md",
+      "name": "TASK-20261102-2107-pho-an-lac.md",
+      "title": "Phố An Lạc — Mưa Trà Đá · Hẹn Vỉa Hè",
+      "wish": "Players want the classic Vietnamese fantasy of **ngồi trà đá dưới mưa** — plastic stools, misted glasses, time slowing while the street softens. Soft IRL-impossible: on Phố An Lạc a rain dome blooms only over Trà đá vỉa hè, dual stools glow, and for a few seconds the whole phố becomes a private hẹn that cannot happen outside the temple gate.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Hẹn trà hook** — clear mesh at Trà đá: 2 ghế nhựa + low table or tray + 2 ly trà props + small mái tôn / rain ring. Place on **tea shop curb** (~x 23–24, z ≈ STREET_Z − 5.0 to −5.8) so it does **not** overlap hốt họ (~20.5, STREET_Z−4.75), karaoke north, gossip center, shop door centers of cafe/pho/hair, or bến xích lô (~x 26). Proximity `nearMuaTra` with Vietnamese verb **Hẹn trà mưa**. **Priority:** gossip > shop door (cafe/pho/hair) > tea-shop door OR mưa-trà (mưa-trà may deepen/replace plain tea `openShopVisit` when at tea) > karaoke > hốt họ > xích lô — never steal karaoke/hốt họ/gossip radii."
+        },
+        {
+          "done": true,
+          "text": "**Mưa trà sequence** — on interact: `S.busy`, timed ~6–8s sit; lock facing bàn trà; local rain particles / dome (mobile: fewer drops); cancel-safe if modal opens / Esc. End restores control at stools."
+        },
+        {
+          "done": true,
+          "text": "**Fantasy beats** — stool bob + steam / rain tint; 2–4 short VN toast lines (playful soft hẹn, non-idol, non-BTS). Optional cheap second “silhouette” sphere/stool glow — no named celebrity. Mobile: fewer particles."
+        },
+        {
+          "done": true,
+          "text": "**Rewards + persist** — `S.muaTraHens` (number) + flags for Mưa ấm / Bạn Trà Mưa flair in `saveAll` / load; first hẹn higher công đức; escalate unlocks as above; include flair in `templeFlairSuffix` / title chip like `chuHo` / `caSiViaHe` / `khachPho`."
+        },
+        {
+          "done": true,
+          "text": "**Weather soft hook** — if `S.weatherMood === 'rain'` at start: warmer toast + small công đức bonus once per weather window (`weatherBonus.muaTra` or similar). Do not force global weather rewrite; may soft-call a brief local rain even on clear (dome only — do not flip whole-map weather unless trivial reuse of `ensureWeatherMood`)."
+        },
+        {
+          "done": true,
+          "text": "**Sổ** — short **🧊 Phố An Lạc · mưa trà đá** lines (số lượt / unlocked modes). Do not replace shop list, gossip, xích lô, karaoke, or hốt họ Sổ blocks."
+        },
+        {
+          "done": true,
+          "text": "**Leave intact** — hốt họ circle + Họ đỏ / Chủ Họ, karaoke loa kéo + Đêm loa vàng, xích lô ride + bến, 4 shops + Khách Phố (tea may gain depth via this slice), gossip/đánh ghen, `goToStreetGate`, `#btn-street-fab`, KeyP, Phong Lon / Nem Chua, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate systems as-is, Ronaldo–Messi poster."
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry)"
+        },
+        {
+          "done": true,
+          "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / weatherMood / `S.busy` patterns from karaoke / xích lô / hốt họ / shop visit"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** rewrite karaoke, xích lô, hốt họ, đánh ghen narrative, or deep cafe/pho/hair menus this pass (mưa trà is the vertical slice; tea shop may be deepened)"
+        }
+      ],
+      "done": 12,
+      "total": 12,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`\n- What the player can do now: After street warp (FAB/P), walk to Trà đá (+X/−Z) ghế đôi + mái tôn; press **Hẹn trà mưa** for a ~6–8s sit under a local rain dome (steam, silhouette stool glow, VN toasts). First hẹn → công đức + tea visit for Khách Phố; after 1 → **Mưa ấm**; after 3 → flair **Bạn Trà Mưa** + wet sheen. Rain weather adds once-per-window bonus. Sổ lists lượt/modes.\n- How to test: Open index.html → play → P/FAB → walk toward Trà đá vỉa hè (~23.9, STREET_Z−5.65) → interact Hẹn trà mưa 3×; check merit chip flair + Sổ section 🧊; confirm karaoke/hốt họ/xích lô/gossip/shops still work; Esc cancels after ≥1.5s still counts.\n- Known limits / next ideas for Agent 1: Tea plain `openShopVisit` replaced by mưa trà (still marks tea visited). Rewind lamp stays north of stools. Soft wet sheen is local floor/awning tint only. Deferred Giờ Vàng still untouched.",
+      "mtime": "2026-11-02T21:14:35+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-2100-pho-an-lac.md",
+      "name": "TASK-20261102-2100-pho-an-lac.md",
+      "title": "Phố An Lạc — Hốt Họ Vỉa Hè",
+      "wish": "Players want the street to feel like a real Vietnamese sidewalk **hụi / hốt họ** night — plastic stools, a battered tin box, numbers that somehow *know* you. Soft IRL fantasy: on Phố An Lạc you sit the circle once, a golden số nổ floats above the asphalt, and the whole phố cheers a luck you cannot buy outside the temple gate.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Bàn hốt họ hook** — clear mesh: low table/box + 3–4 plastic stools + tin money box + paper sổ prop + floor glow. Place on **south curb** so it does **not** overlap karaoke (~20.5, STREET_Z+4.65), gossip (~20.2, STREET_Z), shop door glows, or bến xích lô (~x 26). Suggested: ~x 18.5–19.5, z = STREET_Z − 4.5–4.9 (south hè) or ~x 22 if clearer. Proximity `nearHotHo` with Vietnamese verb **Hốt họ**. **Priority:** gossip > shop door > karaoke > hốt họ > xích lô (hốt họ wins on its curb; never steal shop/gossip/karaoke)"
+        },
+        {
+          "done": true,
+          "text": "**Rút số sequence** — on interact: `S.busy`, short timed draw; lock player facing bàn; cancel-safe if modal opens / Esc. End restores control at circle"
+        },
+        {
+          "done": true,
+          "text": "**Fantasy beats** — animate stool/table bob + ring pulse; 2–4 short VN toast lines (playful luck, non-idol, non-BTS). Floating số meshes (cheap digits or spheres). Mobile: fewer particles"
+        },
+        {
+          "done": true,
+          "text": "**Rewards + persist** — `S.hotHoDraws` (number) + flags for Họ đỏ / Chủ Họ flair in `saveAll` / load; first draw higher công đức; escalate unlocks as above; include flair in `templeFlairSuffix` / title chip like `caSiViaHe` / `khachPho`"
+        },
+        {
+          "done": true,
+          "text": "**Sổ** — short **🎲 Phố An Lạc · hốt họ** lines (số lượt / unlocked modes). Do not replace shop list, gossip story, xích lô, or karaoke Sổ blocks"
+        },
+        {
+          "done": true,
+          "text": "**Leave intact** — karaoke loa kéo + Đêm loa vàng, xích lô ride + bến, 4 shops + Khách Phố, gossip/đánh ghen, `goToStreetGate`, `#btn-street-fab`, KeyP, Phong Lon / Nem Chua, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate, Ronaldo–Messi poster"
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry)"
+        },
+        {
+          "done": true,
+          "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.streetLamps` patterns (lamp warm pulse optional & soft — do not break karaoke DemLoa or xích lô dem)"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** rewrite karaoke, xích lô, đánh ghen narrative, or deep shop menus this pass (hốt họ is the vertical slice)"
+        }
+      ],
+      "done": 11,
+      "total": 11,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`, `agents/tasks/TASK-20261102-2100-pho-an-lac.md`, `agents/loop-state.json`\n- What the player can do now:\n  - After street warp (FAB / P), walk south hè (−Z, opposite karaoke) to **bàn hốt họ** (~x 20.5, STREET_Z−4.75): 4 ghế nhựa + hộp tôn + sổ + vòng sáng.\n  - Interact **Hốt họ** → ~5–7s rút số (`S.busy`), toast cascade, floating số spheres, số nổ vàng; Esc/Hủy ≥1.5s still counts 1 lượt.\n  - First draw: công đức cao + Sổ **🎲 Hốt Họ Phố An Lạc**. After 1 → **Họ đỏ** (ấm hơn). After 3 → flair **Chủ Họ** (+ soft lamp pulse if karaoke Đêm loa chưa chiếm đèn).\n  - Soft tip on street entry / daily goals: “hốt một tay trên hè”.\n- How to test:\n  1. Reload → FAB/P → giữa phố → đi về phía Phở (−Z) tới vòng vàng bàn hốt họ.\n  2. Bấm Hốt họ; chờ số nổ + toast + công đức (<10s). Esc mid-draw after 1.5s vẫn cộng lượt.\n  3. Hốt ≥3 lần → Họ đỏ + flair Chủ Họ trên merit chip / Sổ · hốt họ.\n  4. Smoke: karaoke (+Z), gossip giữa phố, 4 cửa quán, xích lô x≈26, pagoda fantasies, poster — vẫn hoạt động; không BTS mới.\n- Known limits / next ideas for Agent 1:\n  - Chủ Họ lamp pulse yields to karaoke Đêm loa / xích lô đêm (by design).\n  - Giờ Vàng đèn bay still deferred. Next street slice could deepen hốt họ social cheer / or another non-karaoke hook.",
+      "mtime": "2026-11-02T21:06:50+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-2053-pho-an-lac.md",
+      "name": "TASK-20261102-2053-pho-an-lac.md",
+      "title": "Phố An Lạc — Karaoke Loa Kéo Vỉa Hè",
+      "wish": "Players want the street to **sing** — not only shops and rides. Soft IRL fantasy: a **loa kéo** (street karaoke speaker) spills a chorus onto Phố An Lạc; you grab the mic for one beat, the sidewalk lights pulse, and the whole phố feels like a tiny wedding-band night that only this game can stage outside the gate.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Loa kéo hook** — clear speaker mesh (box+cyl+grille is fine) + floor glow on sidewalk. Proximity `nearKaraoke` (or similar) with Vietnamese verb **Hát karaoke**. **Priority:** gossip circle > shop door > karaoke > xích lô (karaoke wins on open sidewalk; never steal shop door or hồng gossip)"
+        },
+        {
+          "done": true,
+          "text": "**Hát sequence** — on interact: `S.busy`, short timed performance; camera slight push-in or stay chase; cancel-safe if modal opens / Esc. End restores control at loa"
+        },
+        {
+          "done": true,
+          "text": "**Fantasy beats** — animate speaker bob + ring pulse; 2–4 short lyric/toast lines (playful, non-idol, non-BTS). Optional floating note meshes (cheap). Mobile: fewer particles"
+        },
+        {
+          "done": true,
+          "text": "**Rewards + persist** — `S.karaokeSongs` (number) + flags for remix / đêm loa / flair in `saveAll` / load; first song higher công đức; escalate unlocks as above; include flair in `templeFlairSuffix` / title chip like `khachPho` / `hanhKhachXichLo`"
+        },
+        {
+          "done": true,
+          "text": "**Sổ** — short **🎤 Phố An Lạc · karaoke** lines (số bài / unlocked modes). Do not replace shop list, gossip story, or xích lô Sổ block"
+        },
+        {
+          "done": true,
+          "text": "**Leave intact** — xích lô ride + bến, 4 shops + Khách Phố, gossip/đánh ghen, `goToStreetGate`, `#btn-street-fab`, KeyP, Phong Lon / Nem Chua if present, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate, Ronaldo–Messi poster"
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry)"
+        },
+        {
+          "done": true,
+          "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity / `S.streetLamps` patterns"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance (no named idol songs, no BTS tracks)"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** rewrite đánh ghen narrative, deep shop menus, or xích lô systems this pass (karaoke is the vertical slice)"
+        }
+      ],
+      "done": 11,
+      "total": 11,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`, `agents/tasks/TASK-20261102-2053-pho-an-lac.md`, `agents/loop-state.json`\n- What the player can do now:\n  - Warp to Phố An Lạc (FAB / P) → walk to mid north vỉa hè (~x 20.5, STREET_Z+4.65) → glowing **loa kéo** → **Hát karaoke**\n  - Short hát (~5–7s): arm raise, lyric toasts, loa bob + ring pulse, floating note sparks; Esc/Hủy ngắt mic (≥1.5s vẫn tính bài)\n  - Progress: bài 1 → unlock Remix đám cưới; 3 bài → Đêm loa vàng (đèn gần loa nhịp vàng) + flair **Ca Sĩ Vỉa Hè** (merit chip + Sổ)\n  - Sổ section **🎤 Phố An Lạc · karaoke** lists bài / modes\n- How to test:\n  1. Reload → P / FAB tới phố → nhìn hè phía quán cà phê/tóc (+Z) → stand near pink glow loa → interact **Hát karaoke**\n  2. Complete 1 song → toast + công đức + Remix unlock tip; open Sổ → karaoke block\n  3. Sing 3 times → flair Ca Sĩ Vỉa Hè + đèn vàng gần loa; Esc mid-song ≥1.5s still counts\n  4. Smoke: gossip Hỏi chuyện, 4 shops, bến xích lô, Nem/Phóng Lợn, Sen Bay / Chuông / Tháp / Phật, poster Ronaldo–Messi still OK\n- Known limits / next ideas for Agent 1:\n  - Toast-only lyrics (no licensed audio / mic input) — intentional\n  - Camera stays chase (no push-in) — fine per task\n  - Possible next street slices: crowd joins chorus, tip jar / pass-the-mic NPC, or deferred Giờ Vàng đèn bay — still avoid BTS/princess",
+      "mtime": "2026-11-02T20:59:54+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-nem-chua-thanh-hoa.md",
+      "name": "TASK-20261102-nem-chua-thanh-hoa.md",
+      "title": "Hẻm Nem Thanh Hóa — Nhà Ông Chủ Nem Chua",
+      "wish": "Players want a living culinary street beside Phố An Lạc: meet the chief who makes **nem chua Thanh Hóa**, read its history and recipe, then sit down and craft it step by step.",
+      "phase": "building",
+      "checklist": [
+        {
+          "done": true,
+          "text": "Side alley south of Phố An Lạc (`STREET_Z - Z`, avoids Hẻm Phóng Lợn +Z)"
+        },
+        {
+          "done": true,
+          "text": "House + Ông Chủ Thanh + door glow + lamps"
+        },
+        {
+          "done": true,
+          "text": "History modal + recipe/instruction modal (Vietnamese)"
+        },
+        {
+          "done": true,
+          "text": "7-step sit-and-craft workshop"
+        },
+        {
+          "done": true,
+          "text": "Persist + Sổ section + flair"
+        },
+        {
+          "done": true,
+          "text": "Proximity prompt / action button wiring"
+        }
+      ],
+      "done": 6,
+      "total": 6,
+      "progress": 100.0,
+      "hasDoneReport": false,
+      "doneReport": "",
+      "mtime": "2026-11-02T20:56:12+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-2047-pho-an-lac.md",
+      "name": "TASK-20261102-2047-pho-an-lac.md",
+      "title": "Phố An Lạc — Xích Lô Đêm / Xe Ôm Vòng Phố",
+      "wish": "Players want the **street to move** — not only stand at shop doors. Soft IRL fantasy: hop a xích lô (or xe ôm) and glide the length of Phố An Lạc past cà phê / phở / tóc / trà đá, wind in the face, like a tiny movie only this game can give outside the gate.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Bến xích lô hook** — clear stand/mesh + floor glow on the road isle (near `STREET_Z` / streetX≈20.5). Proximity `nearXichLo` (or similar) with Vietnamese verb. **Priority vs shops/gossip:** gossip circle still wins if overlapping; shop door wins only at door glow; bến wins on open road"
+        },
+        {
+          "done": true,
+          "text": "**Ride sequence** — on interact: hide normal walk briefly, attach camera/player to vehicle path along existing road plane (reuse street geometry; do not rebuild map). End at bến or opposite curb; restore control. Cancel-safe if player opens modal mid-ride (snap end)"
+        },
+        {
+          "done": true,
+          "text": "**Vehicle fantasy** — simple xích lô *or* xe ôm group (box+cyl is fine). Animate wheels / slight bob. Passenger seated offset. Optional driver NPC silhouette (non-BTS, no named idol)"
+        },
+        {
+          "done": true,
+          "text": "**Rewards + persist** — `S.xichLoRides` (number) + flags for night route / flair in `saveAll` / load; first ride higher công đức; escalate unlocks as above; include flair in `templeFlairSuffix` / title chip like `khachPho`"
+        },
+        {
+          "done": true,
+          "text": "**Sổ** — short **🛤️ Phố An Lạc · xích lô** lines (số chuyến / unlocked modes). Do not replace shop list or gossip story UI"
+        },
+        {
+          "done": true,
+          "text": "**Leave intact** — `buildStreetSideGate`, `buildStreetDistrict`, 4 shops + Khách Phố, gossip/đánh ghen, `goToStreetGate`, `#btn-street-fab`, KeyP, pagoda fantasies (Sen Bay, Chuông Đảo, Tháp Mở, Phật Nói), weather/festival/streak/stamps/coop/fate"
+        },
+        {
+          "done": true,
+          "text": "UI copy in Vietnamese where the game already uses Vietnamese"
+        },
+        {
+          "done": true,
+          "text": "Keep mobile + desktop usable (reuse interact button + FAB street entry; ride must be comfortable on coarse pointer)"
+        },
+        {
+          "done": true,
+          "text": "Reuse toast / `gainCongDuc` / Sổ / save / proximity patterns"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** rewrite đánh ghen narrative or deep shop menus this pass (ride is the vertical slice)"
+        }
+      ],
+      "done": 11,
+      "total": 11,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`, `agents/tasks/TASK-20261102-2047-pho-an-lac.md`, `agents/loop-state.json`\n- What the player can do now:\n  - Warp to Phố An Lạc (FAB / P) → tip about bến → walk +X to glowing **Bến xích lô** (~x 26)\n  - Interact **Lên xích lô** → ~8s passenger ride out-and-back along the road (wheels, bob, dust, chase cam)\n  - Chuyến 2 = faster **Xe ôm gấp**; chuyến 3+ = **Đêm đèn lồng** (street lamps pulse warm) + flair **Hành Khách Xích Lô**\n  - First ride: toast + công đức + Sổ line; Esc / action **Xuống xe** snaps end safely\n- How to test:\n  1. Enter game → street FAB or KeyP → wait ~3s tip → walk toward +X end of street\n  2. Stand on yellow bến glow → press action **Lên xích lô** → ride completes & toast/+công đức\n  3. Ride 3 times → confirm xe ôm then đêm mode + merit chip flair + Sổ 「🛤️ Phố An Lạc · xích lô」\n  4. Smoke: gossip circle, 4 shops, KeyP warp, Sen Bay / Chuông / Tháp / Phật still work\n- Known limits / next ideas for Agent 1:\n  - One shared vehicle mesh (mode is speed/lights, not full xe ôm remodel)\n  - No fare economy / multiplayer-visible moving rickshaw yet\n  - Possible next slice: street race tip / xích lô photo stamp / NPC wave while riding",
+      "mtime": "2026-11-02T20:53:05+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-2046-pho-an-lac.md",
+      "name": "TASK-20261102-2046-pho-an-lac.md",
+      "title": "Phố Giờ Vàng · Đèn Đường Bay — đèn phố bay lên, cả Phố An Lạc thành giờ vàng",
+      "wish": "Ai từng dạo phố đêm đều ước **đèn đường thật sự bay lên** và cả con phố ngập một **giờ vàng** chỉ dành cho mình. Game cho điều không hợp lý IRL: trên **Phố An Lạc**, sáu cột đèn vỉa hè **nhấc khỏi trụ, bay lơ lửng**, vàng rơi quanh quán + vòng đánh ghen — vài giây phố thành phim, rồi hạ xuống như không có gì.",
+      "phase": "assigned",
+      "checklist": [
+        {
+          "done": false,
+          "text": "**Hotspot / mode Giờ Vàng** tại tâm Phố An Lạc (~`20.2, 7.5`) — `r` ~2.8–3.2 sao cho **gần cửa quán vẫn ưu tiên shop**, **trong vòng hồng ưu tiên gossip** khi cả hai gần (cùng pattern ưu tiên hiện có: gossip > shop > giờ vàng, hoặc giờ vàng chỉ thắng khi không nearShop/nearGossip). Prompt + `S.busy`, Esc hủy"
+        },
+        {
+          "done": false,
+          "text": "**Cửa sổ Đèn Bay 12–18s**: visual rõ — bắt buộc: (1) **lưu ref** các bulb/pointLight tạo trong `buildStreetDistrict` (hiện loop `cyl`+`Sphere`+`PointLight` tại x∈{16.5,20.5,24.5}, z∈{streetZ±4.2}) vào `S.streetLamps[]`, (2) lerp `position.y` lên + orbit/xoay nhẹ quanh tâm phố, (3) gold dust hoặc spark rẻ trên mặt đường. Hết cửa sổ / Esc → lerp về y gốc + intensity gốc. Mobile: ít particle / có thể bay ít đèn hơn"
+        },
+        {
+          "done": false,
+          "text": "**Bậc escalate** ≥3: `lap` / `ruc` / `rang` — persist `phoVangBestTier` (+ `phoVangUses`) trong `saveAll`; lần đầu mỗi bậc → toast + Sổ + `gainCongDuc` lớn hơn. Copy mẫu: *“Đèn vừa nhấc khỏi trụ”* / *“Cả phố ngập giờ vàng”* / *“Rạng như chỉ có mình trên Phố An Lạc”*"
+        },
+        {
+          "done": false,
+          "text": "**VFX rẻ**: emissive bulb ↑, pointLight intensity bump, ring pulse dưới chân giữa phố (proxy tip `✨ Giờ Vàng`); không post-process stack"
+        },
+        {
+          "done": false,
+          "text": "**Sổ cầu an** section ngắn **🛤️ Phố Giờ Vàng · Đèn Bay** — số lần gọi, bậc cao nhất, 1–3 dòng nhật ký"
+        },
+        {
+          "done": false,
+          "text": "Soft hooks ≥1: sau `openShopVisit` / nghe chuyện đánh ghen → `duyenPhoVang` bump bậc hoặc unlock sớm; night/`calm` → bay cao/sáng hơn"
+        },
+        {
+          "done": false,
+          "text": "UI copy **tiếng Việt** (prompt, toast, Sổ)"
+        },
+        {
+          "done": false,
+          "text": "Mobile + desktop usable; FPS-safe; `S.busy` trong sự kiện; Esc/Hủy = kết thúc + restore đèn"
+        },
+        {
+          "done": false,
+          "text": "Reuse: `buildStreetDistrict` lamps, `STREET_Z`, `goToStreetGate` / street enter toast, shop + gossip proximity priority, `toast`, `gainCongDuc`, Sổ/`openBook`, day/weather, unlock/duyên pattern từ Sen/Chuông/Tháp/Phật nếu tiện"
+        },
+        {
+          "done": false,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": false,
+          "text": "**Do NOT** rewrite nội dung chuyện đánh ghen / thay shop beats (chỉ hook duyên nhẹ)"
+        },
+        {
+          "done": false,
+          "text": "**Preserve** Sen Bay, Chuông Đảo Thời, Tháp Mở Trời, Phật Nói, tranh Ronaldo–Messi, street UX (`goToStreetGate` → ~20.2, `btn-street-fab`, KeyP, `chua_seen_street`, yellow path/arrow), 4 quán interact, gossip circle — không phá"
+        }
+      ],
+      "done": 0,
+      "total": 12,
+      "progress": 0.0,
+      "hasDoneReport": false,
+      "doneReport": "",
+      "mtime": "2026-11-02T20:48:15+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-2038-pagoda-fantasy.md",
+      "name": "TASK-20261102-2038-pagoda-fantasy.md",
+      "title": "Phật Nói · Lời Vàng — tượng Phật sân chùa nói lời vàng",
+      "wish": "Ai đứng trước tượng Phật cũng từng ước **Ngài thật sự nói** — một lời an ủi chỉ dành cho mình. Game cho điều không thể IRL: **Phật Nói · Lời Vàng** tại `buildStandingBuddha(0, -4.6)` — thỉnh nghe một phép ngắn và **tượng Phật sân chùa mở lời**, chữ vàng bay quanh sân, không khí dịu lại vài giây như pháp thoại sống.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Hotspot / mode Phật Nói** tại chân tượng Phật đứng (~`0, -4.6`) — radius **không** chồng Sen Bay (`SEN_BAY_SPOT` ~`0,-1.35`). **Không** phố / gate / shops / BTS. Prompt + `near` theo pattern Sen Bay / Chuông Đảo / Tháp Mở (`S.busy`, Esc hủy)"
+        },
+        {
+          "done": true,
+          "text": "**Cửa sổ pháp thoại 9–14s**: visual rõ — ít nhất **2 trong 3**: (1) glow/emissive nhẹ trên `buildStandingBuddha` group (hoặc light + aura ring proxy quanh tượng, không cần morph khuôn mặt), (2) 1–3 `textPlane` chữ VN vàng bay/xoay quanh tượng rồi tan, (3) petal/gold dust burst kéo về player. Snap/restore materials + lights khi hết cửa sổ / Esc"
+        },
+        {
+          "done": true,
+          "text": "**Bậc escalate** ≥3: `an` / `tu` / `giac` — persist `phatNoiBestTier` (+ optional `phatNoiUses`) trong `saveAll`; lần đầu mỗi bậc → toast + Sổ + `gainCongDuc` lớn hơn. Copy mẫu ngắn (đổi câu theo bậc): *“An lòng như sen giữa sân”* / *“Từ bi mở cửa mỗi bước”* / *“Giác một niệm · sáng cả sân”*"
+        },
+        {
+          "done": true,
+          "text": "**VFX rẻ**: emissive vàng-trắng, ring pulse dưới chân tượng; không post-process stack; mobile cắt particle / ít textPlane"
+        },
+        {
+          "done": true,
+          "text": "**Sổ cầu an** section ngắn **🙏 Phật Nói · Lời Vàng** — số lần nghe, bậc cao nhất, 1–3 dòng nhật ký"
+        },
+        {
+          "done": true,
+          "text": "Soft hooks ≥1: thắp hương / Sen Bay / Chuông Đảo / Tháp Mở vừa xong → `duyenPhat` bump bậc hoặc +1 công đức; night/`calm` → chữ đẹp hơn"
+        },
+        {
+          "done": true,
+          "text": "UI copy **tiếng Việt** (prompt, toast, dòng pháp, Sổ)"
+        },
+        {
+          "done": true,
+          "text": "Mobile + desktop usable; FPS-safe; `S.busy` trong cửa sổ; Esc/Hủy = kết thúc + restore"
+        },
+        {
+          "done": true,
+          "text": "Reuse: `buildStandingBuddha` / statue group nếu expose được, `toast`, `gainCongDuc`, Sổ/`openBook`, day/weather, petals, unlock/duyên pattern từ Sen/Chuông/Tháp"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand Phố An Lạc / street shops / gate / đánh ghen"
+        },
+        {
+          "done": true,
+          "text": "**Preserve** Sen Bay, Chuông Đảo Thời, Tháp Mở Trời, tranh Ronaldo–Messi tường chính điện, street UX (`goToStreetGate` → 20.2, `btn-street-fab`, KeyP, `chua_seen_street`, yellow path/arrow) — không đụng trừ hook duyên nhẹ nếu cần"
+        }
+      ],
+      "done": 12,
+      "total": 12,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`, `agents/tasks/TASK-20261102-2038-pagoda-fantasy.md`, `agents/loop-state.json`\n- What the player can do now:\n  - Sau ~20–35s (hoặc sau hương / Sen Bay / Chuông Đảo / Tháp Mở) thấy hào quang vàng dưới chân tượng Phật đứng (~0, -4.6) + toast *“Tượng Phật muốn nói một lời…”*\n  - Gần tượng → **「Nghe Phật · lời vàng」** → pháp thoại ~9–14s: tượng glow, chữ vàng bay xoay, cánh hoa/gold dust kéo về mình; Esc/Hủy kết thúc sớm\n  - Bậc **An → Từ → Giác** (duyên bump); lần đầu mỗi bậc + công đức lớn; stamp **Lời Vàng** / danh hiệu **Khách Nghe Pháp**; Sổ section 🙏 Phật Nói · Lời Vàng\n- How to test:\n  1. Vào chơi, đứng gần tượng Phật giữa sân (sau đài sen, trước tháp) — chờ toast discover hoặc thắp hương để unlock sớm\n  2. Bấm **Nghe Phật · lời vàng** — xác nhận glow + chữ bay + particles; Esc hủy restore\n  3. Nghe 3 lần / dùng duyên để lên Từ/Giác; mở Sổ kiểm tra nhật ký + flair\n  4. Smoke: Sen Bay vẫn ngồi được; Tháp Mở / Chuông Đảo / phố (P / FAB) / poster Ronaldo–Messi không đổi\n- Known limits / next ideas for Agent 1:\n  - Không TTS / lip-sync; chữ là textPlane orbit (mobile ≤2 dòng)\n  - Overlap radius với Sen Bay có guard “gần đâu thắng” — có thể tinh chỉnh prompt khoảng trống giữa hai hotspot\n  - Gợi ý loop sau: petal dragon / cloud bridge / monks vô hình (đúng Out of scope task này)",
+      "mtime": "2026-11-02T20:45:14+07:00"
+    },
+    {
+      "file": "agents/tasks/TASK-20261102-2031-pagoda-fantasy.md",
+      "name": "TASK-20261102-2031-pagoda-fantasy.md",
+      "title": "Tháp Mở Trời — bảo tháp sân chùa mở tầng lên mây",
+      "wish": "Ai đứng trước bảo tháp cũng từng ước **các tầng mở ra trời** — mái tách, đài sáng, bước lên một nhịp mây. Game cho điều không thể IRL: **Tháp Mở Trời** tại `buildGrandPagoda` (~`0, -18.5`) — thỉnh một phép ngắn và **tháp sân chùa tự bung tầng lên cao**, người chơi đứng trên vành sáng bay theo vài giây rồi khép lại như một phép lành.",
+      "phase": "review",
+      "checklist": [
+        {
+          "done": true,
+          "text": "**Hotspot / mode Mở Trời** tại chân tháp sân chùa (~`0, -18.5`) — **không** phố / gate / shops / BTS. Prompt + `near` radius theo pattern Sen Bay / Chuông Đảo (`S.busy`, Esc hủy)"
+        },
+        {
+          "done": true,
+          "text": "**Cửa sổ mở 10–16s**: visual rõ — ít nhất **2 trong 3**: (1) 2–4 roof/tier meshes của grand pagoda (hoặc proxy group nhẹ gắn tháp) **lerp Y/scale tách lên**, (2) beam/ring glow dọc trục + particle cánh hoa/gold dust bay lên, (3) player ride trên vành sáng (lerp Y theo avatar/`controls` pattern Sen Bay — không free-fly toàn map). Snap/restore tháp + player khi hết cửa sổ / Esc"
+        },
+        {
+          "done": true,
+          "text": "**Tầng escalate** ≥3: `nhat` / `tam` / `cuu` — persist `thapMoBestTier` (+ optional `thapMoUses`) trong `saveAll`; lần đầu mỗi bậc → toast + Sổ + `gainCongDuc` lớn hơn"
+        },
+        {
+          "done": true,
+          "text": "**VFX rẻ**: emissive beam vàng-trắng, ring pulse; không post-process stack; mobile cắt particle / ít tier proxy"
+        },
+        {
+          "done": true,
+          "text": "**Sổ cầu an** section ngắn **🏯 Tháp Mở Trời** — số lần mở, bậc cao nhất, 1–3 dòng nhật ký"
+        },
+        {
+          "done": true,
+          "text": "Soft hooks ≥1: thắp hương / Sen Bay / Chuông Đảo vừa xong → `duyenThap` bump bậc hoặc +1 công đức; night/`calm` → beam đẹp hơn"
+        },
+        {
+          "done": true,
+          "text": "UI copy **tiếng Việt** (prompt, toast, Sổ)"
+        },
+        {
+          "done": true,
+          "text": "Mobile + desktop usable; FPS-safe; `S.busy` trong cửa sổ; Esc/Hủy = hạ + restore tháp"
+        },
+        {
+          "done": true,
+          "text": "Reuse: `buildGrandPagoda` / pagoda group nếu expose được, `toast`, `gainCongDuc`, Sổ/`openBook`, day/weather, petals, Sen Bay ride pattern"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand BTS / princess / idol romance"
+        },
+        {
+          "done": true,
+          "text": "**Do NOT** expand Phố An Lạc / street shops / gate / đánh ghen"
+        },
+        {
+          "done": true,
+          "text": "**Preserve** Sen Bay, Chuông Đảo Thời, tranh Ronaldo–Messi tường chính điện, street UX (`goToStreetGate` → 20.2, `btn-street-fab`, KeyP, `chua_seen_street`, yellow path/arrow) — không đụng trừ hook duyên nhẹ nếu cần"
+        }
+      ],
+      "done": 12,
+      "total": 12,
+      "progress": 100.0,
+      "hasDoneReport": true,
+      "doneReport": "- Files changed: `index.html`, `agents/tasks/TASK-20261102-2031-pagoda-fantasy.md`, `agents/loop-state.json`\n- What the player can do now:\n  - Sau ~22–35s trên sân (hoặc thắp hương / Sen Bay / Chuông Đảo) → vòng sáng vàng ở **chân tháp** (~`0, -10.85`) + toast *“Tháp muốn mở một tầng trời…”*\n  - Gần vòng sáng · nút **「Mở tháp · lên tầng」** → mái tháp lerp bung lên, beam vàng-trắng, đứng trên vành sáng nâng ~5–10m (~11–16s)\n  - Escalate session **Nhất → Tam → Cửu** (duyên bump bậc); lần đầu mỗi bậc +công đức lớn + nhật ký Sổ; danh hiệu **Khách Tầng Trời**\n  - Esc / Hủy = hạ an toàn + tháp khép; đêm/`calm` beam rõ hơn\n- How to test:\n  1. Vào chơi → đi về **tháp phía sau sân** (không sang phố) · chờ toast unlock hoặc thắp 1 nén hương\n  2. Đứng vòng sáng chân tháp → **Mở tháp · lên tầng** → thấy mái tách + bản thân nâng; Esc thử khép sớm\n  3. Mở lại 2–3 lần trong session → bậc Tam/Cửu cao hơn; mở **Sổ** xem mục **🏯 Tháp Mở Trời**\n  4. Smoke: Sen Bay vẫn ngồi được; Chuông Đảo vẫn đảo; P / nút phố / tranh Ronaldo–Messi không đổi\n- Known limits / next ideas for Agent 1:\n  - Chỉ animate mái/tip groups (thân tháp đứng yên) — đủ “bung tầng” nhưng chưa tách cả khối thân\n  - Không sync multiplayer tháp mở; particle cắt trên mobile\n  - Loop sau: cloud bridge / talking Buddha / petal dragon (đã out of scope)",
+      "mtime": "2026-11-02T20:37:11+07:00"
+    },
     {
       "file": "agents/tasks/TASK-20261102-2023-pagoda-fantasy.md",
       "name": "TASK-20261102-2023-pagoda-fantasy.md",
@@ -89,60 +620,60 @@
       "phase": "review",
       "checklist": [
         {
-          "done": false,
+          "done": true,
           "text": "**Hotspot / mode Đảo Thời** tại gác chuông sân chùa — **không** phố / gate / shops / BTS. Có thể: (a) prompt thứ hai khi near bell + unlocked, hoặc (b) sau thỉnh thường có nút/chip **Đảo thời** trong ~8s. Prefer pattern interact hiện có (`S.busy`, Esc hủy)"
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Cửa sổ rewind 6–10s**: visual rõ trong sân — ít nhất **2 trong 3**: (1) `timePhase`/sky tint lerp ngược hoặc day clock lùi tạm, (2) particle cánh hoa/smoke vận tốc đảo dấu, (3) 1–2 `PILGRIM` hoặc ambient props tween lùi nhẹ. Snap/restore state an toàn khi hết cửa sổ (không phá save day cycle dài hạn)"
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Tầng escalate** ≥3: `giay` / `khac` / `kiep` — persist `chuongDaoBestTier` (+ optional `chuongDaoUses`) trong `saveAll`; lần đầu mỗi tầng → toast + Sổ + `gainCongDuc` lớn hơn"
         },
         {
-          "done": false,
+          "done": true,
           "text": "**VFX rẻ**: chuông emissive xoáy / ring pulse tím-bạc; không post-process stack; mobile cắt particle"
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Sổ cầu an** section ngắn **⏳ Chuông Đảo Thời** — số lần đảo, tầng cao nhất, 1–3 dòng nhật ký"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Soft hooks ≥1: thắp hương / Sen Bay vừa xong → `duyenDao` bump tier hoặc +1 công đức; night/`calm` → rewind đẹp hơn"
         },
         {
-          "done": false,
+          "done": true,
           "text": "UI copy **tiếng Việt** (prompt, toast, Sổ)"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Mobile + desktop usable; FPS-safe; `S.busy` trong rewind; Esc/Hủy = cắt sớm + restore"
         },
         {
-          "done": false,
+          "done": true,
           "text": "Reuse: bell hotspot, `toast`, `gainCongDuc`, Sổ/`openBook`, day/weather, petals/smoke, pilgrim roots nếu dễ"
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Do NOT** expand BTS / princess / idol romance"
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Do NOT** expand Phố An Lạc / street shops / gate / đánh ghen"
         },
         {
-          "done": false,
+          "done": true,
           "text": "**Preserve** Sen Bay + tranh Ronaldo–Messi tường chính điện — không đụng trừ hook duyên nhẹ nếu cần"
         }
       ],
-      "done": 0,
+      "done": 12,
       "total": 12,
-      "progress": 0.0,
+      "progress": 100.0,
       "hasDoneReport": true,
-      "doneReport": "_(Agent 2 fills)_",
-      "mtime": "2026-11-02T20:24:14+07:00"
+      "doneReport": "- Files changed: `index.html`\n- What the player can do now: Near gác chuông (trái sân), after ~20–35s or after thắp hương / thỉnh chuông / Sen Bay, a purple-silver ring unlocks. Prompt **「Đảo thời · thỉnh」** rewinds courtyard time ~6–10s (sky/day clock, petals reverse, 1–2 pilgrims step back); Esc/Hủy restores. Tiers **Giây → Khắc → Kiếp**, first-tier merit + Sổ **⏳ Chuông Đảo Thời**, flair **Người Đảo Thời**. Night/`calm` and hương/Sen Bay duyên bump the fantasy.\n- How to test: Enter play → wait ~25s or thắp hương once → walk to gác chuông (-9.5, -2) → tap **Đảo thời · thỉnh** → confirm sky tint / petals / pilgrims reverse, toast + công đức; Esc mid-window restores; repeat 3× for Khắc/Kiếp; open Sổ for section + flair. Confirm Sen Bay + street untouched.\n- Known limits / next ideas for Agent 1: Rewind is visual-only (day clock snaps back). Presence flair is title-string only. Next IRL-impossible slice could be talking Buddha or cloud bridge — still sân chùa, no street/BTS.",
+      "mtime": "2026-11-02T20:30:11+07:00"
     },
     {
       "file": "agents/tasks/TASK-20261102-2008-pagoda-fantasy.md",
@@ -667,11 +1198,389 @@
     }
   ],
   "git": {
-    "indexDirty": false,
-    "indexMtime": "2026-11-02T20:23:49+07:00",
-    "diffStat": ""
+    "indexDirty": true,
+    "indexMtime": "2026-11-02T21:16:56+07:00",
+    "diffStat": "index.html | 10126 ++++++++++++++++++++++++++++++++++++++++++++++++-----------\n 1 file changed, 8379 insertions(+), 1747 deletions(-)"
   },
   "activity": [
+    {
+      "ts": "2026-11-02T21:16:55+07:00",
+      "agent": "agent2",
+      "message": "Starting build: Giờ Vàng · Đèn Bay",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:16:40+07:00",
+      "agent": "agent2",
+      "message": "Building Giờ Vàng · Đèn Bay Phố An Lạc",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:16:23+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: TASK-20261102-2115-pho-an-lac.md",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T21:16:23+07:00",
+      "agent": "agent1",
+      "message": "Reviewed mưa trà OK; assigned Giờ Vàng đèn bay (last street slice)",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:14:58+07:00",
+      "agent": "agent1",
+      "message": "Review Mưa Trà Đá + next Phố An Lạc (iter 9/10)",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:14:35+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T21:14:35+07:00",
+      "agent": "agent2",
+      "message": "Finished: Hẹn trà hook + sequence + rewards + Sổ",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:10:40+07:00",
+      "agent": "agent2",
+      "message": "Implementing Hẹn trà hook + sequence",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:09:28+07:00",
+      "agent": "agent2",
+      "message": "Starting build: Mưa Trà Đá",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:09:14+07:00",
+      "agent": "agent2",
+      "message": "Building Mưa Trà Đá · Hẹn Vỉa Hè",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:08:55+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: TASK-20261102-2107-pho-an-lac.md",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T21:08:55+07:00",
+      "agent": "agent1",
+      "message": "Review hốt họ OK — assign Mưa Trà Đá Hẹn Vỉa Hè",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:07:17+07:00",
+      "agent": "agent1",
+      "message": "Review Hốt Họ + next Phố An Lạc innovation",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:06:52+07:00",
+      "agent": "agent2",
+      "message": "Build complete — Hốt Họ Vỉa Hè ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T21:05:51+07:00",
+      "agent": "agent2",
+      "message": "Finished: bàn + rút số + rewards/flair/Sổ/proximity",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:02:22+07:00",
+      "agent": "agent2",
+      "message": "Building bàn hốt họ mesh + rút số sequence",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:01:55+07:00",
+      "agent": "agent2",
+      "message": "Starting build: Hốt Họ Vỉa Hè",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:01:39+07:00",
+      "agent": "agent2",
+      "message": "Building Hốt Họ Vỉa Hè",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:01:22+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: Hốt Họ Vỉa Hè",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T21:00:53+07:00",
+      "agent": "agent1",
+      "message": "Iter 7 review karaoke OK; assigning Hốt Họ Vỉa Hè",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T21:00:17+07:00",
+      "agent": "agent1",
+      "message": "Review Karaoke Loa Kéo + next Phố An Lạc innovation",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:59:57+07:00",
+      "agent": "agent2",
+      "message": "Build complete — Karaoke loa kéo Phố An Lạc ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:58:10+07:00",
+      "agent": "agent2",
+      "message": "Finished: karaoke state + loa mesh + hát sequence",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:55:49+07:00",
+      "agent": "agent2",
+      "message": "Starting build",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:55:33+07:00",
+      "agent": "agent2",
+      "message": "Building Karaoke Loa Kéo Phố An Lạc",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:55:13+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: Karaoke Loa Kéo Phố An Lạc",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:54:31+07:00",
+      "agent": "agent1",
+      "message": "Review xích lô OK; inventing next Phố An Lạc slice",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:54:03+07:00",
+      "agent": "agent1",
+      "message": "--help",
+      "status": ""
+    },
+    {
+      "ts": "2026-11-02T20:53:29+07:00",
+      "agent": "agent1",
+      "message": "Review Xích Lô + next Phố An Lạc innovation",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:53:07+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:53:07+07:00",
+      "agent": "agent2",
+      "message": "Finished: bến + ride + xe ôm/đêm unlocks + flair/Sổ",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:48:52+07:00",
+      "agent": "agent2",
+      "message": "Adding xích lô state/save/flair + bến mesh",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:48:33+07:00",
+      "agent": "agent1",
+      "message": "Street pivot locked: active task TASK-20261102-2047 xích lô (2046 Đèn Bay superseded)",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:48:08+07:00",
+      "agent": "agent2",
+      "message": "Starting build: xích lô Phố An Lạc",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:47:56+07:00",
+      "agent": "agent2",
+      "message": "Building xích lô / xe ôm Phố An Lạc ride",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:47:40+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: TASK-20261102-2046-pho-an-lac.md",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:47:39+07:00",
+      "agent": "agent1",
+      "message": "Pivot: Phố Giờ Vàng · Đèn Bay assigned (street in scope)",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:47:37+07:00",
+      "agent": "agent1",
+      "message": "Assigned TASK-20261102-2047-pho-an-lac.md — Xích lô / xe ôm vòng Phố An Lạc → Agent 2",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:46:52+07:00",
+      "agent": "agent1",
+      "message": "Pivoting to Phố An Lạc — inventing xe ôm / xích lô street ride slice",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:46:25+07:00",
+      "agent": "agent1",
+      "message": "Inventing next Phố An Lạc feature for Agent2",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:46:25+07:00",
+      "agent": "system",
+      "message": "Pivot loop → Phố An Lạc innovations",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:45:41+07:00",
+      "agent": "agent1",
+      "message": "Review Phật Nói + next pagoda fantasy",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:45:17+07:00",
+      "agent": "agent2",
+      "message": "Build complete — Phật Nói · Lời Vàng ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:45:17+07:00",
+      "agent": "agent2",
+      "message": "Finished: hotspot + speech window An/Từ/Giác + Sổ",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:40:27+07:00",
+      "agent": "agent2",
+      "message": "Hotspot + state: Phật Nói at standing Buddha",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:39:35+07:00",
+      "agent": "agent2",
+      "message": "Starting build: Phật Nói · Lời Vàng",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:39:17+07:00",
+      "agent": "agent2",
+      "message": "Building Phật Nói · Lời Vàng",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:38:58+07:00",
+      "agent": "agent1",
+      "message": "Task assigned to Agent 2: TASK-20261102-2038-pagoda-fantasy.md",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:38:58+07:00",
+      "agent": "agent1",
+      "message": "Reviewed Tháp Mở Trời — solid; assigning Phật Nói · Lời Vàng",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:37:27+07:00",
+      "agent": "agent1",
+      "message": "Review Tháp Mở Trời + next pagoda fantasy",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:36:53+07:00",
+      "agent": "agent2",
+      "message": "Build complete — ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:36:53+07:00",
+      "agent": "agent2",
+      "message": "Finished: Tháp Mở Trời hotspot + Nhất/Tam/Cửu ride + Sổ",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:33:37+07:00",
+      "agent": "agent2",
+      "message": "Wiring Tháp Mở Trời state + pagoda tiers",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:33:07+07:00",
+      "agent": "agent2",
+      "message": "Starting build: Tháp Mở Trời",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:32:50+07:00",
+      "agent": "agent2",
+      "message": "Building Tháp Bung Mây",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:32:34+07:00",
+      "agent": "agent1",
+      "message": "Task assigned: Tháp Mở Trời → Agent 2",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:32:07+07:00",
+      "agent": "agent1",
+      "message": "Review Chuông Đảo Thời OK; invent Tháp Mở Trời",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:31:16+07:00",
+      "agent": "agent1",
+      "message": "Review Chuông Đảo Thời + next pagoda fantasy",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:30:14+07:00",
+      "agent": "agent2",
+      "message": "Build complete — Chuông Đảo Thời ready for review",
+      "status": "done"
+    },
+    {
+      "ts": "2026-11-02T20:29:07+07:00",
+      "agent": "agent2",
+      "message": "Finished: hotspot + rewind window + tiers + Sổ",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:25:42+07:00",
+      "agent": "agent2",
+      "message": "Scaffolding Chuông Đảo Thời state + persist",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:25:03+07:00",
+      "agent": "agent2",
+      "message": "Starting build: Chuông Đảo Thời",
+      "status": "working"
+    },
+    {
+      "ts": "2026-11-02T20:24:45+07:00",
+      "agent": "agent2",
+      "message": "Building Chuông Đảo Thời",
+      "status": "working"
+    },
     {
       "ts": "2026-11-02T20:24:19+07:00",
       "agent": "agent1",
@@ -773,384 +1682,6 @@
       "agent": "agent2",
       "message": "Build complete — ready for review",
       "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:59:41+07:00",
-      "agent": "agent2",
-      "message": "Finished: Khách Phố flair + Sổ Phố An Lạc",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:59:41+07:00",
-      "agent": "agent2",
-      "message": "Finished: shop interact targets + beats",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:56:39+07:00",
-      "agent": "agent2",
-      "message": "Starting build: street shop interact",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:56:18+07:00",
-      "agent": "agent2",
-      "message": "Starting street shop interact 9/10",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:53:46+07:00",
-      "agent": "agent1",
-      "message": "Task assigned to Agent 2",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:53:46+07:00",
-      "agent": "agent1",
-      "message": "Reviewed weather (accept, no polish); assigned street shop interact TASK-20261102-1953",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:52:36+07:00",
-      "agent": "agent1",
-      "message": "Loop 9/10 — reviewing weather mood",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:51:22+07:00",
-      "agent": "agent1",
-      "message": "Loop 9/10 — reviewing weather mood",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:50:59+07:00",
-      "agent": "agent2",
-      "message": "Build complete — ready for review",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:50:59+07:00",
-      "agent": "agent2",
-      "message": "Finished: weather mood system + visuals + HUD/Sổ + soft ritual bonuses",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:47:15+07:00",
-      "agent": "agent2",
-      "message": "Starting build",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:46:57+07:00",
-      "agent": "agent2",
-      "message": "Starting weather & mood system",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:46:42+07:00",
-      "agent": "agent1",
-      "message": "Task assigned to Agent 2",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:46:42+07:00",
-      "agent": "agent1",
-      "message": "Reviewed daily streak (solid); assigned weather/mood TASK-20261102-1945",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:45:36+07:00",
-      "agent": "agent1",
-      "message": "Loop 8/10 — reviewing daily streak goals",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:45:15+07:00",
-      "agent": "agent2",
-      "message": "Build complete — ready for review",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:45:15+07:00",
-      "agent": "agent2",
-      "message": "Finished: daily goals + chuỗi ngày + Sổ UI + persistence",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:41:28+07:00",
-      "agent": "agent2",
-      "message": "Implementing daily goals + chuỗi ngày core",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:40:42+07:00",
-      "agent": "agent2",
-      "message": "Starting build: daily streak + Sổ goals",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:40:23+07:00",
-      "agent": "agent2",
-      "message": "Starting daily streak + Sổ goals",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:40:07+07:00",
-      "agent": "agent1",
-      "message": "Task assigned to Agent 2: daily streak + Sổ goals",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:40:06+07:00",
-      "agent": "agent1",
-      "message": "Reviewed festival hour — accepted, no polish",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:39:02+07:00",
-      "agent": "agent1",
-      "message": "Loop 7/10 — reviewing festival hour",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:38:37+07:00",
-      "agent": "agent2",
-      "message": "Build complete — ready for review",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:38:37+07:00",
-      "agent": "agent2",
-      "message": "Finished: Thả hoa hội + rewards + Sổ Khách Hội",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:38:37+07:00",
-      "agent": "agent2",
-      "message": "Finished: festival window + atmosphere",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:33:28+07:00",
-      "agent": "agent2",
-      "message": "Starting build: Giờ hội chùa",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:33:08+07:00",
-      "agent": "agent2",
-      "message": "Starting Giờ hội chùa festival hour",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:32:52+07:00",
-      "agent": "agent1",
-      "message": "Task assigned to Agent 2",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:32:52+07:00",
-      "agent": "agent1",
-      "message": "Reviewed pilgrim quests (OK); assigned festival hour Giờ hội chùa",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:31:49+07:00",
-      "agent": "agent1",
-      "message": "Loop 6/10 — reviewing pilgrim quests + street",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:28:53+07:00",
-      "agent": "agent2",
-      "message": "Build complete — ready for review",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:28:52+07:00",
-      "agent": "agent2",
-      "message": "Finished: 3 pilgrims + 6 quest variants + Sổ/Thiện Duyên",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:26:13+07:00",
-      "agent": "agent2",
-      "message": "Scaffolding pilgrim NPCs + quests",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:25:13+07:00",
-      "agent": "agent2",
-      "message": "Starting build",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:24:56+07:00",
-      "agent": "agent2",
-      "message": "Starting NPC pilgrim quests 5/10",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:24:40+07:00",
-      "agent": "agent1",
-      "message": "Task assigned to Agent 2: TASK-20261102-1924-npc-pilgrim-quests.md",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:24:40+07:00",
-      "agent": "agent1",
-      "message": "Iter5: co-op OK light pass; assigned NPC pilgrim quests (unused pillar)",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:23:46+07:00",
-      "agent": "agent1",
-      "message": "Resuming global loop 5/10",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:23:46+07:00",
-      "agent": "system",
-      "message": "Loop resumed — max 10 (iter 5)",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:23:46+07:00",
-      "agent": "system",
-      "message": "Loop armed — next: agent1",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:12:08+07:00",
-      "agent": "system",
-      "message": "Loop stopped",
-      "status": "idle"
-    },
-    {
-      "ts": "2026-11-02T19:12:08+07:00",
-      "agent": "agent1",
-      "message": "Final review — loop complete",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:11:26+07:00",
-      "agent": "agent1",
-      "message": "Final loop pass 4/4 — reviewing co-op ritual",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:11:02+07:00",
-      "agent": "agent2",
-      "message": "Build complete — ready for review",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:10:20+07:00",
-      "agent": "agent2",
-      "message": "Build complete — ready for review",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:10:20+07:00",
-      "agent": "agent2",
-      "message": "Finished: co-op window + rewards + Sổ",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:07:59+07:00",
-      "agent": "agent2",
-      "message": "Wiring coop ritual at chuông",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:06:23+07:00",
-      "agent": "agent2",
-      "message": "Starting build: co-op chuông cầu chung",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:06:03+07:00",
-      "agent": "agent2",
-      "message": "Starting co-op chuông cầu chung",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:05:43+07:00",
-      "agent": "agent1",
-      "message": "Task assigned to Agent 2: co-op social ritual (chuông cầu chung)",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:05:43+07:00",
-      "agent": "agent1",
-      "message": "Reviewed fortune→fate; added compass chip polish; assigned co-op ritual TASK-20261102-1904",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:03:50+07:00",
-      "agent": "agent1",
-      "message": "Loop iter 3 — reviewing fortune fate",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:03:25+07:00",
-      "agent": "agent2",
-      "message": "Build complete — fortune→fate mini-event ready for review",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T19:01:13+07:00",
-      "agent": "agent2",
-      "message": "Adding fateRuns state + reward table + yard markers",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:00:44+07:00",
-      "agent": "agent2",
-      "message": "Starting build: fortune→fate mini-event",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:00:26+07:00",
-      "agent": "agent2",
-      "message": "Starting fortune → fate mini-event",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T19:00:04+07:00",
-      "agent": "agent1",
-      "message": "Reviewed global systems; polished HUD/toasts; assigned fortune→fate yard event",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T18:58:12+07:00",
-      "agent": "agent1",
-      "message": "Reviewing global temple systems (merit/day/stamps/title)",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T18:57:51+07:00",
-      "agent": "agent1",
-      "message": "Loop iter 2 — reviewing global temple systems",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T18:57:32+07:00",
-      "agent": "agent2",
-      "message": "Build complete — global temple: cong duc, day cycle, stamps, presence title",
-      "status": "done"
-    },
-    {
-      "ts": "2026-11-02T18:54:12+07:00",
-      "agent": "agent2",
-      "message": "Building: cong duc, day cycle, stamps, presence title",
-      "status": "working"
-    },
-    {
-      "ts": "2026-11-02T18:53:21+07:00",
-      "agent": "agent2",
-      "message": "Switching focus: global temple systems (stop princess)",
-      "status": "working"
     }
   ]
 }

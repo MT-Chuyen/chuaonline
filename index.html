@@ -283,6 +283,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button class="weapon-btn on" type="button" data-gun="">Tay không</button>
       <button class="weapon-btn" type="button" data-gun="ak">AK-47</button>
       <button class="weapon-btn" type="button" data-gun="bazooka">Bazooka</button>
+      <button class="weapon-btn" type="button" data-gun="knife">Dao khổng lồ</button>
     </div>
     <div id="gun-actions">
       <button id="btn-aim" type="button">Ngắm<br/>Zoom</button>
@@ -379,7 +380,7 @@ const S = {
   netVisit: null, seenWishes: Object.create(null),
   combatUntil: 0, flinchUntil: 0,
   gun: '', aiming: false, fireUntil: 0, baseFov: 55, projectiles: [], bursts: [],
-  fpsMode: false,
+  fpsMode: false, deadUntil: 0,
 };
 
 const SPOTS = [
@@ -557,6 +558,20 @@ function playWhoosh() {
   const g = c.createGain(), t = c.currentTime;
   g.gain.setValueAtTime(0.1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
   s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + 0.35);
+}
+function playKnifeSwing() {
+  playWhoosh();
+  const ud = player?.userData;
+  if (!ud) return;
+  // Vung dao khổng lồ
+  ud.armR.rotation.set(-1.8, 0.3, -0.8);
+  if (ud.gun) ud.gun.rotation.set(-0.6, 0.5, -1.2);
+  setTimeout(() => {
+    if (S.gun === 'knife' && ud.gun) {
+      ud.armR.rotation.set(-0.4, 0.2, -1.1);
+      ud.gun.rotation.set(0.15, 0.2, -0.35);
+    }
+  }, 280);
 }
 function playGunshot() {
   const c = audio(); if (c.state === 'suspended') c.resume();
@@ -772,6 +787,30 @@ function buildBazookaGun() {
   const sight = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.08, 0.04), metal); sight.position.set(0, 0.1, 0.1); g.add(sight);
   return g;
 }
+/** Dao khổng lồ — cao khoảng bằng một người (~1.8m) */
+function buildGiantKnife() {
+  const g = new THREE.Group();
+  const steel = new THREE.MeshStandardMaterial({ color: 0xcfd8e6, metalness: 0.85, roughness: 0.25, emissive: 0x223344, emissiveIntensity: 0.12 });
+  const edge = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.9, roughness: 0.15, emissive: 0x8899aa, emissiveIntensity: 0.2 });
+  const wrap = new THREE.MeshStandardMaterial({ color: 0x4a2a18, roughness: 0.85 });
+  const gold = M.gold;
+  // Lưỡi dài ~1.35m
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.35, 0.04), steel);
+  blade.position.y = 0.95; g.add(blade);
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.35, 6), edge);
+  tip.position.y = 1.78; g.add(tip);
+  // Sống lưỡi
+  const spine = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.2, 0.06), edge);
+  spine.position.set(-0.05, 0.95, 0); g.add(spine);
+  // Cán cầm
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.55, 8), wrap);
+  handle.position.y = 0.05; g.add(handle);
+  const guard = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.08, 0.12), gold);
+  guard.position.y = 0.32; g.add(guard);
+  const pommel = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), gold);
+  pommel.position.y = -0.28; g.add(pommel);
+  return g;
+}
 function attachWeapon(humanoid, type) {
   if (!humanoid) return;
   if (humanoid.userData.gun) {
@@ -781,37 +820,51 @@ function attachWeapon(humanoid, type) {
   humanoid.userData.gunType = type || '';
   if (!type) {
     humanoid.userData.armR.rotation.set(0, 0, 0);
+    humanoid.userData.armL.rotation.set(0, 0, 0);
     return;
   }
-  const gun = type === 'bazooka' ? buildBazookaGun() : buildAKGun();
+  let gun;
+  if (type === 'bazooka') gun = buildBazookaGun();
+  else if (type === 'knife') gun = buildGiantKnife();
+  else gun = buildAKGun();
+
   if (type === 'bazooka') {
     gun.position.set(0.34, 1.02, 0.32);
     gun.rotation.set(-0.35, 0.05, -0.2);
     gun.scale.setScalar(1.05);
+    humanoid.userData.armR.rotation.set(-1.15, 0.1, -0.35);
+    humanoid.userData.armL.rotation.set(-0.7, 0, 0.45);
+  } else if (type === 'knife') {
+    // Cầm đứng — lưỡi cao bằng người
+    gun.position.set(0.55, 0.55, 0.15);
+    gun.rotation.set(0.15, 0.2, -0.35);
+    gun.scale.setScalar(1.0);
+    humanoid.userData.armR.rotation.set(-0.4, 0.2, -1.1);
+    humanoid.userData.armL.rotation.set(0.2, 0, 0.3);
   } else {
     gun.position.set(0.4, 0.88, 0.28);
     gun.rotation.set(-0.25, 0.15, -0.25);
+    humanoid.userData.armR.rotation.set(-1.15, 0.1, -0.35);
+    humanoid.userData.armL.rotation.set(-0.7, 0, 0.45);
   }
   humanoid.add(gun);
   humanoid.userData.gun = gun;
-  humanoid.userData.armR.rotation.set(-1.15, 0.1, -0.35);
-  humanoid.userData.armL.rotation.set(-0.7, 0, 0.45);
 }
 
 /** Tháp nhiều tầng lớn (kiểu bảo tháp / chùa tầng) — nhẹ, không model ngoài */
 function buildGrandPagoda(cx, cz) {
   const root = new THREE.Group();
-  // Nền đá rộng
-  box(16, 0.55, 12, M.stone, 0, 0.25, 0, root);
-  box(15.2, 0.35, 11.2, M.cream, 0, 0.55, 0, root);
+  // Nền đá rộng hơn
+  box(22, 0.55, 14, M.stone, 0, 0.25, 0, root);
+  box(20.8, 0.35, 13, M.cream, 0, 0.55, 0, root);
 
   const tiers = [
-    { w: 13.5, d: 9.5, h: 4.5, rh: 2.4 },
-    { w: 11.5, d: 8.2, h: 3.3, rh: 2.0 },
-    { w: 9.6, d: 7.0, h: 2.9, rh: 1.75 },
-    { w: 8.0, d: 5.8, h: 2.6, rh: 1.55 },
-    { w: 6.4, d: 4.8, h: 2.3, rh: 1.4 },
-    { w: 5.0, d: 3.8, h: 2.1, rh: 1.6 },
+    { w: 18.5, d: 12.0, h: 4.5, rh: 2.5 },
+    { w: 15.8, d: 10.4, h: 3.4, rh: 2.15 },
+    { w: 13.2, d: 8.8, h: 3.0, rh: 1.9 },
+    { w: 10.8, d: 7.2, h: 2.7, rh: 1.65 },
+    { w: 8.6, d: 5.8, h: 2.4, rh: 1.5 },
+    { w: 6.6, d: 4.6, h: 2.2, rh: 1.7 },
   ];
   let y = 0.7;
   tiers.forEach((t, i) => {
@@ -863,7 +916,7 @@ function buildGrandPagoda(cx, cz) {
 
   root.position.set(cx, 0, cz);
   scene.add(root);
-  addCol(cx, cz, 15.5, 11.5, root);
+  addCol(cx, cz, 20.5, 14.5, root);
   return root;
 }
 
@@ -2001,7 +2054,7 @@ addEventListener('keydown', e => {
   }
   if (e.code === 'KeyF' || e.code === 'Space') { if (S.gun) fireWeapon(); }
   if (e.code === 'KeyR') {
-    const order = ['', 'ak', 'bazooka'];
+    const order = ['', 'ak', 'bazooka', 'knife'];
     setGun(order[(order.indexOf(S.gun) + 1) % order.length]);
   }
   if (S.nearPlayer && !S.busy && !S.gun) {
@@ -2635,7 +2688,7 @@ function publishWish(w) {
   set(r, { ...w, uid: S.uid, t: serverTimestamp() });
 }
 
-const ACT_LABEL = { chao: 'chào', dam: 'đấm', da: 'đá', tat: 'tát', ak: 'bắn AK', bazooka: 'bắn bazooka' };
+const ACT_LABEL = { chao: 'chào', dam: 'đấm', da: 'đá', tat: 'tát', ak: 'bắn AK', bazooka: 'bắn bazooka', knife: 'chém', kill: 'hạ' };
 const ACT_RECV = {
   chao: n => `${n} đang chào bạn`,
   dam: n => `${n} vừa đấm bạn!`,
@@ -2643,6 +2696,8 @@ const ACT_RECV = {
   tat: n => `${n} vừa tát bạn!`,
   ak: n => `${n} bắn AK trúng bạn! 💥`,
   bazooka: n => `${n} bắn bazooka trúng bạn! 🚀💥`,
+  knife: n => `${n} chém bạn bằng dao khổng lồ! 🗡️`,
+  kill: n => `${n} đã hạ bạn! Hồi sinh sau vài giây…`,
 };
 
 function playCombatAnim(type) {
@@ -2687,7 +2742,9 @@ function receiveFriendAction(msg) {
   const type = msg.type || 'chao';
   const name = msg.fromName || 'Ai đó';
   toast(ACT_RECV[type] ? ACT_RECV[type](name) : `${name} tương tác với bạn`);
-  if (type === 'ak' || type === 'bazooka') {
+  if (type === 'kill' || type === 'knife') {
+    applyDeath(name);
+  } else if (type === 'ak' || type === 'bazooka') {
     flashHit();
     S.flinchUntil = performance.now() + (type === 'bazooka' ? 700 : 420);
     if (player) player.rotation.z = (Math.random() > 0.5 ? 1 : -1) * (type === 'bazooka' ? 0.45 : 0.28);
@@ -2716,6 +2773,36 @@ function receiveFriendAction(msg) {
   }
 }
 
+/** Bị hạ — ngã xuống, khóa điều khiển, hồi sinh sau 3s */
+function applyDeath(byName) {
+  if (S.deadUntil && performance.now() < S.deadUntil) return;
+  S.deadUntil = performance.now() + 3200;
+  S.busy = true;
+  flashHit();
+  shakeScreen(0.35);
+  playWhoosh();
+  if (player) {
+    player.rotation.z = 1.35;
+    player.rotation.x = 0.4;
+    player.position.y = 0.15;
+  }
+  spawnExplosionBurst(playerRoot.position.x, 0.8, playerRoot.position.z, false);
+  toast(`${byName || 'Ai đó'} đã hạ bạn! Hồi sinh…`);
+  setTimeout(() => {
+    if (player) {
+      player.rotation.z = 0;
+      player.rotation.x = 0;
+      player.position.y = 0;
+    }
+    // Hồi sinh gần cổng
+    playerRoot.position.set(0, 0, 8.5);
+    S.busy = false;
+    S.deadUntil = 0;
+    toast('Bạn đã hồi sinh tại cổng chùa');
+    publishPresence(true);
+  }, 3200);
+}
+
 async function doFriendAction(type, target) {
   if (!target || S.busy) return;
   if (performance.now() < S.combatUntil) return;
@@ -2736,7 +2823,8 @@ async function greetPlayer(target) {
 function updateCrosshair() {
   const ch = $('crosshair');
   if (!ch) return;
-  const armed = !!S.gun;
+  // Dao cận chiến không cần tâm ngắm đỏ
+  const armed = !!S.gun && S.gun !== 'knife';
   ch.classList.toggle('on', armed);
   ch.classList.toggle('zoom', armed && S.aiming);
   ch.style.display = armed ? 'block' : 'none';
@@ -2753,9 +2841,19 @@ function setGun(type) {
   const armed = !!S.gun;
   $('gun-actions').classList.toggle('show', armed);
   if (!armed) S.aiming = false;
+  // Nút bắn đổi thành Chém khi cầm dao
+  const fireBtn = $('btn-fire');
+  if (fireBtn) fireBtn.innerHTML = S.gun === 'knife' ? 'Chém<br/>Kill' : 'Bắn';
+  $('btn-aim').style.display = S.gun === 'knife' ? 'none' : '';
   updateCrosshair();
   publishPresence(true);
-  toast(S.gun === 'ak' ? 'AK-47: dấu + đỏ = tâm ngắm · bấm Ngắm để zoom · Bắn hoặc phím F' : S.gun === 'bazooka' ? 'Bazooka: bấm Ngắm (bật/tắt zoom), rồi Bắn' : 'Bỏ vũ khí');
+  const tips = {
+    ak: 'AK-47: ngắm + bắn',
+    bazooka: 'Bazooka: ngắm + bắn phá công trình',
+    knife: 'Dao khổng lồ (cao bằng người)! Lại gần rồi Chém để hạ bạn bè',
+    '': 'Bỏ vũ khí',
+  };
+  toast(tips[S.gun] ?? 'Đổi vũ khí');
 }
 function setAiming(on) {
   if (!S.gun) on = false;
@@ -2778,16 +2876,25 @@ function syncFpsGun(show) {
   }
   if (S.fpsGun.userData.type !== S.gun) {
     while (S.fpsGun.children.length) S.fpsGun.remove(S.fpsGun.children[0]);
-    const g = S.gun === 'bazooka' ? buildBazookaGun() : buildAKGun();
-    g.scale.setScalar(S.gun === 'bazooka' ? 1.15 : 1.35);
+    let g;
+    if (S.gun === 'bazooka') g = buildBazookaGun();
+    else if (S.gun === 'knife') g = buildGiantKnife();
+    else g = buildAKGun();
+    g.scale.setScalar(S.gun === 'knife' ? 0.85 : S.gun === 'bazooka' ? 1.15 : 1.35);
     S.fpsGun.add(g);
     S.fpsGun.userData.type = S.gun;
   }
   S.fpsGun.visible = true;
-  // Góc dưới-phải tầm nhìn — như đưa súng lên ngắm
-  if (S.gun === 'bazooka') S.fpsGun.position.set(0.28, -0.28, -0.85);
-  else S.fpsGun.position.set(0.22, -0.2, -0.55);
-  S.fpsGun.rotation.set(0.08, 0.12, 0.04);
+  if (S.gun === 'bazooka') {
+    S.fpsGun.position.set(0.28, -0.28, -0.85);
+    S.fpsGun.rotation.set(0.08, 0.12, 0.04);
+  } else if (S.gun === 'knife') {
+    S.fpsGun.position.set(0.45, -0.55, -1.1);
+    S.fpsGun.rotation.set(-0.2, 0.4, -0.5);
+  } else {
+    S.fpsGun.position.set(0.22, -0.2, -0.55);
+    S.fpsGun.rotation.set(0.08, 0.12, 0.04);
+  }
 }
 function getAimRay() {
   const origin = camera.position.clone();
@@ -3022,7 +3129,46 @@ function updateProjectiles(dt) {
 }
 async function fireWeapon() {
   if (!S.playing || !S.gun || S.busy) return;
+  if (S.deadUntil && performance.now() < S.deadUntil) return;
   if (performance.now() < S.fireUntil) return;
+
+  // —— Dao khổng lồ: cận chiến hạ người ——
+  if (S.gun === 'knife') {
+    S.fireUntil = performance.now() + 700;
+    S.combatUntil = performance.now() + 550;
+    playKnifeSwing();
+    // Tìm người trong tầm chém (~2.8m phía trước)
+    let best = null, bestD = 2.9;
+    const origin = playerRoot.position;
+    const face = player.rotation.y;
+    const fx = Math.sin(face), fz = Math.cos(face);
+    for (const [id, rp] of remotePlayers) {
+      if (!rp.mesh.visible) continue;
+      const dx = rp.mesh.position.x - origin.x;
+      const dz = rp.mesh.position.z - origin.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > bestD || dist < 0.3) continue;
+      const along = dx * fx + dz * fz;
+      if (along < 0.2) continue; // phía trước
+      bestD = dist;
+      best = { id, name: rp.name, dist, point: rp.mesh.position.clone() };
+    }
+    if (best) {
+      sendGunHit('kill', best);
+      // Hiệu ứng chém tại chỗ nạn nhân
+      spawnExplosionBurst(best.point.x, 1.0, best.point.z, false);
+      if (remotePlayers.has(best.id)) {
+        const rp = remotePlayers.get(best.id);
+        rp.emoteUntil = Date.now() + 900;
+        rp.emoteType = 'kill';
+      }
+      toast(`Hạ ${best.name} bằng dao khổng lồ! 🗡️`);
+    } else {
+      toast('Chém vào không khí — lại gần hơn!');
+    }
+    return;
+  }
+
   const isBaz = S.gun === 'bazooka';
   S.fireUntil = performance.now() + (isBaz ? 1400 : 280);
   S.combatUntil = performance.now() + 200;
@@ -3124,10 +3270,18 @@ function updateRemotes(dt) {
         ud.legR.rotation.set(-1.5, 0, 0); ud.armL.rotation.set(0.5, 0, 0.5); ud.armR.rotation.set(-0.4, 0, -0.3);
       } else if (et === 'ak' || et === 'bazooka') {
         ud.armR.rotation.set(-1.35, 0.05, -0.25); ud.armL.rotation.set(-0.7, 0, 0.45);
+      } else if (et === 'kill' || et === 'knife') {
+        rp.mesh.rotation.z = 1.2;
+        rp.mesh.rotation.x = 0.35;
       }
     } else {
       const ud = rp.mesh.userData;
-      if (rp.gunType) {
+      rp.mesh.rotation.z *= 0.85;
+      rp.mesh.rotation.x *= 0.85;
+      if (rp.gunType === 'knife') {
+        ud.armR.rotation.set(-0.4, 0.2, -1.1);
+        ud.armL.rotation.set(0.2, 0, 0.3);
+      } else if (rp.gunType) {
         ud.armR.rotation.set(-1.15, 0.1, -0.35);
         ud.armL.rotation.set(-0.7, 0, 0.45);
       } else {
@@ -3151,6 +3305,7 @@ function updateRemotes(dt) {
 /* ========== VÒNG LẶP ========== */
 function updatePlayer(dt) {
   if (!S.playing) return;
+  if (S.deadUntil && performance.now() < S.deadUntil) return; // đang chết / chờ hồi sinh
   // Vẫn cho đi khi không mở minigame/modal (busy chỉ khoá lúc chơi mini-game)
   const blocked = S.busy && ($('minigame').classList.contains('open') || $('modal').classList.contains('open'));
   if (blocked) return;

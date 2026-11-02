@@ -681,6 +681,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
         <li><span class="n">2</span><span>Nút Chạy để tăng tốc. Tới gần lư hương, chuông, mõ rồi bấm hành động.</span></li>
         <li><span class="n">3</span><span>Gặp BTS gần cổng: ôm / hôn / bế / làm chồng · thử <strong>Chế độ Công Chúa</strong>. Bấm Hủy hoặc Esc để thoát.</span></li>
         <li><span class="n">4</span><span><strong>Phố An Lạc</strong> nằm bên phải sân (đối diện chuông). Bấm nút cam 「TỚI PHỐ AN LẠC」 hoặc phím <strong>P</strong>. Quán đầu phố là <strong>Nem Chua Thanh Hóa</strong>; mỗi quán có biển + ảnh món. Giữa phố có vòng <strong>đánh ghen</strong>; gần tiệm tóc có nhóm thì thầm <strong>ngoại tình</strong>. Lề phố có <strong>Hẻm Phóng Lợn</strong>.</span></li>
+        <li><span class="n">5</span><span><strong>Viện Nghiên Cứu Di Truyền</strong> nằm bên trái (phía chuông). Bấm nút mint 「TỚI VIỆN NGHIÊN CỨU」 hoặc phím <strong>I</strong> — sân thú biến đổi rộng; Quan sát → Vuốt ve → Chụp ảnh kỳ.</span></li>
       </ol>
       <p class="tiny" style="margin:0 0 10px;text-align:center">Chọn góc nhìn khi vào chùa</p>
       <div class="row" style="margin-bottom:14px">
@@ -18436,7 +18437,7 @@ function setFpsMode(on) {
 function toggleFpsMode() { setFpsMode(!S.fpsMode); }
 
 function startPlay() {
-  S.playing = true; $('hud').style.display = 'block'; updateVisitorUI();
+  S.playing = true; S._playStartedAt = performance.now(); $('hud').style.display = 'block'; updateVisitorUI();
   $('weapon-bar').classList.add('show');
   $('hp-wrap')?.classList.add('show');
   S.hp = MAX_HP;
@@ -18482,6 +18483,10 @@ function startPlay() {
     }, 2800);
   }
   setTimeout(() => toast('🎵 Màn Phố: mở nhạc → bay lên trời · chiếu mây · bắt nốt · hòa nhịp'), 7800);
+  setTimeout(() => {
+    if (!S.playing || S._instituteEntered) return;
+    toast('🧬 Viện Nghiên Cứu Di Truyền mở sân thú biến đổi… · nút mint / phím I');
+  }, 20000);
 }
 
 $('btn-view').onclick = () => toggleFpsMode();
@@ -18525,9 +18530,14 @@ $('action-btn').onclick = () => {
   if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
   if (S.bongDaAct) { cancelBongDaAct(); return; }
   if (S.phoVangCall) { cancelGioVangCall(); return; }
+  if (S.instituteAct) { cancelInstituteAct(); return; }
   if (S.musicMode) { closeMusicPanel(); return; }
   if (S.busy && S.interactOpen) { cancelNpcInteract(); return; }
   if (S.busy) return;
+  if (S.nearInstituteAnimal) {
+    startInstituteAct();
+    return;
+  }
   if (S.nearThapMo) {
     startThapMoRide();
     return;
@@ -18780,6 +18790,7 @@ addEventListener('keydown', e => {
     if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
     if (S.bongDaAct) { cancelBongDaAct(); return; }
     if (S.phoVangCall) { cancelGioVangCall(); return; }
+    if (S.instituteAct) { cancelInstituteAct(); return; }
     if (S.musicMode) { closeMusicPanel(); return; }
     if (S.chatOpen) { closeChatBar(); return; }
     if (typingInField()) return;
@@ -19643,6 +19654,11 @@ function openBook() {
     S.sieuSaoHe ? '✅ Siêu Sao Hè' : '⬜ Siêu Sao Hè',
   ].join(' · ');
   const phoVangBest = phoVangTierLabel(S.phoVangBestTier || '') || '—';
+  const vienChecks = (typeof INSTITUTE_ANIMAL_SPECS !== 'undefined' ? INSTITUTE_ANIMAL_SPECS : []).map((s) => {
+    const ok = !!(S.vienSeen && S.vienSeen[s.id]);
+    return `<li>${ok ? '✅' : '⬜'} ${s.name}</li>`;
+  }).join('') || '<li>Chưa có thú nào</li>';
+  const vienSeenN = (typeof vienDistinctSeen === 'function') ? vienDistinctSeen() : Object.keys(S.vienSeen || {}).filter((k) => S.vienSeen[k]).length;
   openModal(`
     <h2>Sổ cầu an của tôi</h2>
     <div class="stat-grid">
@@ -19654,7 +19670,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin-top:6px">${nextLine}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🔥 Chuỗi ngày: <strong>${dailyBook.streak}</strong>${dailyBook.flair}${dailyBook.clearNote}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">Ấn khám phá: ${stamps}</p>
-    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}${S.nhaNghienCuuSan ? ' · 🧬 Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · 🧬 Thực Tập Sinh Viện' : '')}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🌦️ Đang: <strong>${weatherNow}</strong></p>
     <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm · ${S.btsSigs} chữ ký BTS${S.btsPrincessMode ? ' · 👑 Công Chúa' : ''}${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
     <h2 style="font-size:1rem;margin-top:8px">📋 Mục tiêu hôm nay</h2>
@@ -19664,6 +19680,9 @@ function openBook() {
     <h2 style="font-size:1rem;margin-top:8px">🌦️ Không khí chùa</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã gặp: ${seenMoods}</p>
     <ul class="book-list">${weathers}</ul>
+    <h2 style="font-size:1rem;margin-top:8px">🧬 Viện Nghiên Cứu · Sân Thú Biến Đổi</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã quan sát <strong>${vienSeenN}</strong>/${(typeof INSTITUTE_ANIMAL_SPECS!=='undefined'?INSTITUTE_ANIMAL_SPECS.length:10)} thú · vuốt <strong>${S.vienVuot|0}</strong> · ảnh kỳ <strong>${S.vienChup|0}</strong>${S.nhaNghienCuuSan ? ' · flair Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · flair Thực Tập Sinh Viện' : '')}</p>
+    <ul class="book-list">${vienChecks}</ul>
     <h2 style="font-size:1rem;margin-top:8px">🪷 Sen Bay</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ngồi <strong>${S.senBayRides | 0}</strong> lần · tầng cao nhất: <strong>${senBest}</strong></p>
     <ul class="book-list">${senLogs}</ul>
@@ -21193,6 +21212,13 @@ function updatePlayer(dt) {
     && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.nearBoyPho && !S.nearBongDa && !S.busy)
     ? pickNearGioVang() : null;
 
+  // Viện — only on west isle; never steals temple/street when east of ≈x−16
+  if (playerRoot && playerRoot.position.x < -16 && !S.busy) {
+    S.nearInstituteAnimal = pickNearInstituteAnimal();
+  } else {
+    S.nearInstituteAnimal = null;
+  }
+
   // Soft tip near festival marker
   if (S.nearFestival && S.festivalActive) {
     const now = performance.now();
@@ -21375,6 +21401,23 @@ function updatePlayer(dt) {
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
+  } else if (S.instituteAct) {
+    const left = Math.max(0, (S.instituteAct.dur - S.instituteAct.t) | 0);
+    const kind = S.instituteAct.kind;
+    btn.textContent = kind === 'chupAnh'
+      ? `Hủy · thôi chụp (${left}s)`
+      : kind === 'vuotVe'
+        ? `Hủy · thôi vuốt (${left}s)`
+        : `Hủy · thôi quan sát (${left}s)`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+  } else if (!S.busy && S.nearInstituteAnimal) {
+    btn.textContent = `${instituteVerbLabel(S.nearInstituteAnimal.verb)} · ${S.nearInstituteAnimal.name}`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
   } else if (!S.busy && S.nearThapMo) {
     btn.textContent = 'Mở tháp · lên tầng';
     btn.classList.add('show');
@@ -21753,6 +21796,7 @@ function updateWorld(dt, t) {
   updateBoyPho(dt, t);
   updateBongDa(dt, t);
   updateGioVang(dt, t);
+  updateInstitute(dt, t);
   updatePhongLon(dt, t);
   updateMusicScreenFx(dt, t);
   updateProjectiles(dt);

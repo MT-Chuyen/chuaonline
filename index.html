@@ -14,16 +14,25 @@
   --wood:#5c3d2e;--sand:#c4a574;--panel:rgba(18,12,9,.55);--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px);
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;background:#0c0806;font-family:"Be Vietnam Pro",sans-serif;color:var(--cream);touch-action:none;user-select:none;-webkit-user-select:none}
-canvas#c{display:block;width:100%;height:100%;position:fixed;inset:0;z-index:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0c0806;font-family:"Be Vietnam Pro",sans-serif;color:var(--cream);touch-action:manipulation;user-select:none;-webkit-user-select:none}
+canvas#c{display:block;width:100%;height:100%;position:fixed;inset:0;z-index:0;touch-action:none}
 #ui{position:fixed;inset:0;z-index:10;pointer-events:none}#ui>*{pointer-events:auto}
+#boot-err{
+  display:none;position:fixed;left:12px;right:12px;bottom:calc(20px + var(--sb));z-index:200;
+  background:rgba(80,20,20,.92);border:1px solid rgba(255,180,180,.35);color:#fff;padding:12px 14px;
+  border-radius:12px;font-size:.85rem;line-height:1.4;pointer-events:auto;
+}
+#loading-tip{
+  position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:5;pointer-events:none;
+  color:rgba(243,235,224,.55);font-size:.8rem;text-align:center;
+}
 
 /* Màn chào: nhìn xuyên thấy cảnh 3D thật phía sau */
 .screen{
   position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
   background:linear-gradient(180deg,rgba(8,5,3,.25) 0%,rgba(8,5,3,.45) 40%,rgba(8,5,3,.88) 78%,rgba(8,5,3,.94) 100%);
   padding:calc(28px + var(--st)) 22px calc(36px + var(--sb));text-align:center;
-  transition:opacity .5s ease;touch-action:manipulation;
+  transition:opacity .5s ease;touch-action:manipulation;z-index:80;
 }
 .screen.hidden{opacity:0;pointer-events:none;visibility:hidden}
 .welcome-card{
@@ -231,6 +240,8 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 <body>
 <canvas id="c"></canvas>
 <canvas id="share-canvas" width="1080" height="1350"></canvas>
+<div id="loading-tip">Đang mở chùa…<br/>Giữ màn hình sáng một chút</div>
+<div id="boot-err"></div>
 <div id="ui">
   <div class="screen" id="screen-welcome">
     <div class="welcome-card">
@@ -347,7 +358,8 @@ const FIREBASE_READY = FIREBASE_CONFIG.apiKey && !String(FIREBASE_CONFIG.apiKey)
 /* ========== KHỞI TẠO ========== */
 const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || matchMedia('(pointer:coarse)').matches;
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, IS_MOBILE ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight, false);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.BasicShadowMap;
@@ -1749,7 +1761,7 @@ function updateDestroyables(dt) {
 }
 
 /* ========== KHÁCH AI (InstancedMesh — thân + đầu + tóc + chân) ========== */
-const AI_N = 42;
+const AI_N = IS_MOBILE ? 18 : 42;
 let aiMesh, aiData = [], aiDummy = new THREE.Object3D();
 const bubbleEls = [];
 const bubbleRoot = document.getElementById('bubbles');
@@ -3543,11 +3555,41 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-/* ========== CHẠY ========== */
-buildScene();
-buildPlayer();
-buildAI();
-animate();
+/* ========== CHẠY (trì hoãn trên điện thoại để UI hiện trước, tránh treo trắng) ========== */
+function showBootErr(err) {
+  const el = document.getElementById('boot-err');
+  if (!el) return;
+  el.style.display = 'block';
+  el.textContent = 'Lỗi mở game trên máy này: ' + (err?.message || err) + ' — thử Chrome/Safari mới, hoặc Wi‑Fi khác.';
+  console.error(err);
+}
+function bootGame() {
+  try {
+    buildScene();
+    buildPlayer();
+    buildAI();
+    const tip = document.getElementById('loading-tip');
+    if (tip) tip.remove();
+    animate();
+  } catch (err) {
+    showBootErr(err);
+  }
+}
+// Cho trình duyệt vẽ màn chào trước, rồi mới dựng 3D nặng
+requestAnimationFrame(() => setTimeout(bootGame, IS_MOBILE ? 80 : 0));
+</script>
+<script>
+// Nếu module ES không chạy (máy cũ / chặn CDN) — vẫn báo được
+setTimeout(() => {
+  const tip = document.getElementById('loading-tip');
+  if (tip && tip.isConnected) {
+    const el = document.getElementById('boot-err');
+    if (el && el.style.display !== 'block') {
+      el.style.display = 'block';
+      el.innerHTML = 'Không tải được game (mạng / trình duyệt). Thử mở bằng Chrome, bật dữ liệu, hoặc vào trực tiếp:<br/><a href="https://mt-chuyen.github.io/chuaonline/" style="color:#ffd">mt-chuyen.github.io/chuaonline</a>';
+    }
+  }
+}, 12000);
 </script>
 </body>
 </html>

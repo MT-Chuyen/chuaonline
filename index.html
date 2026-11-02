@@ -1047,10 +1047,11 @@ const S = {
   khanGiaDotBien: false, daoDienSanVien: false,
   vienQuayGene: 0, vienVeGene: {}, tayQuayGene: false, chuQuayCarnival: false, vienSieuQuay: false,
   vienCafePhucVu: 0, vienLyGene: {}, nguoiPhaGene: false, chuCafeBay: false, vienTiecBay: false,
+  vienDieuHanh: 0, vienCoGene: {}, nguoiCamCoDieu: false, chuDieuHanh: false, vienDieuHoangKim: false,
   nearInstituteAnimal: null, nearInstituteShow: false, nearInstituteAlbum: false, nearInstituteWheel: false,
-  nearInstituteCafe: false,
+  nearInstituteCafe: false, nearInstituteParade: false,
   instituteAnimals: null, instituteRareAnimals: null, instituteAct: null, instituteShowAct: null,
-  instituteWheelAct: null, instituteCafeAct: null,
+  instituteWheelAct: null, instituteCafeAct: null, instituteParadeAct: null,
   instituteRoot: null, instituteRimAurora: null, instituteGateTip: null,
   instituteShowPad: null, instituteShowLabel: null, instituteAlbumWall: null,
   instituteAlbumSlots: null, instituteAlbumTip: null, instituteAlbumRim: null,
@@ -1061,6 +1062,10 @@ const S = {
   instituteCafeMenuBoard: null, instituteCafeMenuTip: null, instituteCafeRim: null,
   instituteCafeTeapot: null, instituteCafeSteam: null, instituteCafeLySlots: null,
   instituteCafeStools: null, instituteCafeZoneRing: null,
+  instituteParadeRoot: null, instituteParadeTip: null, instituteParadeFlag: null,
+  instituteParadeRim: null, instituteParadeBoard: null, instituteParadeBoardTip: null,
+  instituteParadeCoSlots: null, instituteParadePathMarkers: null, instituteParadeZoneRing: null,
+  instituteParadeHalo: null,
   _instituteEntered: false, _instituteTipAt: 0, _instituteWarpTips: false,
   _instituteCourtyardTip: false, _instituteSoTip: false, _vienDuyenReady: false,
   _vienRareSpawned: false, _vienShowWarpTip: false, _vienAlbumFullTip: false,
@@ -1496,6 +1501,16 @@ function loadSave() {
     if (typeof d.nguoiPhaGene === 'boolean') S.nguoiPhaGene = d.nguoiPhaGene;
     if (typeof d.chuCafeBay === 'boolean') S.chuCafeBay = d.chuCafeBay;
     if (typeof d.vienTiecBay === 'boolean') S.vienTiecBay = d.vienTiecBay;
+    if (typeof d.vienDieuHanh === 'number') S.vienDieuHanh = Math.max(0, d.vienDieuHanh | 0);
+    if (d.vienCoGene && typeof d.vienCoGene === 'object') {
+      S.vienCoGene = {};
+      Object.keys(d.vienCoGene).forEach((k) => {
+        if (d.vienCoGene[k]) S.vienCoGene[String(k).slice(0, 28)] = true;
+      });
+    }
+    if (typeof d.nguoiCamCoDieu === 'boolean') S.nguoiCamCoDieu = d.nguoiCamCoDieu;
+    if (typeof d.chuDieuHanh === 'boolean') S.chuDieuHanh = d.chuDieuHanh;
+    if (typeof d.vienDieuHoangKim === 'boolean') S.vienDieuHoangKim = d.vienDieuHoangKim;
   } catch (_) {}
 }
 function saveAll() {
@@ -1656,6 +1671,11 @@ function saveAll() {
       nguoiPhaGene: !!S.nguoiPhaGene,
       chuCafeBay: !!S.chuCafeBay,
       vienTiecBay: !!S.vienTiecBay,
+      vienDieuHanh: S.vienDieuHanh | 0,
+      vienCoGene: S.vienCoGene || {},
+      nguoiCamCoDieu: !!S.nguoiCamCoDieu,
+      chuDieuHanh: !!S.chuDieuHanh,
+      vienDieuHoangKim: !!S.vienDieuHoangKim,
     }));
   } catch (_) {}
 }
@@ -1715,6 +1735,8 @@ function templeFlairSuffix() {
   else if (S.tayQuayGene) parts.push('Tay Quay Gene');
   if (S.chuCafeBay) parts.push('Chủ Cafe Bay Viện');
   else if (S.nguoiPhaGene) parts.push('Người Pha Gene');
+  if (S.chuDieuHanh) parts.push('Chủ Diễu Hành Viện');
+  else if (S.nguoiCamCoDieu) parts.push('Người Cầm Cờ Diễu');
   if (S.streakFlair === 'nhatTu') parts.push('Nhật Tu');
   else if (S.streakFlair === 'chuyenCan') parts.push('Chuyên Cần');
   return parts.length ? ` · ${parts.join(' · ')}` : '';
@@ -4203,24 +4225,25 @@ function buildInstituteAnimalMesh(spec) {
 /** Poster khủng long đột biến — tường Viện (mặt hướng về sân chùa / lối vào) */
 function hangInstituteDinoPoster(parent, ix, iz) {
   const root = new THREE.Group();
-  box(0.32, 4.6, 4.4, M.plaster, 0, 2.35, 0, root);
-  box(0.1, 4.75, 4.55, mat(0x1a4a40, 0.7), -0.14, 2.35, 0, root, false);
+  box(0.32, 4.4, 4.6, M.plaster, 0, 2.25, 0, root);
+  box(0.1, 4.55, 4.75, mat(0x1a4a40, 0.7), -0.14, 2.25, 0, root, false);
 
   const frame = new THREE.Group();
-  box(0.14, 3.7, 3.0, M.woodD, 0, 0, 0, frame, false);
-  box(0.07, 3.5, 2.8, M.gold, 0.05, 0, 0, frame, false);
-  box(0.05, 3.35, 2.65, mat(0x0d3d36, 0.8), 0.06, 0, 0, frame, false);
+  box(0.14, 3.35, 3.55, M.woodD, 0, 0, 0, frame, false);
+  box(0.07, 3.15, 3.35, M.gold, 0.05, 0, 0, frame, false);
+  box(0.05, 3.0, 3.2, mat(0x0d3d36, 0.8), 0.06, 0, 0, frame, false);
 
   const picMat = new THREE.MeshBasicMaterial({
     color: 0x446655,
     transparent: false,
     side: THREE.DoubleSide,
   });
-  const pic = new THREE.Mesh(new THREE.PlaneGeometry(2.45, 3.2), picMat);
+  // Ảnh gần vuông (1000×938) — plane Z×Y khớp tỉ lệ
+  const pic = new THREE.Mesh(new THREE.PlaneGeometry(3.0, 2.8), picMat);
   pic.rotation.y = Math.PI / 2;
   pic.position.x = 0.12;
   frame.add(pic);
-  frame.position.set(0.22, 2.5, 0);
+  frame.position.set(0.22, 2.45, 0);
   root.add(frame);
 
   const caption = textPlane('Khủng Long Đột Biến', 400, 56, '#e8fff6', '#0a3a34', 22);
@@ -4229,8 +4252,9 @@ function hangInstituteDinoPoster(parent, ix, iz) {
   caption.scale.set(2.35, 0.4, 1);
   root.add(caption);
 
-  // Tường phía bắc Viện, lệch khỏi lối giữa — mặt +X nhìn về sân chùa
-  root.position.set(ix + 8.6, 0, iz + 7.2);
+  // Tường phía xa Viện (−Z) · cùng hướng lưng chính điện / tháp — mặt nhìn vào sân Viện (+Z)
+  root.position.set(ix + 2.5, 0, iz - 11.4);
+  root.rotation.y = -Math.PI / 2;
   parent.add(root);
 
   const loader = new THREE.TextureLoader();
@@ -4392,6 +4416,7 @@ function buildInstituteDistrict() {
   buildInstituteShowAlbum(root, ix, iz);
   buildInstituteGeneWheel(root, ix, iz);
   buildInstituteCafeBay(root, ix, iz);
+  buildInstituteParade(root, ix, iz);
   // Restore rare habitats if already unlocked in save
   if (S.daoDienSanVien || ((S.vienShowDem | 0) >= 5 && vienAlbumStampCount() >= 8)) {
     try { spawnInstituteRareHabitats(true); } catch (_) {}
@@ -4399,9 +4424,11 @@ function buildInstituteDistrict() {
   if ((S.vienShowDem | 0) >= 1) S._vienShowPulseBoost = true;
   if ((S.vienQuayGene | 0) >= 1) S._vienWheelDense = true;
   if ((S.vienCafePhucVu | 0) >= 1) S._vienCafeSteamBoost = true;
+  if ((S.vienDieuHanh | 0) >= 1) S._vienParadePathBoost = true;
   refreshInstituteAlbumSlots();
   refreshInstituteVeSlots();
   refreshInstituteCafeLySlots();
+  refreshInstituteParadeCoSlots();
 }
 
 function buildInstituteShowAlbum(root, ix, iz) {
@@ -4782,7 +4809,8 @@ function cafeFreeAnimals(preferNoGene) {
   const list = (S.instituteAnimals || []).filter((a) => {
     if (!a || !a.mesh || a.rare || a.landmark) return false;
     if (a.cafeSeat != null) return false;
-    if (S.instituteShowAct) return false;
+    if (a.paradePhase) return false;
+    if (S.instituteShowAct || S.instituteParadeAct) return false;
     return true;
   });
   if (!preferNoGene) return list;
@@ -5202,8 +5230,14 @@ function startInstituteCafeAct(opts = {}) {
   const cx = INSTITUTE_X - 10, cz = INSTITUTE_Z + 6;
 
   if (kind === 'goiMam') {
-    const taken = new Set(cafeGuests().map((g) => g.cafeSeat));
-    const freeSeats = INSTITUTE_CAFE_STOOL_LOCAL.map((_, i) => i).filter((i) => !taken.has(i));
+    let taken = new Set(cafeGuests().map((g) => g.cafeSeat));
+    let freeSeats = INSTITUTE_CAFE_STOOL_LOCAL.map((_, i) => i).filter((i) => !taken.has(i));
+    if (!freeSeats.length) {
+      // Free stools occupied by already-served guests so a new mâm can land
+      cafeGuests().filter((g) => g.cafeServed).forEach((g) => returnAnimalFromCafe(g));
+      taken = new Set(cafeGuests().map((g) => g.cafeSeat));
+      freeSeats = INSTITUTE_CAFE_STOOL_LOCAL.map((_, i) => i).filter((i) => !taken.has(i));
+    }
     let pool = cafeFreeAnimals(true);
     if (!pool.length) {
       toast('Thú đang bận show/gene/cafe — đợi một nhịp');
@@ -6609,7 +6643,7 @@ function updateInstitute(dt, t) {
     S.instituteCafeTeapot.position.y = 1.42 + Math.sin(t * 1.1) * 0.06;
   }
   if (S.instituteCafeSteam) {
-    const boost = S._vienCafeSteamBoost || S.nguoiPhaGene ? 1.35 : 1;
+    const boost = (S._vienCafeSteamBoost || S.nguoiPhaGene) ? 1.35 : 1;
     S.instituteCafeSteam.position.y = 2.05 + Math.sin(t * 2.4) * 0.08 * boost;
     if (S.instituteCafeSteam.material) S.instituteCafeSteam.material.opacity = 0.25 + 0.15 * Math.abs(Math.sin(t * 2)) * boost;
   }

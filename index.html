@@ -86,6 +86,19 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   box-shadow:0 10px 30px rgba(0,0,0,.4);display:none;pointer-events:auto;padding:12px 22px;font-family:inherit;z-index:20;
 }
 #action-btn.show{display:inline-flex;align-items:center;justify-content:center}
+#combat-bar{
+  position:absolute;left:50%;bottom:calc(168px + var(--sb));transform:translateX(-50%);
+  display:none;gap:8px;pointer-events:auto;z-index:22;flex-wrap:wrap;justify-content:center;max-width:92vw;
+}
+#combat-bar.show{display:flex}
+.combat-btn{
+  min-width:72px;min-height:44px;padding:10px 14px;border-radius:999px;border:1px solid rgba(243,235,224,.28);
+  background:rgba(12,8,6,.55);color:rgba(243,235,224,.95);font-size:.85rem;font-weight:600;
+  cursor:pointer;font-family:inherit;backdrop-filter:blur(12px);
+}
+.combat-btn:active{transform:scale(.96);background:rgba(243,235,224,.18)}
+#hit-flash{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(circle at 50% 40%,rgba(255,80,80,.25),transparent 55%);transition:opacity .15s;z-index:40}
+#hit-flash.on{opacity:1}
 #joy-zone{position:absolute;left:0;bottom:0;width:46%;height:40%;pointer-events:auto;touch-action:none;z-index:30;-webkit-user-select:none;user-select:none}
 #joy-base{
   position:absolute;left:22px;bottom:calc(22px + var(--sb));width:112px;height:112px;border-radius:50%;
@@ -186,6 +199,13 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button class="icon-btn" id="btn-share" title="Chia sẻ">Chia</button>
     </div>
     <button id="action-btn" type="button"></button>
+    <div id="combat-bar">
+      <button class="combat-btn" data-act="chao" type="button">Chào</button>
+      <button class="combat-btn" data-act="dam" type="button">Đấm</button>
+      <button class="combat-btn" data-act="da" type="button">Đá</button>
+      <button class="combat-btn" data-act="tat" type="button">Tát</button>
+    </div>
+    <div id="hit-flash"></div>
     <div id="joy-zone">
       <div id="joy-hint">Giữ & kéo để đi</div>
       <div id="joy-base"><div id="joy-knob"></div></div>
@@ -268,6 +288,7 @@ const S = {
   groupTimer: 40,
   uid: null, online: false, nearPlayer: null, onlineCount: 0,
   netVisit: null, seenWishes: Object.create(null),
+  combatUntil: 0, flinchUntil: 0,
 };
 
 const SPOTS = [
@@ -1481,9 +1502,19 @@ $('btn-book').onclick = () => openBook();
 $('btn-share').onclick = () => doShare();
 $('action-btn').onclick = () => {
   if (S.busy) return;
-  if (S.nearPlayer) { greetPlayer(S.nearPlayer); return; }
+  if (S.nearPlayer) {
+    // Hiện thanh tương tác bạn bè
+    $('combat-bar').classList.add('show');
+    return;
+  }
+  $('combat-bar').classList.remove('show');
   if (S.near) startActivity(S.near.id);
 };
+$('combat-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.combat-btn');
+  if (!btn || !S.nearPlayer) return;
+  doFriendAction(btn.dataset.act, S.nearPlayer);
+});
 $('mg-close').onclick = () => endMinigame(false);
 $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
 
@@ -1496,6 +1527,13 @@ addEventListener('keydown', e => {
   if (typingInField()) return;
   S.keys[e.code] = true;
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
+  // Phím tắt khi gần bạn: 1 đấm, 2 đá, 3 tát, 4 chào
+  if (S.nearPlayer && !S.busy) {
+    if (e.code === 'Digit1' || e.code === 'Numpad1') doFriendAction('dam', S.nearPlayer);
+    if (e.code === 'Digit2' || e.code === 'Numpad2') doFriendAction('da', S.nearPlayer);
+    if (e.code === 'Digit3' || e.code === 'Numpad3') doFriendAction('tat', S.nearPlayer);
+    if (e.code === 'Digit4' || e.code === 'Numpad4') doFriendAction('chao', S.nearPlayer);
+  }
 });
 addEventListener('keyup', e => {
   if (typingInField()) return;
@@ -2002,8 +2040,9 @@ async function connectMultiplayer() {
       rp.name = data.name || rp.name;
       rp.label.textContent = rp.name;
       rp.tx = data.x; rp.tz = data.z; rp.tyaw = data.yaw || 0;
-      if (data.emote === 'chao' && data.emoteAt && now - data.emoteAt < 2500) {
-        rp.emoteUntil = Math.max(rp.emoteUntil, data.emoteAt + 2000);
+      if (data.emote && data.emoteAt && now - data.emoteAt < 900) {
+        rp.emoteUntil = Math.max(rp.emoteUntil, data.emoteAt + 700);
+        rp.emoteType = data.emote;
       }
     }
     for (const [id, rp] of remotePlayers) {
@@ -2016,12 +2055,12 @@ async function connectMultiplayer() {
     updateVisitorUI();
   });
 
-  // Hộp thư chào
+  // Hộp thư chào / đấm đá tát
   onChildAdded(ref(fbDb, `inbox/${S.uid}`), async snap => {
     const msg = snap.val();
     remove(snap.ref);
     if (!msg) return;
-    if (msg.type === 'chao') toast(`${msg.fromName || 'Ai đó'} đang chào bạn 🙏`);
+    receiveFriendAction(msg);
   });
 
   // Lời cầu chung (20 lời gần nhất)
@@ -2060,19 +2099,87 @@ function publishWish(w) {
   set(r, { ...w, uid: S.uid, t: serverTimestamp() });
 }
 
-async function greetPlayer(target) {
-  if (!fbDb || !S.uid || !target) return;
-  playWhoosh();
-  toast(`Bạn chào ${target.name}`);
-  // Emote chắp tay trên người mình (local)
+const ACT_LABEL = { chao: 'chào', dam: 'đấm', da: 'đá', tat: 'tát' };
+const ACT_RECV = {
+  chao: n => `${n} đang chào bạn`,
+  dam: n => `${n} vừa đấm bạn!`,
+  da: n => `${n} vừa đá bạn!`,
+  tat: n => `${n} vừa tát bạn!`,
+};
+
+function playCombatAnim(type) {
   const ud = player.userData;
-  ud.armL.rotation.x = -1.1; ud.armL.rotation.z = 0.5;
-  ud.armR.rotation.x = -1.1; ud.armR.rotation.z = -0.5;
+  S.combatUntil = performance.now() + 450;
+  if (type === 'chao') {
+    ud.armL.rotation.set(-1.1, 0, 0.5);
+    ud.armR.rotation.set(-1.1, 0, -0.5);
+  } else if (type === 'dam') {
+    // Đấm tay phải
+    ud.armR.rotation.set(-1.6, 0, -0.2);
+    ud.armL.rotation.set(0.3, 0, 0.4);
+  } else if (type === 'tat') {
+    // Tát ngang
+    ud.armR.rotation.set(-0.4, 0, -1.4);
+    ud.armL.rotation.set(0.2, 0, 0.3);
+  } else if (type === 'da') {
+    // Đá chân phải
+    ud.legR.rotation.set(-1.5, 0, 0);
+    ud.armL.rotation.set(0.5, 0, 0.5);
+    ud.armR.rotation.set(-0.4, 0, -0.3);
+  }
+  playWhoosh();
   setTimeout(() => {
-    if (!S.busy) { ud.armL.rotation.set(0,0,0); ud.armR.rotation.set(0,0,0); }
-  }, 1200);
-  update(ref(fbDb, `players/${S.uid}`), { emote: 'chao', emoteAt: Date.now(), t: Date.now() });
-  push(ref(fbDb, `inbox/${target.id}`), { type: 'chao', fromName: S.name, from: S.uid, t: Date.now() });
+    if (performance.now() > S.combatUntil - 50) {
+      ud.armL.rotation.set(0, 0, 0);
+      ud.armR.rotation.set(0, 0, 0);
+      ud.legL.rotation.set(0, 0, 0);
+      ud.legR.rotation.set(0, 0, 0);
+    }
+  }, 420);
+}
+
+function flashHit() {
+  const el = $('hit-flash');
+  el.classList.add('on');
+  shakeScreen(0.1);
+  setTimeout(() => el.classList.remove('on'), 180);
+}
+
+function receiveFriendAction(msg) {
+  const type = msg.type || 'chao';
+  const name = msg.fromName || 'Ai đó';
+  toast(ACT_RECV[type] ? ACT_RECV[type](name) : `${name} tương tác với bạn`);
+  if (type !== 'chao') {
+    flashHit();
+    S.flinchUntil = performance.now() + 380;
+    // Ngả người nhẹ
+    if (player) player.rotation.z = (Math.random() > 0.5 ? 1 : -1) * 0.25;
+    setTimeout(() => { if (player) player.rotation.z = 0; }, 350);
+  } else {
+    playWhoosh();
+  }
+  // Hiện emote trên người gửi nếu đang trong scene
+  if (msg.from && remotePlayers.has(msg.from)) {
+    const rp = remotePlayers.get(msg.from);
+    rp.emoteUntil = Date.now() + 700;
+    rp.emoteType = type;
+  }
+}
+
+async function doFriendAction(type, target) {
+  if (!target || S.busy) return;
+  if (performance.now() < S.combatUntil) return;
+  playCombatAnim(type);
+  toast(`Bạn ${ACT_LABEL[type] || type} ${target.name}`);
+  if (!fbDb || !S.uid) return;
+  update(ref(fbDb, `players/${S.uid}`), { emote: type, emoteAt: Date.now(), t: Date.now() });
+  push(ref(fbDb, `inbox/${target.id}`), {
+    type, fromName: S.name, from: S.uid, t: Date.now(),
+  });
+}
+
+async function greetPlayer(target) {
+  doFriendAction('chao', target);
 }
 
 function updateRemotes(dt) {
@@ -2087,15 +2194,22 @@ function updateRemotes(dt) {
     rp.mesh.rotation.y += dy * Math.min(1, dt * 8);
 
     if (rp.emoteUntil > now) {
-      rp.mesh.userData.armL.rotation.x = -1.1;
-      rp.mesh.userData.armL.rotation.z = 0.5;
-      rp.mesh.userData.armR.rotation.x = -1.1;
-      rp.mesh.userData.armR.rotation.z = -0.5;
+      const et = rp.emoteType || 'chao';
+      const ud = rp.mesh.userData;
+      if (et === 'chao') {
+        ud.armL.rotation.set(-1.1, 0, 0.5); ud.armR.rotation.set(-1.1, 0, -0.5);
+      } else if (et === 'dam') {
+        ud.armR.rotation.set(-1.6, 0, -0.2); ud.armL.rotation.set(0.3, 0, 0.4);
+      } else if (et === 'tat') {
+        ud.armR.rotation.set(-0.4, 0, -1.4); ud.armL.rotation.set(0.2, 0, 0.3);
+      } else if (et === 'da') {
+        ud.legR.rotation.set(-1.5, 0, 0); ud.armL.rotation.set(0.5, 0, 0.5); ud.armR.rotation.set(-0.4, 0, -0.3);
+      }
     } else {
-      rp.mesh.userData.armL.rotation.x *= 0.85;
-      rp.mesh.userData.armR.rotation.x *= 0.85;
-      rp.mesh.userData.armL.rotation.z *= 0.85;
-      rp.mesh.userData.armR.rotation.z *= 0.85;
+      const ud = rp.mesh.userData;
+      ud.armL.rotation.x *= 0.85; ud.armR.rotation.x *= 0.85;
+      ud.armL.rotation.z *= 0.85; ud.armR.rotation.z *= 0.85;
+      if (ud.legR) ud.legR.rotation.x *= 0.85;
     }
 
     // nhãn tên
@@ -2136,12 +2250,17 @@ function updatePlayer(dt) {
     if (tryMove(playerRoot.position.x, nz)) playerRoot.position.z = nz;
     player.rotation.y = Math.atan2(dx, dz);
     const ud = player.userData; ud.walk += dt * 10;
-    ud.legL.rotation.x = Math.sin(ud.walk) * 0.6; ud.legR.rotation.x = -Math.sin(ud.walk) * 0.6;
-    ud.armL.rotation.x = -Math.sin(ud.walk) * 0.4; ud.armR.rotation.x = Math.sin(ud.walk) * 0.4;
+    if (performance.now() >= S.combatUntil) {
+      ud.legL.rotation.x = Math.sin(ud.walk) * 0.6; ud.legR.rotation.x = -Math.sin(ud.walk) * 0.6;
+      ud.armL.rotation.x = -Math.sin(ud.walk) * 0.4; ud.armR.rotation.x = Math.sin(ud.walk) * 0.4;
+      ud.armL.rotation.z = 0; ud.armR.rotation.z = 0;
+    }
   } else {
     const ud = player.userData;
-    ud.legL.rotation.x *= 0.8; ud.legR.rotation.x *= 0.8;
-    if (!S.busy) { ud.armL.rotation.x *= 0.8; ud.armR.rotation.x *= 0.8; }
+    if (performance.now() >= S.combatUntil) {
+      ud.legL.rotation.x *= 0.8; ud.legR.rotation.x *= 0.8;
+      if (!S.busy) { ud.armL.rotation.x *= 0.8; ud.armR.rotation.x *= 0.8; ud.armL.rotation.z *= 0.8; ud.armR.rotation.z *= 0.8; }
+    }
   }
 
   // Camera quỹ đạo quanh nhân vật — cho phép nhìn lên trời / tháp cao
@@ -2175,13 +2294,24 @@ function updatePlayer(dt) {
   S.nearPlayer = nearP;
 
   const btn = $('action-btn');
+  const cbar = $('combat-bar');
   if (!S.busy && nearP) {
-    btn.textContent = `Chào ${nearP.name}`;
+    btn.textContent = `Tương tác · ${nearP.name}`;
     btn.classList.add('show');
+    cbar.classList.add('show');
   } else if (!S.busy && near) {
     btn.textContent = near.label;
     btn.classList.add('show');
-  } else btn.classList.remove('show');
+    cbar.classList.remove('show');
+  } else {
+    btn.classList.remove('show');
+    cbar.classList.remove('show');
+  }
+
+  // Khoá animation đi khi đang đấm đá
+  if (performance.now() < S.combatUntil) {
+    /* giữ pose combat */
+  }
 }
 
 function updateWorld(dt, t) {

@@ -2835,17 +2835,17 @@ function openMinigame(title, hint) {
   $('mg-title').textContent = title; $('mg-hint').textContent = hint; $('mg-feedback').textContent = '';
   S.busy = true;
 }
-function endMinigame() {
+function endMinigame(keepBusy = false) {
   $('minigame').classList.remove('open');
   $('ring-wrap').style.display = 'none'; $('mg-tap').style.display = 'none';
   const tap = $('mg-tap');
   if (tap) { tap.onpointerdown = tap.onpointerup = tap.onpointerleave = tap.onpointercancel = tap.onclick = null; }
   mg.running = false; mg.type = null;
-  // Fortune tự mở modal sau — giữ busy; minigame khác thì mở khóa
-  if (!S.fortuneMode) S.busy = false;
   $('shake-hint').style.display = 'none';
   S.fortuneMode = false;
   S._fortuneHold = null;
+  // keepBusy = true khi vừa rút quẻ xong, sắp mở modal kết quả
+  if (!keepBusy) S.busy = false;
 }
 
 function actBell() {
@@ -2979,10 +2979,9 @@ function spawnWishVisual(way) {
 
 function finishFortuneDraw() {
   if (!S.fortuneMode) return;
-  S.fortuneMode = false; S.shake = 0;
-  S._fortuneHold = null;
+  S.shake = 0;
   if (S.fortuneTube) S.fortuneTube.rotation.z = 0;
-  endMinigame();
+  endMinigame(true); // giữ busy đến khi bấm Nhận lời
   const q = drawQue();
   const line = `Quẻ ${q.n} · ${q.rank} · ${q.title}: ${q.text}`;
   S.fortunes.push({ text: line, at: Date.now() }); saveAll();

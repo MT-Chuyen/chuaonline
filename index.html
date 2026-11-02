@@ -681,7 +681,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
         <li><span class="n">2</span><span>Nút Chạy để tăng tốc. Tới gần lư hương, chuông, mõ rồi bấm hành động.</span></li>
         <li><span class="n">3</span><span>Gặp BTS gần cổng: ôm / hôn / bế / làm chồng · thử <strong>Chế độ Công Chúa</strong>. Bấm Hủy hoặc Esc để thoát.</span></li>
         <li><span class="n">4</span><span><strong>Phố An Lạc</strong> nằm bên phải sân (đối diện chuông). Bấm nút cam 「TỚI PHỐ AN LẠC」 hoặc phím <strong>P</strong>. Quán đầu phố là <strong>Nem Chua Thanh Hóa</strong>; mỗi quán có biển + ảnh món. Giữa phố có vòng <strong>đánh ghen</strong>; gần tiệm tóc có nhóm thì thầm <strong>ngoại tình</strong>. Lề phố có <strong>Hẻm Phóng Lợn</strong>.</span></li>
-        <li><span class="n">5</span><span><strong>Viện Nghiên Cứu Di Truyền</strong> nằm bên trái (phía chuông). Bấm nút mint 「TỚI VIỆN NGHIÊN CỨU」 hoặc phím <strong>I</strong> — sân thú biến đổi rộng; Quan sát → Vuốt ve → Chụp ảnh kỳ.</span></li>
+        <li><span class="n">5</span><span><strong>Viện Nghiên Cứu Di Truyền</strong> nằm bên trái (phía chuông). Bấm nút mint 「TỚI VIỆN NGHIÊN CỨU」 hoặc phím <strong>I</strong> — sân thú biến đổi; Quan sát → Vuốt ve → Chụp ảnh kỳ · đêm có <strong>Show Đột Biến</strong> + <strong>Album Ảnh Kỳ</strong> gần cổng.</span></li>
       </ol>
       <p class="tiny" style="margin:0 0 10px;text-align:center">Chọn góc nhìn khi vào chùa</p>
       <div class="row" style="margin-bottom:14px">
@@ -1043,10 +1043,24 @@ const S = {
   // Viện Nghiên Cứu Di Truyền · Sân Thú Biến Đổi (west isle)
   vienSeen: {}, vienQuanSat: 0, vienVuot: 0, vienChup: 0,
   thucTapVien: false, nhaNghienCuuSan: false,
-  nearInstituteAnimal: null, instituteAnimals: null, instituteAct: null,
+  vienShowDem: 0, vienShowTap: 0, vienAlbumStamps: {},
+  khanGiaDotBien: false, daoDienSanVien: false,
+  vienQuayGene: 0, vienVeGene: {}, tayQuayGene: false, chuQuayCarnival: false, vienSieuQuay: false,
+  nearInstituteAnimal: null, nearInstituteShow: false, nearInstituteAlbum: false, nearInstituteWheel: false,
+  instituteAnimals: null, instituteRareAnimals: null, instituteAct: null, instituteShowAct: null,
+  instituteWheelAct: null,
   instituteRoot: null, instituteRimAurora: null, instituteGateTip: null,
+  instituteShowPad: null, instituteShowLabel: null, instituteAlbumWall: null,
+  instituteAlbumSlots: null, instituteAlbumTip: null, instituteAlbumRim: null,
+  instituteWheelDisk: null, instituteWheelStand: null, instituteWheelTip: null,
+  instituteBoothTip: null, instituteBoothRim: null, instituteVeSlots: null,
+  instituteWheelLight: null, instituteCarnivalRing: null,
   _instituteEntered: false, _instituteTipAt: 0, _instituteWarpTips: false,
   _instituteCourtyardTip: false, _instituteSoTip: false, _vienDuyenReady: false,
+  _vienRareSpawned: false, _vienShowWarpTip: false, _vienAlbumFullTip: false,
+  _vienDaoDienPulse: false, _vienShowPulseBoost: false,
+  _vienWheelWarpTip: false, _vienVeGlowTip: false, _vienWheelDense: false,
+  _vienSieuQuaySession: false, _vienSieuYardWashUntil: 0,
 };
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
@@ -1444,6 +1458,26 @@ function loadSave() {
     if (typeof d.vienChup === 'number') S.vienChup = Math.max(0, d.vienChup | 0);
     if (typeof d.thucTapVien === 'boolean') S.thucTapVien = d.thucTapVien;
     if (typeof d.nhaNghienCuuSan === 'boolean') S.nhaNghienCuuSan = d.nhaNghienCuuSan;
+    if (typeof d.vienShowDem === 'number') S.vienShowDem = Math.max(0, d.vienShowDem | 0);
+    if (typeof d.vienShowTap === 'number') S.vienShowTap = Math.max(0, d.vienShowTap | 0);
+    if (d.vienAlbumStamps && typeof d.vienAlbumStamps === 'object') {
+      S.vienAlbumStamps = {};
+      Object.keys(d.vienAlbumStamps).forEach((k) => {
+        if (d.vienAlbumStamps[k]) S.vienAlbumStamps[String(k).slice(0, 28)] = true;
+      });
+    }
+    if (typeof d.khanGiaDotBien === 'boolean') S.khanGiaDotBien = d.khanGiaDotBien;
+    if (typeof d.daoDienSanVien === 'boolean') S.daoDienSanVien = d.daoDienSanVien;
+    if (typeof d.vienQuayGene === 'number') S.vienQuayGene = Math.max(0, d.vienQuayGene | 0);
+    if (d.vienVeGene && typeof d.vienVeGene === 'object') {
+      S.vienVeGene = {};
+      Object.keys(d.vienVeGene).forEach((k) => {
+        if (d.vienVeGene[k]) S.vienVeGene[String(k).slice(0, 28)] = true;
+      });
+    }
+    if (typeof d.tayQuayGene === 'boolean') S.tayQuayGene = d.tayQuayGene;
+    if (typeof d.chuQuayCarnival === 'boolean') S.chuQuayCarnival = d.chuQuayCarnival;
+    if (typeof d.vienSieuQuay === 'boolean') S.vienSieuQuay = d.vienSieuQuay;
   } catch (_) {}
 }
 function saveAll() {
@@ -1589,6 +1623,16 @@ function saveAll() {
       vienChup: S.vienChup | 0,
       thucTapVien: !!S.thucTapVien,
       nhaNghienCuuSan: !!S.nhaNghienCuuSan,
+      vienShowDem: S.vienShowDem | 0,
+      vienShowTap: S.vienShowTap | 0,
+      vienAlbumStamps: S.vienAlbumStamps || {},
+      khanGiaDotBien: !!S.khanGiaDotBien,
+      daoDienSanVien: !!S.daoDienSanVien,
+      vienQuayGene: S.vienQuayGene | 0,
+      vienVeGene: S.vienVeGene || {},
+      tayQuayGene: !!S.tayQuayGene,
+      chuQuayCarnival: !!S.chuQuayCarnival,
+      vienSieuQuay: !!S.vienSieuQuay,
     }));
   } catch (_) {}
 }
@@ -1642,6 +1686,10 @@ function templeFlairSuffix() {
   if (S.khachQuaCua) parts.push('Khách Qua Cửa');
   if (S.nhaNghienCuuSan) parts.push('Nhà Nghiên Cứu Sân');
   else if (S.thucTapVien) parts.push('Thực Tập Sinh Viện');
+  if (S.daoDienSanVien) parts.push('Đạo Diễn Sân Viện');
+  else if (S.khanGiaDotBien) parts.push('Khán Giả Đột Biến');
+  if (S.chuQuayCarnival) parts.push('Chủ Quầy Carnival Viện');
+  else if (S.tayQuayGene) parts.push('Tay Quay Gene');
   if (S.streakFlair === 'nhatTu') parts.push('Nhật Tu');
   else if (S.streakFlair === 'chuyenCan') parts.push('Chuyên Cần');
   return parts.length ? ` · ${parts.join(' · ')}` : '';
@@ -3035,10 +3083,10 @@ function buildSupermanStatue(x, z) {
   return g;
 }
 
-/** Tranh khung gỗ Ronaldo–Messi — tường trái sân (nhìn vào sân) */
+/** Tranh khung gỗ Ronaldo–Messi — cạnh gác chuông (nhìn vào sân) */
 function hangWallPoster() {
   const root = new THREE.Group();
-  // Tấm tường cao hơn hàng rào để treo tranh rõ
+  // Tấm tường nhỏ cạnh chuông để treo tranh
   box(0.28, 4.2, 3.6, M.plaster, 0, 2.2, 0, root);
   box(0.08, 4.35, 3.75, M.wood, -0.12, 2.2, 0, root, false);
 
@@ -3067,8 +3115,8 @@ function hangWallPoster() {
   caption.scale.set(2.1, 0.38, 1);
   root.add(caption);
 
-  // Tường trái sân, đoạn giữa cổng ↔ hồ (phía chuông)
-  root.position.set(-10.35, 0, 5.2);
+  // Cạnh gác chuông (−9.5, −2) · phía cổng (+Z), mặt hướng vào sân
+  root.position.set(-10.35, 0, 0.55);
   scene.add(root);
 
   const loader = new THREE.TextureLoader();
@@ -3409,11 +3457,10 @@ function buildScene() {
   markIndestructible(yard);
   // Viền mây mềm quanh đảo (nhìn ngang cũng thấy mây)
   buildCloudSea();
-  // Viền sân đá
+  // Viền sân đá — bỏ cạnh tây (−X) để mở lối sang Viện Nghiên Cứu
   box(22.4, 0.18, 0.35, M.stone, 0, 0.08, 14, scene, false);
   box(22.4, 0.18, 0.35, M.stone, 0, 0.08, -14, scene, false);
   box(0.35, 0.18, 28.4, M.stone, 11.2, 0.08, 0, scene, false);
-  box(0.35, 0.18, 28.4, M.stone, -11.2, 0.08, 0, scene, false);
 
   // ——— Cổng tam quan ———
   const gz = 12.5;
@@ -3448,12 +3495,8 @@ function buildScene() {
   ];
   gateCols.forEach(c => { c.siblings = gateCols; });
 
-  // Hàng rào trái (phía chuông) nguyên vẹn; phải mở lối thẳng ra Phố An Lạc
-  // Trái x=-10.5
-  box(0.35, 1.6, 10, M.plaster, -10.5, 0.85, 6);
-  addCol(-10.5, 6, 0.55, 10.2, null);
-  for (let z = 2; z <= 10; z += 2) box(0.45, 1.9, 0.45, M.stone, -10.5, 0.95, z);
-  // Tranh Ronaldo–Messi trên tường trái sân
+  // Trái (−X): bỏ hàng rào — mở lối thẳng sang Viện Nghiên Cứu (như phố bên phải)
+  // Tranh Ronaldo–Messi cạnh gác chuông
   hangWallPoster();
   // Phải x=+10.5 — bỏ hàng rào cạnh màn nhạc / lối ra Phố An Lạc (trống hoàn toàn)
 
@@ -3900,6 +3943,45 @@ const INSTITUTE_ANIMAL_SPECS = [
   { id: 'socDienQuang', name: 'Sóc Điện Quang', dx: 0, dz: 10, color: 0x88ffee, beat: 'squirrel', joke: 'Sóc điện quang vẽ tia chữ “AN” rồi cười khà.' },
 ];
 
+/** Rare floating habitats — unlocked after escalate (c); fantasy carnival only */
+const INSTITUTE_RARE_SPECS = [
+  { id: 'lanBayNeon', name: 'Lân Bay Neon Viện', dx: -8, dz: 0, y: 3.2, color: 0xff66aa, beat: 'lan', joke: 'Lân neon bay lắc đầu: “Mane mode: ON.”' },
+  { id: 'echNhacSo', name: 'Ếch Nhạc Số', dx: 8, dz: 0, y: 3.2, color: 0x44ff88, beat: 'frog', joke: 'Ếch nhạc số ộp ộp — bass từ bụng!' },
+];
+
+const INSTITUTE_ALBUM_SLOT_IDS = [
+  ...INSTITUTE_ANIMAL_SPECS.map((s) => s.id),
+  ...INSTITUTE_RARE_SPECS.map((s) => s.id),
+];
+
+/** Carnival gene-wheel fantasy cosmetics only — no real genetics */
+const INSTITUTE_GENE_OUTCOMES = [
+  { id: 'geneNeonHong', name: 'Gene Neon Hồng', color: 0xff66aa },
+  { id: 'geneBangTuyet', name: 'Gene Băng Tuyết', color: 0x88ddff },
+  { id: 'geneCauVong', name: 'Gene Cầu Vồng', color: 0xffcc66 },
+  { id: 'geneMuRoi', name: 'Gene Mũ Rối', color: 0xcc88ff },
+  { id: 'geneNhayHip', name: 'Gene Nhảy Hip', color: 0x66ffaa },
+  { id: 'geneDuoiSao', name: 'Gene Đuôi Sao', color: 0xffaa66 },
+  { id: 'geneKhongLo', name: 'Gene Khổng Lồ Mini', color: 0x66eeff },
+  { id: 'geneBeTy', name: 'Gene Bé Tí', color: 0xff88cc },
+];
+
+function vienVeGeneCount() {
+  const m = S.vienVeGene || {};
+  return Object.keys(m).filter((k) => m[k]).length;
+}
+function geneOutcomeName(id) {
+  return INSTITUTE_GENE_OUTCOMES.find((o) => o.id === id)?.name || id;
+}
+function vienSieuQuayUnlocked() {
+  return !!S.chuQuayCarnival || ((S.vienQuayGene | 0) >= 12 && vienVeGeneCount() >= 6);
+}
+function vienSieuQuayAvailableNow() {
+  if (!vienSieuQuayUnlocked()) return false;
+  const nightish = S.timePhase === 'dusk' || S.timePhase === 'night';
+  return nightish && !S._vienSieuQuaySession;
+}
+
 function vienDistinctSeen() {
   const m = S.vienSeen || {};
   return Object.keys(m).filter((k) => m[k]).length;
@@ -3909,6 +3991,18 @@ function vienVuotUnlocked() {
 }
 function vienChupUnlocked() {
   return vienDistinctSeen() >= 6 || (S.vienChup | 0) >= 1;
+}
+function vienAlbumStampCount() {
+  const m = S.vienAlbumStamps || {};
+  return Object.keys(m).filter((k) => m[k]).length;
+}
+function vienDienTapUnlocked() {
+  return (S.vienShowDem | 0) >= 1;
+}
+function albumStampName(id) {
+  if (id === 'showDem') return 'SHOW·ĐÊM';
+  const all = [...INSTITUTE_ANIMAL_SPECS, ...INSTITUTE_RARE_SPECS];
+  return all.find((s) => s.id === id)?.name || id;
 }
 function pickInstituteVerb(animalId) {
   // Unseen exhibits always offer Quan sát first (collection progress)
@@ -3928,6 +4022,278 @@ function instituteBusyBlocked() {
   if (S.senBayRide || S.chuongDaoRewind || S.thapMoRide || S.phatNoiSpeech) return true;
   if (S.phongLonRide || S.mirrorSwap || S.rewindPlay || S.loveFreeze || S.paperRainActive) return true;
   return false;
+}
+
+/** Khủng long đột biến khổng lồ — landmark giữa Sân Thú (carnival fantasy, PG) */
+function buildMutationDinoMesh() {
+  const g = new THREE.Group();
+  const hide = new THREE.MeshStandardMaterial({
+    color: 0x3d8a58, roughness: 0.62, metalness: 0.12,
+    emissive: 0x1a5030, emissiveIntensity: 0.28,
+  });
+  const belly = new THREE.MeshStandardMaterial({
+    color: 0xc8e878, roughness: 0.7, metalness: 0.08,
+    emissive: 0x66aa33, emissiveIntensity: 0.22,
+  });
+  const neon = new THREE.MeshStandardMaterial({
+    color: 0x66ffcc, roughness: 0.35, metalness: 0.55,
+    emissive: 0x44ffaa, emissiveIntensity: 0.85,
+  });
+  const crystal = new THREE.MeshStandardMaterial({
+    color: 0xff66aa, roughness: 0.25, metalness: 0.45,
+    emissive: 0xff3388, emissiveIntensity: 0.7,
+  });
+  const clawMat = new THREE.MeshStandardMaterial({
+    color: 0xffe8a0, roughness: 0.4, metalness: 0.35,
+    emissive: 0xffaa44, emissiveIntensity: 0.35,
+  });
+
+  // Thân + bụng phát sáng
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.85, 1.6, 6, 12), hide);
+  torso.rotation.z = Math.PI / 2;
+  torso.position.set(0.15, 2.35, 0);
+  torso.scale.set(1, 1.05, 1.15);
+  g.add(torso);
+  const under = new THREE.Mesh(new THREE.CapsuleGeometry(0.55, 1.2, 4, 10), belly);
+  under.rotation.z = Math.PI / 2;
+  under.position.set(0.15, 1.95, 0);
+  under.scale.set(1, 0.85, 0.9);
+  g.add(under);
+
+  // Chân sau to
+  const legGeo = new THREE.CapsuleGeometry(0.28, 1.1, 4, 8);
+  const thighL = new THREE.Mesh(legGeo, hide);
+  thighL.position.set(-0.15, 1.15, 0.55);
+  thighL.rotation.z = 0.15;
+  g.add(thighL);
+  const thighR = new THREE.Mesh(legGeo, hide);
+  thighR.position.set(-0.15, 1.15, -0.55);
+  thighR.rotation.z = 0.15;
+  g.add(thighR);
+  const shinL = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.85, 4, 8), hide);
+  shinL.position.set(-0.35, 0.55, 0.55);
+  g.add(shinL);
+  const shinR = shinL.clone();
+  shinR.position.z = -0.55;
+  g.add(shinR);
+  const footL = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.45), hide);
+  footL.position.set(-0.55, 0.12, 0.55);
+  g.add(footL);
+  const footR = footL.clone();
+  footR.position.z = -0.55;
+  g.add(footR);
+  for (const fz of [0.55, -0.55]) {
+    for (let i = -1; i <= 1; i++) {
+      const claw = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.22, 5), clawMat);
+      claw.rotation.z = Math.PI / 2;
+      claw.position.set(-0.92, 0.1, fz + i * 0.12);
+      g.add(claw);
+    }
+  }
+
+  // Tay teo (T-rex) + móng neon
+  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.35, 3, 6), hide);
+  armL.position.set(0.55, 2.55, 0.55);
+  armL.rotation.z = -0.9;
+  g.add(armL);
+  const armR = armL.clone();
+  armR.position.z = -0.55;
+  armR.rotation.z = -0.9;
+  g.add(armR);
+  const handL = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 5), neon);
+  handL.position.set(0.72, 2.35, 0.55);
+  g.add(handL);
+  const handR = handL.clone();
+  handR.position.z = -0.55;
+  g.add(handR);
+
+  // Cổ + đầu
+  const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 0.7, 4, 8), hide);
+  neck.position.set(1.15, 3.15, 0);
+  neck.rotation.z = -0.55;
+  g.add(neck);
+  const head = new THREE.Group();
+  head.position.set(1.75, 3.55, 0);
+  const skull = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.7, 0.72), hide);
+  skull.position.set(0.15, 0, 0);
+  head.add(skull);
+  const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.28, 0.62), hide);
+  jaw.position.set(0.22, -0.38, 0);
+  head.add(jaw);
+  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.38, 0.48), hide);
+  snout.position.set(0.72, -0.05, 0);
+  head.add(snout);
+  // Răng
+  for (let i = 0; i < 5; i++) {
+    const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.14, 4), clawMat);
+    tooth.position.set(0.45 + i * 0.12, -0.22, (i % 2 ? 0.12 : -0.12));
+    tooth.rotation.x = Math.PI;
+    head.add(tooth);
+  }
+  // Mắt thường + mắt đột biến thứ 3
+  const eyeMat = new THREE.MeshStandardMaterial({
+    color: 0xffee66, emissive: 0xffcc22, emissiveIntensity: 0.9, roughness: 0.3,
+  });
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), eyeMat);
+  eyeL.position.set(0.35, 0.18, 0.32);
+  head.add(eyeL);
+  const eyeR = eyeL.clone();
+  eyeR.position.z = -0.32;
+  head.add(eyeR);
+  const eye3 = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), neon);
+  eye3.position.set(0.15, 0.42, 0);
+  head.add(eye3);
+  // Sừng tinh thể đột biến
+  const hornL = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.55, 6), crystal);
+  hornL.position.set(-0.15, 0.55, 0.18);
+  hornL.rotation.z = -0.35;
+  head.add(hornL);
+  const hornR = hornL.clone();
+  hornR.position.z = -0.18;
+  hornR.rotation.z = -0.35;
+  head.add(hornR);
+  const hornMid = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.4, 6), neon);
+  hornMid.position.set(0.05, 0.62, 0);
+  head.add(hornMid);
+  g.add(head);
+
+  // Đuôi dài + gai neon
+  const tail = new THREE.Group();
+  tail.position.set(-1.05, 2.15, 0);
+  const segMats = [hide, hide, belly];
+  let tx = 0;
+  for (let i = 0; i < 5; i++) {
+    const r = 0.38 - i * 0.055;
+    const seg = new THREE.Mesh(new THREE.CapsuleGeometry(r, 0.55, 3, 8), segMats[i % 3]);
+    seg.rotation.z = Math.PI / 2;
+    seg.position.set(tx - 0.35, Math.sin(i * 0.35) * 0.08, 0);
+    tail.add(seg);
+    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.35 + i * 0.04, 5), neon);
+    spike.position.set(tx - 0.35, r + 0.2, 0);
+    tail.add(spike);
+    tx -= 0.55;
+  }
+  g.add(tail);
+
+  // Cánh buồm / gai lưng đột biến (sail)
+  const spines = [];
+  for (let i = 0; i < 7; i++) {
+    const h = 0.55 + (i % 3) * 0.25;
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.1, h, 5), i % 2 ? neon : crystal);
+    sp.position.set(-0.35 + i * 0.28, 3.05 + h * 0.35, 0);
+    g.add(sp);
+    spines.push(sp);
+  }
+
+  // Vệt gene phát sáng quanh thân
+  const vein = new THREE.Mesh(
+    new THREE.TorusGeometry(0.95, 0.045, 6, 24),
+    neon
+  );
+  vein.rotation.y = Math.PI / 2;
+  vein.position.set(0.2, 2.4, 0);
+  g.add(vein);
+
+  // Đèn điểm nhấn
+  if (!IS_MOBILE) {
+    const dl = new THREE.PointLight(0x66ffcc, 0.55, 10, 2);
+    dl.position.set(1.2, 3.8, 0);
+    g.add(dl);
+    const dl2 = new THREE.PointLight(0xff66aa, 0.3, 7, 2);
+    dl2.position.set(-0.5, 3.2, 0);
+    g.add(dl2);
+  }
+
+  g.userData.head = head;
+  g.userData.jaw = jaw;
+  g.userData.tail = tail;
+  g.userData.spines = spines;
+  g.userData.vein = vein;
+  g.userData.eye3 = eye3;
+  g.userData.pulse = [torso, under, skull, snout, vein, eye3];
+  g.userData.floatY = 0;
+  g.userData.baseScale = 1.15;
+  g.userData.isDino = true;
+  return g;
+}
+
+function placeInstituteMutationDino(root, ix, iz) {
+  // Landmark trước mặt khi warp I — local (0, 3.2) giữa cổng và sân show
+  const dx = 0, dz = 3.2;
+  const ax = ix + dx, az = iz + dz;
+  const stand = new THREE.Group();
+
+  const pad = new THREE.Mesh(
+    new THREE.CylinderGeometry(2.4, 2.6, 0.28, 24),
+    new THREE.MeshStandardMaterial({
+      color: 0x2a4840, metalness: 0.4, roughness: 0.4,
+      emissive: 0x1a6048, emissiveIntensity: 0.25,
+    })
+  );
+  pad.position.y = 0.14;
+  stand.add(pad);
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(2.45, 0.06, 6, 36),
+    new THREE.MeshStandardMaterial({
+      color: 0x66ffcc, metalness: 0.7, roughness: 0.25,
+      emissive: 0x44ffaa, emissiveIntensity: 0.55,
+    })
+  );
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.3;
+  stand.add(ring);
+
+  const dino = buildMutationDinoMesh();
+  dino.position.y = 0.28;
+  dino.rotation.y = -Math.PI / 2; // mặt nhìn về cổng / người tới (+Z)
+  dino.scale.setScalar(1.15);
+  stand.add(dino);
+
+  const namePlaque = textPlane('Khủng Long Đột Biến Viện', 420, 56, '#e8fff8', '#0a4038', 18);
+  namePlaque.position.set(0, 5.6, 0);
+  namePlaque.scale.set(3.2, 0.48, 1);
+  stand.add(namePlaque);
+  const subTip = textPlane('🧬 Gene khổng lồ · carnival fantasy', 360, 44, '#c8ffe8', '#145048', 14);
+  subTip.position.set(0, 5.15, 0);
+  subTip.scale.set(2.6, 0.34, 1);
+  stand.add(subTip);
+
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(3.2, 28),
+    new THREE.MeshBasicMaterial({
+      color: 0x44ffaa, transparent: true, opacity: 0.16,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.y = 0.05;
+  stand.add(glow);
+
+  stand.position.set(ax, 0, az);
+  root.add(stand);
+  addCol(ax, az, 3.6, 3.2, stand);
+  markIndestructible(stand);
+
+  const entry = {
+    id: 'khungLongDotBien',
+    name: 'Khủng Long Đột Biến Viện',
+    dx, dz,
+    color: 0x44ffaa,
+    beat: 'dino',
+    joke: 'Khủng long đột biến gật đầu: “Gene khổng lồ? Tôi chỉ… cao thêm tí thôi.”',
+    x: ax, z: az,
+    pos: new THREE.Vector3(ax, 0, az),
+    mesh: stand,
+    animal: dino,
+    tip: namePlaque,
+    tip2: subTip,
+    glow,
+    ring,
+    r: 4.2,
+    phase: Math.random() * 6.28,
+    landmark: true,
+  };
+  return entry;
 }
 
 function buildInstituteAnimalMesh(spec) {
@@ -4038,6 +4404,36 @@ function buildInstituteAnimalMesh(spec) {
     wingL.position.set(-0.2, 0.48, 0); wingL.rotation.z = 0.35; g.add(wingL);
     const wingR = wingL.clone(); wingR.position.x = 0.2; wingR.rotation.z = -0.35; g.add(wingR);
     g.userData.wingL = wingL; g.userData.wingR = wingR; g.userData.pulse = [body];
+  } else if (spec.beat === 'lan') {
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), bodyMat);
+    head.scale.set(1.15, 0.95, 1.2); head.position.y = 0.42; g.add(head);
+    const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.12, 0.22), accent);
+    jaw.position.set(0.12, 0.28, 0); g.add(jaw);
+    const ribbons = [];
+    for (let i = 0; i < 5; i++) {
+      const rib = new THREE.Mesh(
+        new THREE.CapsuleGeometry(0.025, 0.5, 3, 5),
+        new THREE.MeshStandardMaterial({
+          color: i % 2 ? 0xff66ee : 0x66ffee, emissive: 0xff44aa, emissiveIntensity: 0.65, roughness: 0.4,
+        })
+      );
+      rib.position.set(-0.2, 0.55, (i - 2) * 0.08);
+      rib.rotation.z = Math.PI / 2 + (i - 2) * 0.12;
+      g.add(rib); ribbons.push(rib);
+    }
+    g.userData.ribbons = ribbons; g.userData.pulse = [head, jaw]; g.userData.floatY = 0.2;
+  } else if (spec.beat === 'frog') {
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), bodyMat);
+    body.scale.set(1.15, 0.85, 1.1); body.position.y = 0.32; g.add(body);
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), accent);
+    eyeL.position.set(0.12, 0.48, 0.14); g.add(eyeL);
+    const eyeR = eyeL.clone(); eyeR.position.z = -0.14; g.add(eyeR);
+    const speaker = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.1, 0.06, 12),
+      new THREE.MeshStandardMaterial({ color: 0x222830, emissive: 0x44ffaa, emissiveIntensity: 0.55, metalness: 0.6, roughness: 0.35 })
+    );
+    speaker.rotation.x = Math.PI / 2; speaker.position.set(0.22, 0.32, 0); g.add(speaker);
+    g.userData.speaker = speaker; g.userData.pulse = [body, speaker]; g.userData.floatY = 0.15;
   } else {
     const body = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), bodyMat);
     body.position.y = 0.45; g.add(body);
@@ -4083,12 +4479,11 @@ function buildInstituteDistrict() {
   root.add(yard);
   markIndestructible(yard);
 
-  // Soft stone rim (±11.2 / ±14 local)
+  // Soft stone rim — bỏ cạnh đông (+X local, về phía chùa) để thông sân
   const rimMats = [];
   const rimDefs = [
     [22.4, 0.18, 0.35, 0, 0.08, 14],
     [22.4, 0.18, 0.35, 0, 0.08, -14],
-    [0.35, 0.18, 28.4, 11.2, 0.08, 0],
     [0.35, 0.18, 28.4, -11.2, 0.08, 0],
   ];
   rimDefs.forEach(([w, h, d, x, y, z]) => {
@@ -4098,9 +4493,9 @@ function buildInstituteDistrict() {
   });
   S.instituteRimAurora = rimMats;
 
-  // Cloud bridge pad toward temple (visual)
+  // Lối đất nối sân chùa ↔ Viện (rộng hơn, thông tường)
   const bridge = new THREE.Mesh(
-    new THREE.PlaneGeometry(6.5, 5.5),
+    new THREE.PlaneGeometry(12, 8),
     new THREE.MeshStandardMaterial({
       color: 0xc8ddd8, roughness: 0.88, metalness: 0.08,
       emissive: 0x66aa99, emissiveIntensity: 0.12, transparent: true, opacity: 0.92,
@@ -4188,10 +4583,359 @@ function buildInstituteDistrict() {
     });
   });
   S.instituteAnimals = animals;
+  // Landmark khổng lồ — khủng long đột biến giữa sân (trước mặt khi warp I)
+  try {
+    const dinoEntry = placeInstituteMutationDino(root, ix, iz);
+    animals.push(dinoEntry);
+    S.instituteDino = dinoEntry;
+  } catch (err) {
+    console.warn('institute dino', err);
+  }
+  buildInstituteShowAlbum(root, ix, iz);
+  buildInstituteGeneWheel(root, ix, iz);
+  // Restore rare habitats if already unlocked in save
+  if (S.daoDienSanVien || ((S.vienShowDem | 0) >= 5 && vienAlbumStampCount() >= 8)) {
+    try { spawnInstituteRareHabitats(true); } catch (_) {}
+  }
+  if ((S.vienShowDem | 0) >= 1) S._vienShowPulseBoost = true;
+  if ((S.vienQuayGene | 0) >= 1) S._vienWheelDense = true;
+  refreshInstituteAlbumSlots();
+  refreshInstituteVeSlots();
+}
+
+function buildInstituteShowAlbum(root, ix, iz) {
+  // Mid-yard Sân Show pad
+  const pad = new THREE.Mesh(
+    new THREE.CircleGeometry(2.4, 32),
+    new THREE.MeshStandardMaterial({
+      color: 0xb8ffe8, roughness: 0.55, metalness: 0.25,
+      emissive: 0x44ffaa, emissiveIntensity: 0.28,
+    })
+  );
+  pad.rotation.x = -Math.PI / 2;
+  pad.position.set(ix, 0.03, iz - 1);
+  pad.receiveShadow = true;
+  root.add(pad);
+  markIndestructible(pad);
+  const padRing = new THREE.Mesh(
+    new THREE.TorusGeometry(2.35, 0.045, 6, 36),
+    new THREE.MeshStandardMaterial({
+      color: 0x88ffcc, metalness: 0.65, roughness: 0.3,
+      emissive: 0x33ff99, emissiveIntensity: 0.4,
+    })
+  );
+  padRing.rotation.x = Math.PI / 2;
+  padRing.position.set(ix, 0.06, iz - 1);
+  root.add(padRing);
+  const showLabel = textPlane('🌙 Sân Show Đột Biến', 360, 48, '#e8fff8', '#0a5040', 15);
+  showLabel.position.set(ix, 0.55, iz - 1);
+  showLabel.scale.set(2.4, 0.38, 1);
+  root.add(showLabel);
+  S.instituteShowPad = pad;
+  S.instituteShowRing = padRing;
+  S.instituteShowLabel = showLabel;
+
+  // Tường Album near gate (north)
+  const wallGroup = new THREE.Group();
+  wallGroup.position.set(ix, 0, iz + 7);
+  const board = new THREE.Mesh(
+    new THREE.BoxGeometry(3.2, 2.0, 0.12),
+    new THREE.MeshStandardMaterial({
+      color: 0x1a3834, roughness: 0.55, metalness: 0.2,
+      emissive: 0x224438, emissiveIntensity: 0.2,
+    })
+  );
+  board.position.y = 1.15;
+  wallGroup.add(board);
+  const rim = new THREE.Mesh(
+    new THREE.BoxGeometry(3.35, 2.15, 0.06),
+    new THREE.MeshStandardMaterial({
+      color: 0x66ccaa, roughness: 0.4, metalness: 0.45,
+      emissive: 0x33aa88, emissiveIntensity: 0.15,
+    })
+  );
+  rim.position.y = 1.15; rim.position.z = -0.02;
+  wallGroup.add(rim);
+  S.instituteAlbumRim = rim;
+  const albumTip = textPlane('📷 Album Ảnh Kỳ Viện', 340, 48, '#e8fff6', '#145048', 15);
+  albumTip.position.set(0, 2.35, 0.12);
+  albumTip.scale.set(2.3, 0.36, 1);
+  wallGroup.add(albumTip);
+  S.instituteAlbumTip = albumTip;
+
+  // 12 stamp slots (3 rows × 4 cols) — face −Z (toward yard)
+  const slots = [];
+  for (let i = 0; i < 12; i++) {
+    const col = i % 4;
+    const row = (i / 4) | 0;
+    const sx = -1.15 + col * 0.76;
+    const sy = 1.7 - row * 0.52;
+    const slot = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.62, 0.42),
+      new THREE.MeshStandardMaterial({
+        color: 0x2a4840, roughness: 0.7, metalness: 0.1,
+        emissive: 0x113322, emissiveIntensity: 0.12,
+        side: THREE.DoubleSide,
+      })
+    );
+    slot.position.set(sx, sy, 0.08);
+    wallGroup.add(slot);
+    const slotLabel = textPlane('·', 120, 48, '#88aa99', '#1a3028', 18);
+    slotLabel.position.set(sx, sy, 0.1);
+    slotLabel.scale.set(0.55, 0.28, 1);
+    wallGroup.add(slotLabel);
+    slots.push({
+      id: INSTITUTE_ALBUM_SLOT_IDS[i] || `slot${i}`,
+      mesh: slot,
+      label: slotLabel,
+      filled: false,
+    });
+  }
+  S.instituteAlbumSlots = slots;
+  // Face −Z into yard (board default faces +Z; rotate 180°)
+  wallGroup.rotation.y = Math.PI;
+  root.add(wallGroup);
+  S.instituteAlbumWall = wallGroup;
+}
+
+function refreshInstituteAlbumSlots() {
+  const stamps = S.vienAlbumStamps || {};
+  const slots = S.instituteAlbumSlots;
+  if (!slots) return;
+  slots.forEach((slot) => {
+    const filled = !!stamps[slot.id];
+    slot.filled = filled;
+    if (slot.mesh?.material) {
+      slot.mesh.material.emissiveIntensity = filled ? 0.55 : 0.12;
+      slot.mesh.material.emissive?.setHex?.(filled ? 0x44ffaa : 0x113322);
+      slot.mesh.material.color?.setHex?.(filled ? 0x3a6a58 : 0x2a4840);
+    }
+    if (slot.label) {
+      // Rebuild label text via canvas if filled
+      try {
+        const name = filled ? albumStampName(slot.id).slice(0, 10) : '·';
+        const cv = document.createElement('canvas');
+        cv.width = 120; cv.height = 48;
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = filled ? '#0a4034' : '#1a3028';
+        ctx.fillRect(0, 0, 120, 48);
+        ctx.fillStyle = filled ? '#e8fff4' : '#88aa99';
+        ctx.font = '700 14px "Be Vietnam Pro","Noto Sans",sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(name, 60, 25);
+        if (slot.label.material?.map) {
+          slot.label.material.map.image = cv;
+          slot.label.material.map.needsUpdate = true;
+        } else if (slot.label.userData?.tex) {
+          slot.label.userData.tex.image = cv;
+          slot.label.userData.tex.needsUpdate = true;
+        }
+      } catch (_) {}
+    }
+  });
+  if (S.instituteAlbumRim?.material) {
+    S.instituteAlbumRim.material.emissiveIntensity = S.khanGiaDotBien ? 0.55 : 0.15;
+    if (S.khanGiaDotBien) S.instituteAlbumRim.material.emissive?.setHex?.(0x66ffcc);
+  }
+}
+
+function buildInstituteGeneWheel(root, ix, iz) {
+  // Soft carnival zone ring south of show pad
+  const zoneRing = new THREE.Mesh(
+    new THREE.TorusGeometry(1.85, 0.03, 6, 28),
+    new THREE.MeshStandardMaterial({
+      color: 0xa8ffe0, metalness: 0.45, roughness: 0.4,
+      emissive: 0x44ffbb, emissiveIntensity: 0.22,
+    })
+  );
+  zoneRing.rotation.x = Math.PI / 2;
+  zoneRing.position.set(ix, 0.05, iz - 10.2);
+  root.add(zoneRing);
+  markIndestructible(zoneRing);
+  S.instituteCarnivalRing = zoneRing;
+
+  // Tall carnival wheel — upright disk facing +Z (yard / gate)
+  const stand = new THREE.Group();
+  stand.position.set(ix, 0, iz - 12);
+  const post = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.12, 0.18, 1.7, 8),
+    new THREE.MeshStandardMaterial({ color: 0xd8c8a8, metalness: 0.35, roughness: 0.45, emissive: 0x664422, emissiveIntensity: 0.1 })
+  );
+  post.position.y = 0.85;
+  stand.add(post);
+  const base = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.55, 0.65, 0.14, 12),
+    new THREE.MeshStandardMaterial({ color: 0xc8b898, metalness: 0.3, roughness: 0.5 })
+  );
+  base.position.y = 0.07;
+  stand.add(base);
+  const axle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.08, 0.08, 0.35, 8),
+    new THREE.MeshStandardMaterial({ color: 0xffe8a0, metalness: 0.7, roughness: 0.3, emissive: 0xffaa44, emissiveIntensity: 0.35 })
+  );
+  axle.rotation.x = Math.PI / 2;
+  axle.position.y = 1.8;
+  stand.add(axle);
+
+  const disk = new THREE.Group();
+  disk.position.y = 1.8;
+  const pastel = INSTITUTE_GENE_OUTCOMES.map((o) => o.color);
+  for (let i = 0; i < 8; i++) {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    const a0 = (i / 8) * Math.PI * 2 - Math.PI / 2;
+    const a1 = ((i + 1) / 8) * Math.PI * 2 - Math.PI / 2;
+    shape.absarc(0, 0, 1.55, a0, a1, false);
+    shape.lineTo(0, 0);
+    const geo = new THREE.ShapeGeometry(shape);
+    const mat = new THREE.MeshStandardMaterial({
+      color: pastel[i], roughness: 0.45, metalness: 0.25,
+      emissive: pastel[i], emissiveIntensity: 0.28, side: THREE.DoubleSide,
+    });
+    const wedge = new THREE.Mesh(geo, mat);
+    disk.add(wedge);
+  }
+  const hub = new THREE.Mesh(
+    new THREE.CircleGeometry(0.22, 16),
+    new THREE.MeshStandardMaterial({
+      color: 0xfff4d0, metalness: 0.55, roughness: 0.3,
+      emissive: 0xffcc66, emissiveIntensity: 0.45, side: THREE.DoubleSide,
+    })
+  );
+  hub.position.z = 0.02;
+  disk.add(hub);
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(1.55, 0.05, 6, 36),
+    new THREE.MeshStandardMaterial({
+      color: 0xffe8aa, metalness: 0.6, roughness: 0.3,
+      emissive: 0xffaa66, emissiveIntensity: 0.35,
+    })
+  );
+  disk.add(rim);
+  stand.add(disk);
+  const wheelTip = textPlane('🎡 Vòng Quay Đột Biến', 380, 48, '#fff8e8', '#5a2840', 15);
+  wheelTip.position.set(0, 3.55, 0.15);
+  wheelTip.scale.set(2.5, 0.38, 1);
+  stand.add(wheelTip);
+  root.add(stand);
+  S.instituteWheelStand = stand;
+  S.instituteWheelDisk = disk;
+  S.instituteWheelTip = wheelTip;
+  S.instituteWheelRim = rim;
+  if (!IS_MOBILE) {
+    const wl = new THREE.PointLight(0xff88cc, 0.28, 10, 2);
+    wl.position.set(ix, 3.2, iz - 12);
+    root.add(wl);
+    S.instituteWheelLight = wl;
+  }
+
+  // Quầy Vé Gene — west of wheel
+  const booth = new THREE.Group();
+  booth.position.set(ix - 3.2, 0, iz - 11);
+  const counter = new THREE.Mesh(
+    new THREE.BoxGeometry(1.6, 1.0, 0.8),
+    new THREE.MeshStandardMaterial({
+      color: 0x2a4850, roughness: 0.55, metalness: 0.2,
+      emissive: 0x1a3840, emissiveIntensity: 0.18,
+    })
+  );
+  counter.position.y = 0.5;
+  booth.add(counter);
+  const boothRim = new THREE.Mesh(
+    new THREE.BoxGeometry(1.7, 1.1, 0.08),
+    new THREE.MeshStandardMaterial({
+      color: 0x66eecc, roughness: 0.4, metalness: 0.45,
+      emissive: 0x33ccaa, emissiveIntensity: S.tayQuayGene || S.chuQuayCarnival ? 0.55 : 0.18,
+    })
+  );
+  boothRim.position.set(0, 0.55, 0.42);
+  booth.add(boothRim);
+  S.instituteBoothRim = boothRim;
+  const plaque = new THREE.Mesh(
+    new THREE.BoxGeometry(1.45, 0.72, 0.06),
+    new THREE.MeshStandardMaterial({
+      color: 0x1a3038, roughness: 0.6, metalness: 0.15,
+      emissive: 0x113028, emissiveIntensity: 0.2,
+    })
+  );
+  plaque.position.set(0, 1.25, 0.38);
+  booth.add(plaque);
+  const veSlots = [];
+  for (let i = 0; i < 8; i++) {
+    const col = i % 4;
+    const row = (i / 4) | 0;
+    const sx = -0.52 + col * 0.35;
+    const sy = 1.42 - row * 0.32;
+    const outcome = INSTITUTE_GENE_OUTCOMES[i];
+    const slot = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.3, 0.26),
+      new THREE.MeshStandardMaterial({
+        color: 0x243840, roughness: 0.7, metalness: 0.1,
+        emissive: outcome.color, emissiveIntensity: 0.08,
+        side: THREE.DoubleSide,
+      })
+    );
+    slot.position.set(sx, sy, 0.42);
+    booth.add(slot);
+    const label = textPlane('·', 80, 40, '#88aa99', '#1a2828', 16);
+    label.position.set(sx, sy, 0.44);
+    label.scale.set(0.28, 0.18, 1);
+    booth.add(label);
+    veSlots.push({ id: outcome.id, mesh: slot, label, filled: false });
+  }
+  S.instituteVeSlots = veSlots;
+  const boothTip = textPlane('🎫 Quầy Vé Gene', 300, 48, '#e8fff8', '#145048', 15);
+  boothTip.position.set(0, 1.85, 0.45);
+  boothTip.scale.set(1.7, 0.32, 1);
+  booth.add(boothTip);
+  S.instituteBoothTip = boothTip;
+  root.add(booth);
+}
+
+function refreshInstituteVeSlots() {
+  const stamps = S.vienVeGene || {};
+  const slots = S.instituteVeSlots;
+  if (!slots) return;
+  slots.forEach((slot) => {
+    const filled = !!stamps[slot.id];
+    slot.filled = filled;
+    const outcome = INSTITUTE_GENE_OUTCOMES.find((o) => o.id === slot.id);
+    if (slot.mesh?.material) {
+      slot.mesh.material.emissiveIntensity = filled ? 0.65 : 0.08;
+      slot.mesh.material.emissive?.setHex?.(outcome?.color || 0x113028);
+      slot.mesh.material.color?.setHex?.(filled ? 0x3a5a50 : 0x243840);
+    }
+    if (slot.label) {
+      try {
+        const name = filled ? geneOutcomeName(slot.id).replace(/^Gene\s+/, '').slice(0, 8) : '·';
+        const cv = document.createElement('canvas');
+        cv.width = 80; cv.height = 40;
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = filled ? '#0a4034' : '#1a2828';
+        ctx.fillRect(0, 0, 80, 40);
+        ctx.fillStyle = filled ? '#e8fff4' : '#88aa99';
+        ctx.font = '700 12px "Be Vietnam Pro","Noto Sans",sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(name, 40, 21);
+        if (slot.label.material?.map) {
+          slot.label.material.map.image = cv;
+          slot.label.material.map.needsUpdate = true;
+        } else if (slot.label.userData?.tex) {
+          slot.label.userData.tex.image = cv;
+          slot.label.userData.tex.needsUpdate = true;
+        }
+      } catch (_) {}
+    }
+  });
+  if (S.instituteBoothRim?.material) {
+    const neon = S.chuQuayCarnival || S.tayQuayGene;
+    S.instituteBoothRim.material.emissiveIntensity = neon ? 0.55 : 0.18;
+    if (neon) S.instituteBoothRim.material.emissive?.setHex?.(0x66ffcc);
+  }
 }
 
 function pickNearInstituteAnimal() {
-  if (!playerRoot || S.instituteAct || !S.instituteAnimals) return null;
+  if (!playerRoot || S.instituteAct || S.instituteWheelAct || !S.instituteAnimals) return null;
   if (playerRoot.position.x >= -16) return null;
   let best = null, bestD = 99;
   for (const a of S.instituteAnimals) {
@@ -4213,7 +4957,44 @@ function goToInstituteGate() {
   S.pitch = 0.08;
   if (player) player.rotation.y = Math.PI;
   S._instituteEntered = true;
-  toast('🧬 Giữa Sân Thú Biến Đổi — đi vòng xem các em đang… biến!');
+  S._instituteEnteredAt = performance.now();
+  toast('🧬 Giữa Sân Thú Biến Đổi — khủng long đột biến đứng giữa sân!');
+  if (!S._vienDinoTip) {
+    S._vienDinoTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast('🦕 Khủng Long Đột Biến Viện — lại gần để Quan sát / Vuốt ve');
+    }, 2800);
+  }
+  // Soft tip cycle: dusk→show else if no spins→wheel else album (do not spam all three)
+  if (!S._vienShowWarpTip && !S._vienWheelWarpTip) {
+    const nightish = S.timePhase === 'dusk' || S.timePhase === 'night';
+    if (nightish) {
+      S._vienShowWarpTip = true;
+      setTimeout(() => {
+        if (!S.playing) return;
+        toast('🌙 Show Đột Biến Đêm sắp mở trên sân giữa…');
+      }, 4500);
+    } else if ((S.vienQuayGene | 0) < 1) {
+      S._vienWheelWarpTip = true;
+      setTimeout(() => {
+        if (!S.playing) return;
+        toast('🎡 Vòng Quay Đột Biến mở phía nam sân…');
+      }, 4500);
+    } else {
+      S._vienShowWarpTip = true;
+      setTimeout(() => {
+        if (!S.playing) return;
+        toast('📷 Tường Album Ảnh Kỳ gần cổng — đứng xem ảnh viện');
+      }, 4500);
+    }
+  } else if (!S._vienWheelWarpTip && (S.vienQuayGene | 0) < 1) {
+    S._vienWheelWarpTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast('🎡 Vòng Quay Đột Biến mở phía nam sân…');
+    }, 8000);
+  }
   if (!S._instituteWarpTips) {
     S._instituteWarpTips = true;
     setTimeout(() => {
@@ -4235,8 +5016,701 @@ function goToInstituteGate() {
   }
 }
 
+function pickNearInstituteShow() {
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct) return false;
+  if (playerRoot.position.x >= -16) return false;
+  const px = playerRoot.position.x, pz = playerRoot.position.z;
+  return Math.hypot(px - INSTITUTE_X, pz - (INSTITUTE_Z - 1)) < 2.2;
+}
+function pickNearInstituteAlbum() {
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct) return false;
+  if (playerRoot.position.x >= -16) return false;
+  const px = playerRoot.position.x, pz = playerRoot.position.z;
+  return Math.hypot(px - INSTITUTE_X, pz - (INSTITUTE_Z + 7)) < 2.0;
+}
+function pickNearInstituteWheel() {
+  if (!playerRoot || S.instituteAct || S.instituteShowAct || S.instituteWheelAct) return false;
+  if (playerRoot.position.x >= -16) return false;
+  const px = playerRoot.position.x, pz = playerRoot.position.z;
+  // Shared hotspot: wheel (0,-12) + booth (−3.2,-11) → r≈2.4 from wheel center
+  const wx = INSTITUTE_X, wz = INSTITUTE_Z - 12;
+  const bx = INSTITUTE_X - 3.2, bz = INSTITUTE_Z - 11;
+  return Math.hypot(px - wx, pz - wz) < 2.4 || Math.hypot(px - bx, pz - bz) < 2.0;
+}
+
+function openInstituteAlbum() {
+  if (S.busy || S.instituteShowAct || S.instituteWheelAct) return;
+  const stamps = S.vienAlbumStamps || {};
+  const n = vienAlbumStampCount();
+  const rows = INSTITUTE_ALBUM_SLOT_IDS.map((id) => {
+    const ok = !!stamps[id];
+    return `<li>${ok ? '✅' : '⬜'} ${albumStampName(id)}</li>`;
+  }).join('');
+  const mega = stamps.showDem ? '<p class="tiny" style="text-align:center">✨ Đã có stamp <strong>SHOW·ĐÊM</strong></p>' : '';
+  refreshInstituteAlbumSlots();
+  // Soft plaque emissive pulse
+  if (S.instituteAlbumRim?.material) {
+    S.instituteAlbumRim.material.emissiveIntensity = 0.7;
+    setTimeout(() => {
+      if (S.instituteAlbumRim?.material) {
+        S.instituteAlbumRim.material.emissiveIntensity = S.khanGiaDotBien ? 0.55 : 0.15;
+      }
+    }, 900);
+  }
+  openModal(`
+    <h2>📷 Album Ảnh Kỳ Viện</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ghim <strong>${n}</strong>/12 stamp thú · show đêm <strong>${S.vienShowDem | 0}</strong> · diễn tập <strong>${S.vienShowTap | 0}</strong></p>
+    ${mega}
+    <ul class="book-list">${rows}</ul>
+    <button class="btn" id="m-album-ok">Đóng</button>
+  `);
+  $('m-album-ok').onclick = () => closeModal();
+  toast(n > 0 ? `📷 Album · ${n} ảnh kỳ đang sáng` : '📷 Album còn trống — Chụp Show đêm để ghim ảnh');
+}
+
+function spawnInstituteRareHabitats(quiet) {
+  if (S._vienRareSpawned || !S.instituteRoot) return;
+  const root = S.instituteRoot;
+  const ix = INSTITUTE_X, iz = INSTITUTE_Z;
+  const rares = [];
+  INSTITUTE_RARE_SPECS.forEach((spec) => {
+    const ax = ix + spec.dx;
+    const az = iz + spec.dz;
+    const cageY = spec.y || 3.2;
+    const cage = new THREE.Group();
+    // Soft floating habitat cage
+    const barMat = new THREE.MeshStandardMaterial({
+      color: 0xa8e0d0, metalness: 0.55, roughness: 0.35,
+      emissive: 0x44aa88, emissiveIntensity: 0.3,
+    });
+    const floor = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.75, 0.08, 12), barMat);
+    floor.position.y = 0; cage.add(floor);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.03, 6, 20), barMat);
+    ring.rotation.x = Math.PI / 2; ring.position.y = 0.55; cage.add(ring);
+    const top = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.03, 6, 16), barMat);
+    top.rotation.x = Math.PI / 2; top.position.y = 1.05; cage.add(top);
+    // Soft tether beam to ground
+    const beam = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.04, 0.06, cageY, 6),
+      new THREE.MeshBasicMaterial({ color: 0x66ffcc, transparent: true, opacity: 0.28 })
+    );
+    beam.position.y = -cageY / 2;
+    cage.add(beam);
+    const animal = buildInstituteAnimalMesh(spec);
+    animal.position.y = 0.35;
+    cage.add(animal);
+    const namePlaque = textPlane(spec.name, 280, 48, '#f0fff8', '#1a5048', 13);
+    namePlaque.position.set(0, 1.35, 0);
+    namePlaque.scale.set(1.6, 0.3, 1);
+    cage.add(namePlaque);
+    const glow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.9, 16),
+      new THREE.MeshBasicMaterial({
+        color: spec.color, transparent: true, opacity: 0.18,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
+    );
+    glow.rotation.x = -Math.PI / 2;
+    glow.position.y = 0.02;
+    cage.add(glow);
+    cage.position.set(ax, cageY, az);
+    root.add(cage);
+    const entry = {
+      ...spec,
+      x: ax, z: az, y: cageY,
+      pos: new THREE.Vector3(ax, 0, az),
+      mesh: cage,
+      animal,
+      tip: namePlaque,
+      glow,
+      rare: true,
+      r: 2.0,
+      phase: Math.random() * 6.28,
+    };
+    rares.push(entry);
+    if (!S.instituteAnimals) S.instituteAnimals = [];
+    S.instituteAnimals.push(entry);
+  });
+  S.instituteRareAnimals = rares;
+  S._vienRareSpawned = true;
+  if (!quiet) {
+    toast('✨ Thú hiếm lồng bay đã về viện!');
+    try { playWhoosh(); } catch (_) {}
+  }
+}
+
+function escalateInstituteShowRewards() {
+  // (a) daytime Diễn tập after 1 night show
+  if ((S.vienShowDem | 0) >= 1 && !S._vienShowPulseBoost) {
+    S._vienShowPulseBoost = true;
+    setTimeout(() => toast('🌙 Mở · Diễn tập Show ban ngày trên sân giữa'), 700);
+  }
+  // (b) Khán Giả Đột Biến
+  if (((S.vienShowDem | 0) >= 3 || vienAlbumStampCount() >= 5) && !S.khanGiaDotBien) {
+    S.khanGiaDotBien = true;
+    if (S.instituteAlbumRim?.material) {
+      S.instituteAlbumRim.material.emissiveIntensity = 0.55;
+      S.instituteAlbumRim.material.emissive?.setHex?.(0x66ffcc);
+    }
+    setTimeout(() => {
+      toast('🌙 Flair · Khán Giả Đột Biến · tường album neon mềm');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 900);
+  }
+  // (c) Đạo Diễn + rare cages
+  if ((S.vienShowDem | 0) >= 5 && vienAlbumStampCount() >= 8 && !S.daoDienSanVien) {
+    S.daoDienSanVien = true;
+    spawnInstituteRareHabitats(false);
+    S._vienDaoDienPulse = true;
+    setTimeout(() => {
+      toast('🎬 Flair · Đạo Diễn Sân Viện · thú hiếm lồng bay!');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 1100);
+    // One-shot yard confetti pulse (light particles)
+    if (!IS_MOBILE) {
+      for (let i = 0; i < 8; i++) {
+        try {
+          emitSmoke(
+            INSTITUTE_X + (Math.random() - 0.5) * 10,
+            1.2 + Math.random(),
+            INSTITUTE_Z + (Math.random() - 0.5) * 10,
+            1
+          );
+        } catch (_) {}
+      }
+    }
+  }
+  if (vienAlbumStampCount() >= 3 && !S._vienAlbumFullTip) {
+    S._vienAlbumFullTip = true;
+    setTimeout(() => toast('📷 Album đang đầy ảnh kỳ viện'), 1200);
+  }
+}
+
+function clearInstituteGeneBuff(animal, soft) {
+  if (!animal?.geneBuff) return;
+  const buff = animal.geneBuff;
+  const an = animal.animal;
+  if (an) {
+    if (buff.prop && an.children) {
+      try { an.remove(buff.prop); } catch (_) {}
+    }
+    if (buff.savedMats) {
+      buff.savedMats.forEach(({ mesh, color, emissive, emissiveIntensity }) => {
+        if (!mesh?.material) return;
+        if (color != null && mesh.material.color) mesh.material.color.setHex(color);
+        if (emissive != null && mesh.material.emissive) mesh.material.emissive.setHex(emissive);
+        if (emissiveIntensity != null) mesh.material.emissiveIntensity = emissiveIntensity;
+      });
+    }
+    an.scale.set(1, 1, 1);
+    an.userData.geneBobAmp = 1;
+    an.userData.geneSpinAmp = 1;
+    an.userData.geneHueCycle = false;
+    an.userData.geneTrail = false;
+    an.userData.geneIcy = false;
+  }
+  animal.geneBuff = null;
+  if (!soft) {
+    try { /* settle */ } catch (_) {}
+  }
+}
+
+function applyInstituteGeneBuff(animal, outcomeId) {
+  if (!animal?.animal) return;
+  clearInstituteGeneBuff(animal, true);
+  const an = animal.animal;
+  const dur = 25 + Math.random() * 15; // 25–40s
+  const savedMats = [];
+  const pulse = an.userData.pulse || [];
+  pulse.forEach((m) => {
+    if (!m?.material) return;
+    savedMats.push({
+      mesh: m,
+      color: m.material.color?.getHex?.() ?? null,
+      emissive: m.material.emissive?.getHex?.() ?? null,
+      emissiveIntensity: m.material.emissiveIntensity,
+    });
+  });
+  const buff = { id: outcomeId, until: performance.now() + dur * 1000, savedMats, prop: null };
+  an.userData.geneBobAmp = 1;
+  an.userData.geneSpinAmp = 1;
+  an.userData.geneHueCycle = false;
+  an.userData.geneTrail = false;
+  an.userData.geneIcy = false;
+
+  if (outcomeId === 'geneNeonHong') {
+    pulse.forEach((m) => {
+      if (!m.material) return;
+      m.material.emissive?.setHex?.(0xff66aa);
+      m.material.emissiveIntensity = 0.85;
+      m.material.color?.setHex?.(0xff88bb);
+    });
+  } else if (outcomeId === 'geneBangTuyet') {
+    pulse.forEach((m) => {
+      if (!m.material) return;
+      m.material.emissive?.setHex?.(0x88ddff);
+      m.material.emissiveIntensity = 0.55;
+      m.material.color?.setHex?.(0xc8eef8);
+    });
+    an.userData.geneIcy = true;
+    an.userData.geneBobAmp = 0.55;
+  } else if (outcomeId === 'geneCauVong') {
+    an.userData.geneHueCycle = true;
+  } else if (outcomeId === 'geneMuRoi') {
+    const hat = new THREE.Group();
+    const brim = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.16, 0.18, 0.04, 10),
+      new THREE.MeshStandardMaterial({ color: 0xff6688, emissive: 0xff4466, emissiveIntensity: 0.45 })
+    );
+    brim.position.y = 0.02; hat.add(brim);
+    const cone = new THREE.Mesh(
+      new THREE.ConeGeometry(0.1, 0.22, 8),
+      new THREE.MeshStandardMaterial({ color: 0xffee66, emissive: 0xffaa44, emissiveIntensity: 0.5 })
+    );
+    cone.position.y = 0.14; hat.add(cone);
+    const rib = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.015, 0.2, 3, 4),
+      new THREE.MeshStandardMaterial({ color: 0x66ffee, emissive: 0x44ffcc, emissiveIntensity: 0.6 })
+    );
+    rib.position.set(0.12, 0.1, 0); rib.rotation.z = -0.8; hat.add(rib);
+    hat.position.y = 0.95;
+    an.add(hat);
+    buff.prop = hat;
+  } else if (outcomeId === 'geneNhayHip') {
+    an.userData.geneBobAmp = 2.4;
+    an.userData.geneSpinAmp = 2.2;
+  } else if (outcomeId === 'geneDuoiSao') {
+    an.userData.geneTrail = true;
+    pulse.forEach((m) => {
+      if (m.material?.emissiveIntensity != null) m.material.emissiveIntensity = 0.55;
+    });
+  } else if (outcomeId === 'geneKhongLo') {
+    an.scale.setScalar(1.25);
+  } else if (outcomeId === 'geneBeTy') {
+    an.scale.setScalar(0.75);
+  }
+  animal.geneBuff = buff;
+}
+
+function openInstituteVeGene() {
+  const stamps = S.vienVeGene || {};
+  const n = vienVeGeneCount();
+  const rows = INSTITUTE_GENE_OUTCOMES.map((o) => {
+    const ok = !!stamps[o.id];
+    return `<li>${ok ? '✅' : '⬜'} ${o.name}</li>`;
+  }).join('');
+  refreshInstituteVeSlots();
+  if (S.instituteBoothRim?.material) {
+    S.instituteBoothRim.material.emissiveIntensity = 0.75;
+    setTimeout(() => {
+      if (S.instituteBoothRim?.material) {
+        S.instituteBoothRim.material.emissiveIntensity =
+          (S.chuQuayCarnival || S.tayQuayGene) ? 0.55 : 0.18;
+      }
+    }, 900);
+  }
+  openModal(`
+    <h2>🎫 Quầy Vé Gene</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã sưu <strong>${n}</strong>/8 vé · đã quay <strong>${S.vienQuayGene | 0}</strong>${S.vienSieuQuay ? ' · đã Siêu Quay' : ''}</p>
+    <ul class="book-list">${rows}</ul>
+    <button class="btn" id="m-ve-ok">Đóng</button>
+  `);
+  $('m-ve-ok').onclick = () => closeModal();
+  toast(n > 0 ? `🎫 Vé gene · ${n}/8 đang sáng` : '🎫 Quầy còn trống — Quay Gene để sưu vé');
+}
+
+function escalateInstituteGeneRewards() {
+  // (a) denser wheel after 1 spin
+  if ((S.vienQuayGene | 0) >= 1 && !S._vienWheelDense) {
+    S._vienWheelDense = true;
+    setTimeout(() => toast('🎡 Quay tiếp để sưu vé gene'), 700);
+  }
+  // (b) Tay Quay Gene after 5 spins OR 3 distinct vé
+  if (((S.vienQuayGene | 0) >= 5 || vienVeGeneCount() >= 3) && !S.tayQuayGene) {
+    S.tayQuayGene = true;
+    if (S.instituteBoothRim?.material) {
+      S.instituteBoothRim.material.emissiveIntensity = 0.55;
+      S.instituteBoothRim.material.emissive?.setHex?.(0x66ffcc);
+    }
+    setTimeout(() => {
+      toast('🎡 Flair · Tay Quay Gene · quầy neon mềm');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 900);
+  }
+  // (c) Chủ Quầy + Siêu Quay unlock
+  if ((S.vienQuayGene | 0) >= 12 && vienVeGeneCount() >= 6 && !S.chuQuayCarnival) {
+    S.chuQuayCarnival = true;
+    setTimeout(() => {
+      toast('🌈 Flair · Chủ Quầy Carnival Viện · Siêu Quay Cầu Vồng mở đêm!');
+      try { updateMeritHud(); } catch (_) {}
+      try { publishPresence?.(true); } catch (_) {}
+    }, 1100);
+  }
+  if (vienVeGeneCount() >= 3 && !S._vienVeGlowTip) {
+    S._vienVeGlowTip = true;
+    setTimeout(() => toast('🎫 Quầy vé gene đang sáng'), 1200);
+  }
+}
+
+function startInstituteGeneSpin(opts = {}) {
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct) return;
+  if (instituteBusyBlocked()) {
+    toast('🧬 Viện chờ hết lượt khác đã');
+    return;
+  }
+  const animals = (S.instituteAnimals || []).filter((a) => a && a.animal);
+  if (!animals.length) {
+    toast('🎡 Chưa có thú trên sân để gắn gene carnival');
+    return;
+  }
+  const free = animals.filter((a) => !a.geneBuff || (a.geneBuff.until || 0) < performance.now());
+  if (!free.length) {
+    toast('Thú đang giữ gene carnival — đợi hết hiệu ứng');
+    return;
+  }
+  // Prefer nearest free animal, else random free
+  let focus = free[0];
+  if (playerRoot) {
+    let bestD = 99;
+    free.forEach((a) => {
+      const d = Math.hypot(playerRoot.position.x - a.x, playerRoot.position.z - a.z);
+      if (d < bestD) { bestD = d; focus = a; }
+    });
+  } else {
+    focus = free[(Math.random() * free.length) | 0];
+  }
+
+  const nightish = S.timePhase === 'dusk' || S.timePhase === 'night';
+  let sieu = !!opts.sieu || (vienSieuQuayAvailableNow() && nightish);
+  if (sieu && !nightish) sieu = false;
+  if (sieu && S._vienSieuQuaySession) sieu = false;
+
+  const outcomeIdx = (Math.random() * INSTITUTE_GENE_OUTCOMES.length) | 0;
+  const outcome = INSTITUTE_GENE_OUTCOMES[outcomeIdx];
+  const dur = IS_MOBILE ? (5.2 + Math.random() * 1.2) : (6.0 + Math.random() * 2.0);
+  // Land so 12-o'clock pointer hits wedge outcomeIdx (spin forward several turns)
+  const startRot = S.instituteWheelDisk ? S.instituteWheelDisk.rotation.z : 0;
+  const wedge = (Math.PI * 2) / 8;
+  const targetMod = -outcomeIdx * wedge;
+  const TWO_PI = Math.PI * 2;
+  const curMod = ((startRot % TWO_PI) + TWO_PI) % TWO_PI;
+  let delta = targetMod - curMod;
+  while (delta <= 0) delta += TWO_PI;
+  const landRot = startRot + delta + TWO_PI * (3 + ((Math.random() * 2) | 0));
+
+  S.busy = true;
+  if (playerRoot) {
+    playerRoot.position.set(INSTITUTE_X + 0.15, 0, INSTITUTE_Z - 12 + 2.3);
+  }
+  const faceYaw = Math.atan2(0.01, -1);
+  S.yaw = faceYaw;
+  if (player) player.rotation.y = faceYaw;
+
+  S.instituteWheelAct = {
+    kind: sieu ? 'sieuQuay' : 'quayGene',
+    sieu,
+    t: 0, dur,
+    rewarded: false,
+    faceYaw,
+    outcomeId: outcome.id,
+    outcomeName: outcome.name,
+    outcomeIdx,
+    focusId: focus.id,
+    focusName: focus.name,
+    startRot,
+    landRot,
+    landed: false,
+  };
+  try { playWhoosh(); } catch (_) {}
+  toast(sieu ? '🌈 Siêu Quay Cầu Vồng · vòng sáng!' : '🎡 Quay Gene · vòng đang quay…');
+}
+
+function finishInstituteGeneSpin(early) {
+  const act = S.instituteWheelAct;
+  if (!act) return;
+  const elapsed = act.t;
+  const counts = !early || elapsed >= 1.2;
+
+  if (S.instituteWheelDisk) {
+    S.instituteWheelDisk.rotation.z = act.landRot;
+  }
+
+  if (counts && !act.rewarded) {
+    act.rewarded = true;
+    const focus = (S.instituteAnimals || []).find((x) => x.id === act.focusId)
+      || (S.instituteAnimals || []).find((x) => !x.geneBuff);
+    if (early) {
+      // Esc ≥1.2s still counts nhẹ 1 vé thử — random light stamp chance
+      S.vienQuayGene = (S.vienQuayGene | 0) + 1;
+      if (!S.vienVeGene) S.vienVeGene = {};
+      const tryId = act.outcomeId;
+      const wasNew = !S.vienVeGene[tryId];
+      // Soft: only stamp if new and random, or always stamp lightly
+      S.vienVeGene[tryId] = true;
+      refreshInstituteVeSlots();
+      const gain = 1;
+      gainCongDuc(gain, '🧬 Viện · vé thử gene', true);
+      toast(`🎡 Esc sớm · ghi 1 vé thử · +${gain}${wasNew ? ` · ${act.outcomeName}` : ''}`);
+    } else {
+      const firstSpin = (S.vienQuayGene | 0) === 0;
+      S.vienQuayGene = (S.vienQuayGene | 0) + 1;
+      if (!S.vienVeGene) S.vienVeGene = {};
+      const wasNew = !S.vienVeGene[act.outcomeId];
+      S.vienVeGene[act.outcomeId] = true;
+
+      if (focus) applyInstituteGeneBuff(focus, act.outcomeId);
+
+      // Plaque emissive pulse on new stamp
+      const slot = (S.instituteVeSlots || []).find((s) => s.id === act.outcomeId);
+      if (slot?.mesh?.material) {
+        slot.mesh.material.emissiveIntensity = 0.95;
+      }
+      if (S.instituteBoothRim?.material) {
+        S.instituteBoothRim.material.emissiveIntensity = 0.85;
+      }
+      refreshInstituteVeSlots();
+
+      let gain = firstSpin ? 6 : (wasNew ? 4 : 2);
+      if (act.sieu) {
+        gain += 4;
+        S.vienSieuQuay = true;
+        S._vienSieuQuaySession = true;
+        S._vienSieuYardWashUntil = performance.now() + 4200;
+        // Soft yard-wide rainbow wash once
+        if (S.instituteRimAurora) {
+          S.instituteRimAurora.forEach((m) => {
+            if (!m.material) return;
+            m.material.emissiveIntensity = 0.85;
+            m.material.emissive?.setHex?.(0xff88cc);
+          });
+        }
+      }
+      if (firstSpin && (S.khanGiaDotBien || S.nhaNghienCuuSan)) {
+        gain += 1;
+        setTimeout(() => toast('🧬 Duyên Khán Giả / Nhà Nghiên Cứu · +1 công đức quay'), 800);
+      }
+      const jokes = [
+        `${act.outcomeName} · thú cười khà!`,
+        `${act.outcomeName} · gene carnival dính mềm`,
+        `${act.outcomeName} · không phải CRISPR, chỉ là… may!`,
+      ];
+      gainCongDuc(gain, firstSpin ? '🧬 Viện · Vòng Quay Đột Biến' : (act.sieu ? '🌈 Viện · Siêu Quay Cầu Vồng' : 'Viện · Quay Gene'), true);
+      toast(`🎡 ${jokes[act.outcomeIdx % jokes.length]} · ${act.focusName} · +${gain}`);
+      if (firstSpin) {
+        setTimeout(() => toast('📒 Sổ ghi · 🧬 Viện · Vòng Quay Đột Biến'), 1100);
+      }
+      if (act.sieu) {
+        setTimeout(() => toast('🌈 Siêu Quay · cầu vồng phủ sân một nhịp'), 900);
+      }
+      if (wasNew && vienVeGeneCount() >= 1) {
+        setTimeout(() => {
+          if (vienVeGeneCount() === 1 || vienVeGeneCount() === 3 || vienVeGeneCount() === 8) {
+            try { openInstituteVeGene(); } catch (_) {}
+          }
+        }, 1600);
+      }
+    }
+    escalateInstituteGeneRewards();
+    saveAll();
+    try { updateMeritHud(); } catch (_) {}
+  } else if (early && elapsed < 1.2) {
+    toast('🎡 Hủy quá sớm — chưa ghi sổ');
+  }
+
+  if (playerRoot) {
+    playerRoot.position.set(INSTITUTE_X + 0.2, 0, INSTITUTE_Z - 12 + 2.35);
+    playerRoot.position.y = 0;
+  }
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+  } catch (_) {}
+
+  S.instituteWheelAct = null;
+  S.busy = false;
+}
+
+function cancelInstituteGeneSpin() {
+  if (!S.instituteWheelAct) return;
+  finishInstituteGeneSpin(true);
+}
+
+function startInstituteNightShow(opts = {}) {
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct) return;
+  if (instituteBusyBlocked()) {
+    toast('🧬 Viện chờ hết lượt khác đã');
+    return;
+  }
+  const nightish = S.timePhase === 'dusk' || S.timePhase === 'night';
+  let rehearsal = !!opts.rehearsal;
+  if (!nightish) {
+    if (!vienDienTapUnlocked()) {
+      toast('🌙 Đợi chạng vạng / đêm viện… hoặc xem Show Đêm trước');
+      return;
+    }
+    rehearsal = true;
+  } else {
+    rehearsal = false;
+  }
+  const dur = rehearsal
+    ? (IS_MOBILE ? 8.0 : 9.0)
+    : (IS_MOBILE ? 14.0 : 17.0);
+  const animals = S.instituteAnimals || [];
+  const focusIdx = Math.floor(Math.random() * Math.max(1, animals.length));
+  const focus = animals[focusIdx] || animals[0];
+  S.busy = true;
+  // Face center of pad
+  if (playerRoot) {
+    playerRoot.position.set(INSTITUTE_X + 0.2, 0, INSTITUTE_Z - 1 + 2.0);
+  }
+  const faceYaw = Math.atan2(0.01, -1);
+  S.yaw = faceYaw;
+  if (player) player.rotation.y = faceYaw;
+  S.instituteShowAct = {
+    kind: rehearsal ? 'showTap' : 'showDem',
+    rehearsal,
+    t: 0, dur,
+    rewarded: false,
+    chupDone: false,
+    chupOffered: false,
+    focusId: focus?.id || 'koiRong',
+    focusName: focus?.name || 'Thú viện',
+    faceYaw,
+    lineIdx: 0,
+    nextLineAt: 0.5,
+    lines: rehearsal
+      ? [
+          '🌙 Diễn tập Show · thú nhún nhẹ',
+          '✨ Tập hợp nhịp đột biến…',
+          '🧬 Kết thúc diễn tập · cười khà',
+        ]
+      : [
+          '🌙 Show Đột Biến Đêm · bắt đầu!',
+          '✨ Toàn sân thú biến… đồng bộ!',
+          '📸 Sắp tới đỉnh — sẵn sàng Chụp Show',
+          '🧬 Finale · thú gật đầu xin… encore?',
+        ],
+  };
+  try { playWhoosh(); } catch (_) {}
+  toast(rehearsal ? '🌙 Diễn tập Show trên sân giữa' : '🌙 Show Đột Biến Đêm · sân sáng!');
+}
+
+function tryChupInstituteShow() {
+  const act = S.instituteShowAct;
+  if (!act || act.chupDone || act.rehearsal) return false;
+  const u = Math.min(1, act.t / act.dur);
+  if (u < 0.55 || u > 0.92) return false;
+  act.chupDone = true;
+  if (!S.vienAlbumStamps) S.vienAlbumStamps = {};
+  const focusId = act.focusId;
+  const wasNewFocus = !S.vienAlbumStamps[focusId];
+  const wasNewMega = !S.vienAlbumStamps.showDem;
+  S.vienAlbumStamps[focusId] = true;
+  S.vienAlbumStamps.showDem = true;
+  // Pin VFX on matching album slot
+  const slot = (S.instituteAlbumSlots || []).find((s) => s.id === focusId);
+  if (slot?.mesh?.material) {
+    slot.mesh.material.emissiveIntensity = 0.9;
+    slot.mesh.material.emissive?.setHex?.(0x88ffcc);
+  }
+  if (S.instituteAlbumRim?.material) {
+    S.instituteAlbumRim.material.emissiveIntensity = 0.85;
+  }
+  refreshInstituteAlbumSlots();
+  const flash = $('selfie-flash');
+  if (flash) {
+    flash.classList.add('on');
+    setTimeout(() => flash.classList.remove('on'), 160);
+  }
+  try { playBell?.(0.35, 1.6); } catch (_) {}
+  let gain = 6;
+  if (wasNewFocus || wasNewMega) gain = 10;
+  gainCongDuc(gain, wasNewMega ? '🧬 Viện · Chụp Show Đêm' : 'Viện · Chụp Show', true);
+  toast(`📸 Chụp Show · ${act.focusName} ghim album · +${gain}`);
+  escalateInstituteShowRewards();
+  saveAll();
+  try { updateMeritHud(); } catch (_) {}
+  return true;
+}
+
+function finishInstituteShow(early) {
+  const act = S.instituteShowAct;
+  if (!act) return;
+  const elapsed = act.t;
+  const counts = !early || elapsed >= 1.2;
+  // Settle animals
+  (S.instituteAnimals || []).forEach((a) => {
+    if (!a.animal) return;
+    a.animal.rotation.set(0, 0, 0);
+    const baseY = a.animal.userData.floatY != null ? a.animal.userData.floatY : (a.rare ? 0.2 : 0.38);
+    a.animal.position.y = baseY;
+    a.animal.scale.set(1, 1, 1);
+    if (a.animal.userData.headA) {
+      a.animal.userData.headA.rotation.x = 0;
+      a.animal.userData.headB.rotation.x = 0;
+    }
+    if (a.glow?.material) a.glow.material.opacity = 0.14;
+  });
+  if (playerRoot) {
+    playerRoot.position.set(INSTITUTE_X + 0.3, 0, INSTITUTE_Z - 1 + 2.1);
+    playerRoot.position.y = 0;
+  }
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+  } catch (_) {}
+
+  if (counts && !act.rewarded) {
+    act.rewarded = true;
+    // Esc/Hủy ≥1.2s on a night show counts nhẹ as diễn tập (not full night credit)
+    if (early && !act.rehearsal) {
+      S.vienShowTap = (S.vienShowTap | 0) + 1;
+      const gain = 1;
+      gainCongDuc(gain, '🧬 Viện · diễn tập nhẹ', true);
+      toast(`🌙 Esc sớm · ghi 1 lượt diễn tập nhẹ · +${gain}`);
+    } else if (act.rehearsal || act.kind === 'showTap') {
+      S.vienShowTap = (S.vienShowTap | 0) + 1;
+      const gain = early ? 1 : 2;
+      gainCongDuc(gain, '🧬 Viện · diễn tập Show', true);
+      toast(early
+        ? `🌙 Diễn tập nhẹ · +${gain}`
+        : `🌙 Diễn tập xong · thú cười khà · +${gain}`);
+    } else {
+      const firstNight = (S.vienShowDem | 0) === 0;
+      S.vienShowDem = (S.vienShowDem | 0) + 1;
+      let gain = firstNight ? 8 : 5;
+      if (!act.chupDone) gain = Math.max(2, gain - 2); // skipped Chụp → lighter merit
+      if (firstNight && (S.nhaNghienCuuSan || S.thucTapVien)) {
+        gain += 1;
+        setTimeout(() => toast('🧬 Duyên Thực Tập / Nhà Nghiên Cứu · +1 công đức show'), 800);
+      }
+      gainCongDuc(gain, firstNight ? '🧬 Viện · Show Đột Biến Đêm' : 'Viện · Show Đêm', true);
+      toast(`🌙 Show Đột Biến Đêm · thú settle · +${gain}${act.chupDone ? '' : ' · (bỏ Chụp Show)'}${firstNight ? ' · lần đầu' : ''}`);
+      if (firstNight) {
+        setTimeout(() => toast('📒 Sổ ghi · 🧬 Viện · Show Đột Biến Đêm'), 1100);
+      }
+    }
+    escalateInstituteShowRewards();
+    saveAll();
+    try { updateMeritHud(); } catch (_) {}
+  } else if (early && elapsed < 1.2) {
+    toast('🌙 Hủy quá sớm — chưa ghi sổ');
+  }
+
+  S.instituteShowAct = null;
+  S.busy = false;
+}
+
+function cancelInstituteShow() {
+  if (!S.instituteShowAct) return;
+  finishInstituteShow(true);
+}
+
 function startInstituteAct() {
-  if (S.busy || S.instituteAct || !S.nearInstituteAnimal) return;
+  if (S.busy || S.instituteAct || S.instituteShowAct || S.instituteWheelAct || !S.nearInstituteAnimal) return;
   if (instituteBusyBlocked()) {
     toast('🧬 Viện chờ hết lượt khác đã');
     return;
@@ -4451,19 +5925,100 @@ function cancelInstituteAct() {
 
 function updateInstitute(dt, t) {
   const animals = S.instituteAnimals;
+  const showAct = S.instituteShowAct;
+  const wheelAct = S.instituteWheelAct;
+  const nowMs = performance.now();
   if (animals) {
-    const denser = vienVuotUnlocked();
+    const denser = vienVuotUnlocked() || S._vienShowPulseBoost;
     const nearId = S.nearInstituteAnimal?.id;
     animals.forEach((a) => {
       if (a.tip && camera) a.tip.quaternion.copy(camera.quaternion);
       const an = a.animal;
-      if (!an || S.instituteAct?.animalId === a.id) return;
+      if (!an) return;
+      // Expire temp gene cosmetics
+      if (a.geneBuff && (a.geneBuff.until || 0) < nowMs) {
+        clearInstituteGeneBuff(a, false);
+      }
+      // Show choreography takes over idle
+      if (showAct) {
+        const u = Math.min(1, showAct.t / showAct.dur);
+        const amp = showAct.rehearsal ? 0.55 : 1;
+        const baseY = an.userData.floatY != null ? an.userData.floatY : (a.rare ? 0.2 : 0.38);
+        // Rare cages float separately
+        if (a.rare && a.mesh) {
+          a.mesh.position.y = (a.y || 3.2) + Math.sin(t * 1.1 + a.phase) * 0.12;
+        }
+        an.position.y = baseY + Math.sin(showAct.t * 4 + a.phase) * 0.12 * amp;
+        an.rotation.y = showAct.t * (1.2 + (a.phase % 1)) * amp * (showAct.rehearsal ? 0.6 : 1.4);
+        if (an.userData.pulse) {
+          an.userData.pulse.forEach((m) => {
+            if (m.material?.emissiveIntensity != null) {
+              m.material.emissiveIntensity = 0.25 + 0.45 * Math.abs(Math.sin(showAct.t * 5 + a.phase)) * amp;
+            }
+            if (m.material?.color && !showAct.rehearsal) {
+              // Soft hue pulse via emissive only (no pathogen UI)
+              m.material.emissiveIntensity = 0.3 + 0.5 * Math.abs(Math.sin(showAct.t * 3 + a.phase));
+            }
+          });
+        }
+        if (an.userData.headA && an.userData.headB) {
+          const sync = Math.sin(showAct.t * 3) * 0.55 * amp;
+          an.userData.headA.rotation.x = -sync;
+          an.userData.headB.rotation.x = -sync;
+        }
+        if (an.userData.tails) {
+          an.userData.tails.forEach((tail, i) => {
+            tail.rotation.y = Math.sin(showAct.t * 4 + i) * 0.6 * amp;
+          });
+        }
+        if (an.userData.ribbons) {
+          an.userData.ribbons.forEach((rib, i) => {
+            rib.rotation.y = Math.sin(showAct.t * 3 + i) * 0.5;
+          });
+        }
+        if (an.userData.speaker) {
+          const s = 1 + Math.abs(Math.sin(showAct.t * 6)) * 0.25 * amp;
+          an.userData.speaker.scale.set(s, s, s);
+        }
+        if (a.beat === 'cloud') {
+          an.position.y = 1.2 + Math.sin(showAct.t * 2 + a.phase) * 0.35 * amp;
+          // Soft ring formation mid-show
+          if (u > 0.35 && u < 0.85) an.scale.setScalar(1 + 0.2 * Math.sin(u * Math.PI));
+          else an.scale.setScalar(1);
+        }
+        if (a.glow?.material) a.glow.material.opacity = 0.2 + 0.25 * Math.abs(Math.sin(showAct.t * 3));
+        // Light particles mid-finale (desktop)
+        if (!IS_MOBILE && !showAct.rehearsal && u > 0.55 && u < 0.9 && Math.random() < 0.04) {
+          try { emitSmoke(a.x, 1.0, a.z, 1); } catch (_) {}
+        }
+        return;
+      }
+      if (S.instituteAct?.animalId === a.id) return;
       const nearBoost = nearId === a.id ? 1.6 : 1;
-      const bob = denser ? 0.045 : 0.028;
-      const spd = denser ? 2.4 : 1.6;
-      const baseY = an.userData.floatY != null ? an.userData.floatY : 0.38;
+      const geneBob = an.userData.geneBobAmp || 1;
+      const geneSpin = an.userData.geneSpinAmp || 1;
+      const bob = (denser ? 0.045 : 0.028) * geneBob;
+      const spd = (denser ? 2.4 : 1.6) * (an.userData.geneIcy ? 0.55 : 1);
+      const baseY = an.userData.floatY != null ? an.userData.floatY : (a.rare ? 0.2 : 0.38);
+      if (a.rare && a.mesh) {
+        a.mesh.position.y = (a.y || 3.2) + Math.sin(t * 0.9 + a.phase) * 0.15;
+      }
       an.position.y = baseY + Math.sin(t * spd + a.phase) * bob * nearBoost;
-      an.rotation.y = Math.sin(t * 0.7 + a.phase) * 0.12 * nearBoost;
+      an.rotation.y = Math.sin(t * 0.7 * geneSpin + a.phase) * 0.12 * nearBoost * geneSpin;
+      if (an.userData.geneHueCycle && an.userData.pulse) {
+        const hue = (t * 0.35 + a.phase) % 1;
+        const col = new THREE.Color().setHSL(hue, 0.75, 0.55);
+        an.userData.pulse.forEach((m) => {
+          if (m.material?.emissive) m.material.emissive.copy(col);
+          if (m.material?.emissiveIntensity != null) m.material.emissiveIntensity = 0.45 + 0.25 * Math.abs(Math.sin(t * 3));
+        });
+      }
+      if (an.userData.geneTrail && !IS_MOBILE && Math.random() < 0.035) {
+        try { emitSmoke(a.x + (Math.random() - 0.5) * 0.3, 0.7 + Math.random() * 0.4, a.z, 1); } catch (_) {}
+      }
+      if (an.userData.geneTrail && IS_MOBILE && Math.random() < 0.01) {
+        try { emitSmoke(a.x, 0.8, a.z, 1); } catch (_) {}
+      }
       if (an.userData.headA && an.userData.headB) {
         an.userData.headA.rotation.x = Math.sin(t * 2.2 + a.phase) * 0.25;
         an.userData.headB.rotation.x = -Math.sin(t * 2.2 + a.phase) * 0.25;
@@ -4472,6 +6027,15 @@ function updateInstitute(dt, t) {
         an.userData.tails.forEach((tail, i) => {
           tail.rotation.y = Math.sin(t * 3 + i) * 0.35;
         });
+      }
+      if (an.userData.ribbons) {
+        an.userData.ribbons.forEach((rib, i) => {
+          rib.rotation.y = Math.sin(t * 2.5 + i) * 0.3;
+        });
+      }
+      if (an.userData.speaker) {
+        const s = 1 + Math.abs(Math.sin(t * 3 + a.phase)) * 0.12;
+        an.userData.speaker.scale.set(s, s, s);
       }
       if (an.userData.wing) an.userData.wing.rotation.x = Math.sin(t * 4 + a.phase) * 0.4;
       if (an.userData.ring) an.userData.ring.rotation.z = t * 0.8;
@@ -4483,6 +6047,39 @@ function updateInstitute(dt, t) {
         an.userData.wingL.rotation.z = 0.35 + Math.sin(t * 3) * 0.2;
         an.userData.wingR.rotation.z = -0.35 - Math.sin(t * 3) * 0.2;
       }
+      // Khủng long đột biến — há miệng, đuôi + gai neon (giữ scale gene buff)
+      if (an.userData.isDino) {
+        if (an.userData.head) {
+          an.userData.head.rotation.x = Math.sin(t * 0.9 + a.phase) * 0.08 * nearBoost;
+          an.userData.head.rotation.y = Math.sin(t * 0.55 + a.phase) * 0.12 * nearBoost;
+        }
+        if (an.userData.jaw) {
+          an.userData.jaw.rotation.x = 0.08 + Math.abs(Math.sin(t * 1.1 + a.phase)) * 0.18 * nearBoost;
+        }
+        if (an.userData.tail) {
+          an.userData.tail.rotation.y = Math.sin(t * 1.3 + a.phase) * 0.22 * nearBoost;
+          an.userData.tail.rotation.x = Math.sin(t * 0.8) * 0.06;
+        }
+        if (an.userData.spines) {
+          an.userData.spines.forEach((sp, i) => {
+            if (sp.material?.emissiveIntensity != null) {
+              sp.material.emissiveIntensity = 0.55 + 0.4 * Math.abs(Math.sin(t * 2.2 + i * 0.4));
+            }
+            sp.scale.y = 1 + Math.sin(t * 2 + i) * 0.06 * nearBoost;
+          });
+        }
+        if (an.userData.vein?.material) {
+          an.userData.vein.material.emissiveIntensity = 0.55 + 0.45 * Math.abs(Math.sin(t * 2.5));
+          an.userData.vein.rotation.z = t * 0.4;
+        }
+        if (an.userData.eye3?.material) {
+          an.userData.eye3.material.emissiveIntensity = 0.6 + 0.5 * Math.abs(Math.sin(t * 3.2));
+        }
+        if (a.ring?.material) {
+          a.ring.material.emissiveIntensity = 0.4 + 0.35 * Math.abs(Math.sin(t * 1.5));
+        }
+        if (a.tip2 && camera) a.tip2.quaternion.copy(camera.quaternion);
+      }
       if (an.userData.pulse) {
         an.userData.pulse.forEach((m) => {
           if (m.material?.emissiveIntensity != null) {
@@ -4491,15 +6088,49 @@ function updateInstitute(dt, t) {
         });
       }
       if (a.glow?.material && !S.instituteAct) {
-        a.glow.material.opacity = 0.1 + 0.08 * Math.abs(Math.sin(t * 1.4 + a.phase));
+        a.glow.material.opacity = (a.landmark ? 0.14 : 0.1) + 0.08 * Math.abs(Math.sin(t * 1.4 + a.phase));
       }
     });
   }
 
   if (S.instituteGateTip && camera) S.instituteGateTip.quaternion.copy(camera.quaternion);
+  if (S.instituteShowLabel && camera) S.instituteShowLabel.quaternion.copy(camera.quaternion);
+  if (S.instituteAlbumTip && camera) S.instituteAlbumTip.quaternion.copy(camera.quaternion);
+  if (S.instituteWheelTip && camera) S.instituteWheelTip.quaternion.copy(camera.quaternion);
+  if (S.instituteBoothTip && camera) S.instituteBoothTip.quaternion.copy(camera.quaternion);
+  if (S.instituteShowRing?.material) {
+    S.instituteShowRing.material.emissiveIntensity = 0.3 + 0.25 * Math.abs(Math.sin(t * 1.6));
+  }
+  // Album neon rim when Khán Giả
+  if (S.instituteAlbumRim?.material && S.khanGiaDotBien) {
+    S.instituteAlbumRim.material.emissiveIntensity = 0.4 + 0.25 * Math.abs(Math.sin(t * 1.4));
+  }
+  // Wheel / booth neon
+  if (S.instituteWheelRim?.material) {
+    const dense = S._vienWheelDense || S.tayQuayGene || S.chuQuayCarnival;
+    S.instituteWheelRim.material.emissiveIntensity = (dense ? 0.45 : 0.28) + 0.22 * Math.abs(Math.sin(t * 1.8));
+  }
+  if (S.instituteBoothRim?.material && (S.tayQuayGene || S.chuQuayCarnival)) {
+    S.instituteBoothRim.material.emissiveIntensity = 0.4 + 0.28 * Math.abs(Math.sin(t * 1.5));
+  }
+  if (S.instituteCarnivalRing?.material) {
+    S.instituteCarnivalRing.material.emissiveIntensity = 0.18 + 0.14 * Math.abs(Math.sin(t * 1.3));
+  }
+  // Siêu Quay yard rainbow wash fade
+  if (S._vienSieuYardWashUntil && nowMs < S._vienSieuYardWashUntil && S.instituteRimAurora) {
+    const u = 1 - (S._vienSieuYardWashUntil - nowMs) / 4200;
+    S.instituteRimAurora.forEach((m, i) => {
+      if (!m.material) return;
+      const hue = (u + i * 0.12) % 1;
+      const col = new THREE.Color().setHSL(hue, 0.7, 0.5);
+      m.material.emissive = m.material.emissive || new THREE.Color();
+      m.material.emissive.copy(col);
+      m.material.emissiveIntensity = 0.7 * (1 - u * 0.5);
+    });
+  }
 
   // Aurora rim when Nhà Nghiên Cứu Sân
-  if (S.instituteRimAurora && S.nhaNghienCuuSan) {
+  if (S.instituteRimAurora && S.nhaNghienCuuSan && !(S._vienSieuYardWashUntil && nowMs < S._vienSieuYardWashUntil)) {
     S.instituteRimAurora.forEach((m, i) => {
       if (!m.material) return;
       const pulse = 0.35 + 0.35 * Math.abs(Math.sin(t * 1.2 + i));
@@ -4510,14 +6141,48 @@ function updateInstitute(dt, t) {
     });
   }
 
-  // Soft tip near animal
-  if (S.nearInstituteAnimal && !S.instituteAct) {
+  // Soft tip near animal / show / album / wheel
+  if (!S.instituteAct && !S.instituteShowAct && !S.instituteWheelAct) {
     const now = performance.now();
-    if (now - (S._instituteTipAt || 0) > 15000) {
+    if (S.nearInstituteAnimal && now - (S._instituteTipAt || 0) > 15000) {
       S._instituteTipAt = now;
       const v = S.nearInstituteAnimal.verb;
       toast(`🧬 ${S.nearInstituteAnimal.name} · ${instituteVerbLabel(v)}?`);
+    } else if (S.nearInstituteShow && now - (S._instituteTipAt || 0) > 16000) {
+      S._instituteTipAt = now;
+      const nightish = S.timePhase === 'dusk' || S.timePhase === 'night';
+      toast(nightish ? '🌙 Sân Show · Bắt đầu Show Đột Biến Đêm?' : (vienDienTapUnlocked() ? '🌙 Diễn tập Show trên sân?' : '🌙 Đợi chạng vạng / đêm viện…'));
+    } else if (S.nearInstituteAlbum && now - (S._instituteTipAt || 0) > 18000) {
+      S._instituteTipAt = now;
+      toast('📷 Album Ảnh Kỳ Viện · Xem Album?');
+    } else if (S.nearInstituteWheel && now - (S._instituteTipAt || 0) > 16000) {
+      S._instituteTipAt = now;
+      if (vienSieuQuayAvailableNow()) {
+        toast('🌈 Siêu Quay Cầu Vồng · sẵn sàng đêm viện?');
+      } else if (vienVeGeneCount() > 0 && (now / 16000 | 0) % 2 === 1) {
+        S._vienVeTipOffer = true;
+        S._vienVeTipAt = now;
+        const filled = INSTITUTE_GENE_OUTCOMES.filter((o) => S.vienVeGene && S.vienVeGene[o.id]).map((o) => o.name.replace(/^Gene\s+/, '')).slice(0, 3);
+        toast(`🎫 Xem Vé · ${filled.join(' · ') || 'đang sáng'}${vienVeGeneCount() > 3 ? '…' : ''} — bấm tương tác`);
+      } else {
+        S._vienVeTipOffer = false;
+        toast(vienSieuQuayUnlocked() && (S.timePhase !== 'dusk' && S.timePhase !== 'night')
+          ? '🎡 Quay Gene · Siêu Quay mở lúc chạng vạng/đêm'
+          : '🎡 Vòng Quay Đột Biến · Quay Gene?');
+      }
     }
+  }
+
+  // Soft tip if on isle ~8s without wheel tip (warp or walk-in)
+  if (S.playing && !S._vienWheelWarpTip && playerRoot && playerRoot.position.x < -16) {
+    if (!S._vienIsleSince) S._vienIsleSince = nowMs;
+    const enteredAt = S._instituteEnteredAt || S._vienIsleSince;
+    if (nowMs - enteredAt > 8000) {
+      S._vienWheelWarpTip = true;
+      if ((S.vienQuayGene | 0) < 1) toast('🎡 Vòng Quay Đột Biến mở phía nam sân…');
+    }
+  } else if (playerRoot && playerRoot.position.x >= -16) {
+    S._vienIsleSince = 0;
   }
 
   // Courtyard nudge ~25s if never visited
@@ -4527,6 +6192,60 @@ function updateInstitute(dt, t) {
       S._instituteCourtyardTip = true;
       toast('🧬 Viện Nghiên Cứu Di Truyền mở sân thú biến đổi… · nút mint / phím I');
     }
+  }
+
+  // —— Wheel spin tick ——
+  if (wheelAct) {
+    if ($('modal')?.classList.contains('open')) {
+      cancelInstituteGeneSpin();
+      return;
+    }
+    wheelAct.t += dt;
+    const u = Math.min(1, wheelAct.t / wheelAct.dur);
+    if (player) { player.rotation.y = wheelAct.faceYaw; S.yaw = wheelAct.faceYaw; }
+    if (S.instituteWheelDisk) {
+      // Ease-out spin toward landRot
+      const ease = 1 - Math.pow(1 - u, 3);
+      S.instituteWheelDisk.rotation.z = wheelAct.startRot + (wheelAct.landRot - wheelAct.startRot) * ease;
+      if (S.instituteWheelRim?.material) {
+        S.instituteWheelRim.material.emissiveIntensity = 0.4 + 0.5 * (1 - u);
+      }
+    }
+    if (!IS_MOBILE && u > 0.15 && u < 0.85 && Math.random() < 0.05) {
+      try {
+        emitSmoke(
+          INSTITUTE_X + (Math.random() - 0.5) * 1.2,
+          1.6 + Math.random(),
+          INSTITUTE_Z - 12 + 0.2,
+          1
+        );
+      } catch (_) {}
+    }
+    if (u >= 1) finishInstituteGeneSpin(false);
+    return;
+  }
+
+  // —— Show act tick ——
+  if (showAct) {
+    if ($('modal')?.classList.contains('open')) {
+      cancelInstituteShow();
+      return;
+    }
+    showAct.t += dt;
+    const u = Math.min(1, showAct.t / showAct.dur);
+    if (player) { player.rotation.y = showAct.faceYaw; S.yaw = showAct.faceYaw; }
+    if (showAct.lineIdx < showAct.lines.length && showAct.t >= showAct.nextLineAt) {
+      toast(showAct.lines[showAct.lineIdx]);
+      showAct.lineIdx += 1;
+      showAct.nextLineAt = showAct.t + (showAct.rehearsal ? 2.2 : 2.8);
+    }
+    // Mid-finale Chụp Show offer
+    if (!showAct.rehearsal && !showAct.chupOffered && u >= 0.55) {
+      showAct.chupOffered = true;
+      toast('📸 Đỉnh show — bấm Chụp Show!');
+    }
+    if (u >= 1) finishInstituteShow(false);
+    return;
   }
 
   const act = S.instituteAct;
@@ -4595,6 +6314,14 @@ function updateInstitute(dt, t) {
           an.userData.wingL.rotation.z = 0.8;
           an.userData.wingR.rotation.z = -0.8;
         }
+      } else if (act.beat === 'lan' && an.userData.ribbons) {
+        an.userData.ribbons.forEach((rib, i) => { rib.rotation.y = u * Math.PI + i * 0.3; });
+        an.rotation.y = u * Math.PI * 1.5;
+        an.position.y = 0.2 + u * 0.35;
+      } else if (act.beat === 'frog' && an.userData.speaker) {
+        const s = 1 + u * 0.5;
+        an.userData.speaker.scale.set(s, s, s);
+        an.position.y = 0.15 + Math.abs(Math.sin(u * Math.PI * 3)) * 0.25;
       } else {
         an.position.y = 0.45 + u * 0.5;
         an.rotation.y = u * Math.PI * 2;
@@ -18565,12 +20292,41 @@ $('action-btn').onclick = () => {
   if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
   if (S.bongDaAct) { cancelBongDaAct(); return; }
   if (S.phoVangCall) { cancelGioVangCall(); return; }
+  if (S.instituteWheelAct) { cancelInstituteGeneSpin(); return; }
+  if (S.instituteShowAct) {
+    const act = S.instituteShowAct;
+    const u = Math.min(1, act.t / act.dur);
+    if (!act.rehearsal && !act.chupDone && u >= 0.55 && u <= 0.92) {
+      tryChupInstituteShow();
+      return;
+    }
+    cancelInstituteShow();
+    return;
+  }
   if (S.instituteAct) { cancelInstituteAct(); return; }
   if (S.musicMode) { closeMusicPanel(); return; }
   if (S.busy && S.interactOpen) { cancelNpcInteract(); return; }
   if (S.busy) return;
   if (S.nearInstituteAnimal) {
     startInstituteAct();
+    return;
+  }
+  if (S.nearInstituteShow) {
+    startInstituteNightShow({});
+    return;
+  }
+  if (S.nearInstituteAlbum) {
+    openInstituteAlbum();
+    return;
+  }
+  if (S.nearInstituteWheel) {
+    // Soft: if tip recently asked Xem Vé and player has stamps — open list; else spin
+    if (S._vienVeTipOffer && vienVeGeneCount() > 0 && performance.now() - (S._vienVeTipAt || 0) < 4000) {
+      S._vienVeTipOffer = false;
+      openInstituteVeGene();
+      return;
+    }
+    startInstituteGeneSpin({ sieu: vienSieuQuayAvailableNow() });
     return;
   }
   if (S.nearThapMo) {
@@ -18825,6 +20581,8 @@ addEventListener('keydown', e => {
     if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
     if (S.bongDaAct) { cancelBongDaAct(); return; }
     if (S.phoVangCall) { cancelGioVangCall(); return; }
+    if (S.instituteWheelAct) { cancelInstituteGeneSpin(); return; }
+    if (S.instituteShowAct) { cancelInstituteShow(); return; }
     if (S.instituteAct) { cancelInstituteAct(); return; }
     if (S.musicMode) { closeMusicPanel(); return; }
     if (S.chatOpen) { closeChatBar(); return; }
@@ -19693,6 +21451,16 @@ function openBook() {
     const ok = !!(S.vienSeen && S.vienSeen[s.id]);
     return `<li>${ok ? '✅' : '⬜'} ${s.name}</li>`;
   }).join('') || '<li>Chưa có thú nào</li>';
+  const vienRareChecks = (typeof INSTITUTE_RARE_SPECS !== 'undefined' ? INSTITUTE_RARE_SPECS : []).map((s) => {
+    const ok = !!(S.vienSeen && S.vienSeen[s.id]);
+    const stamped = !!(S.vienAlbumStamps && S.vienAlbumStamps[s.id]);
+    return `<li>${ok ? '✅' : '⬜'} ${s.name}${stamped ? ' · 📷' : ''}${S._vienRareSpawned ? '' : ' · (chưa về viện)'}</li>`;
+  }).join('');
+  const vienStampChecks = (typeof INSTITUTE_ALBUM_SLOT_IDS !== 'undefined' ? INSTITUTE_ALBUM_SLOT_IDS : []).map((id) => {
+    const ok = !!(S.vienAlbumStamps && S.vienAlbumStamps[id]);
+    return `<li>${ok ? '✅' : '⬜'} ${typeof albumStampName === 'function' ? albumStampName(id) : id}</li>`;
+  }).join('');
+  const vienStampN = (typeof vienAlbumStampCount === 'function') ? vienAlbumStampCount() : Object.keys(S.vienAlbumStamps || {}).filter((k) => S.vienAlbumStamps[k]).length;
   const vienSeenN = (typeof vienDistinctSeen === 'function') ? vienDistinctSeen() : Object.keys(S.vienSeen || {}).filter((k) => S.vienSeen[k]).length;
   openModal(`
     <h2>Sổ cầu an của tôi</h2>
@@ -19705,7 +21473,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin-top:6px">${nextLine}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🔥 Chuỗi ngày: <strong>${dailyBook.streak}</strong>${dailyBook.flair}${dailyBook.clearNote}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">Ấn khám phá: ${stamps}</p>
-    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}${S.nhaNghienCuuSan ? ' · 🧬 Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · 🧬 Thực Tập Sinh Viện' : '')}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.thucThanPho ? ' · ✨ Thực Thần Phố' : (S.khachPhoBay ? ' · 🍜 Khách Phở Bay' : '')}${S.tuongPho ? ' · ♟️ Tướng Phố' : (S.kyThuPho ? ' · ♟️ Kỳ Thủ Phố' : '')}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}${S.nhaNghienCuuSan ? ' · 🧬 Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · 🧬 Thực Tập Sinh Viện' : '')}${S.daoDienSanVien ? ' · 🎬 Đạo Diễn Sân Viện' : (S.khanGiaDotBien ? ' · 🌙 Khán Giả Đột Biến' : '')}${S.chuQuayCarnival ? ' · 🌈 Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · 🎡 Tay Quay Gene' : '')}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🌦️ Đang: <strong>${weatherNow}</strong></p>
     <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm · ${S.btsSigs} chữ ký BTS${S.btsPrincessMode ? ' · 👑 Công Chúa' : ''}${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
     <h2 style="font-size:1rem;margin-top:8px">📋 Mục tiêu hôm nay</h2>
@@ -19717,7 +21485,14 @@ function openBook() {
     <ul class="book-list">${weathers}</ul>
     <h2 style="font-size:1rem;margin-top:8px">🧬 Viện Nghiên Cứu · Sân Thú Biến Đổi</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã quan sát <strong>${vienSeenN}</strong>/${(typeof INSTITUTE_ANIMAL_SPECS!=='undefined'?INSTITUTE_ANIMAL_SPECS.length:10)} thú · vuốt <strong>${S.vienVuot|0}</strong> · ảnh kỳ <strong>${S.vienChup|0}</strong>${S.nhaNghienCuuSan ? ' · flair Nhà Nghiên Cứu Sân' : (S.thucTapVien ? ' · flair Thực Tập Sinh Viện' : '')}</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">🌙 Show đêm <strong>${S.vienShowDem|0}</strong> · diễn tập <strong>${S.vienShowTap|0}</strong> · stamp album <strong>${vienStampN}</strong>/12${S.daoDienSanVien ? ' · flair Đạo Diễn Sân Viện' : (S.khanGiaDotBien ? ' · flair Khán Giả Đột Biến' : '')}${S._vienRareSpawned ? ' · thú hiếm lồng bay' : ''}</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">🎡 Quay gene <strong>${S.vienQuayGene|0}</strong> · vé gene <strong>${typeof vienVeGeneCount==='function'?vienVeGeneCount():Object.keys(S.vienVeGene||{}).filter(k=>S.vienVeGene[k]).length}</strong>/8 · siêu quay <strong>${S.vienSieuQuay?'✅':'⬜'}</strong>${S.chuQuayCarnival ? ' · flair Chủ Quầy Carnival Viện' : (S.tayQuayGene ? ' · flair Tay Quay Gene' : '')}</p>
     <ul class="book-list">${vienChecks}</ul>
+    ${vienRareChecks ? `<p class="tiny" style="text-align:center;margin:8px 0 4px">✨ Thú hiếm lồng bay</p><ul class="book-list">${vienRareChecks}</ul>` : ''}
+    <p class="tiny" style="text-align:center;margin:8px 0 4px">📷 Stamp Album Ảnh Kỳ</p>
+    <ul class="book-list">${vienStampChecks || '<li>Chưa có stamp</li>'}</ul>
+    <p class="tiny" style="text-align:center;margin:8px 0 4px">🎫 Vé Gene Carnival</p>
+    <ul class="book-list">${(typeof INSTITUTE_GENE_OUTCOMES!=='undefined'?INSTITUTE_GENE_OUTCOMES:[]).map((o)=>`<li>${(S.vienVeGene&&S.vienVeGene[o.id])?'✅':'⬜'} ${o.name}</li>`).join('')||'<li>Chưa có vé</li>'}</ul>
     <h2 style="font-size:1rem;margin-top:8px">🪷 Sen Bay</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã ngồi <strong>${S.senBayRides | 0}</strong> lần · tầng cao nhất: <strong>${senBest}</strong></p>
     <ul class="book-list">${senLogs}</ul>
@@ -21250,8 +23025,21 @@ function updatePlayer(dt) {
   // Viện — only on west isle; never steals temple/street when east of ≈x−16
   if (playerRoot && playerRoot.position.x < -16 && !S.busy) {
     S.nearInstituteAnimal = pickNearInstituteAnimal();
+    // Priority: animal > show/album > wheel; never steal east of ≈x−14
+    if (S.nearInstituteAnimal) {
+      S.nearInstituteShow = false;
+      S.nearInstituteAlbum = false;
+      S.nearInstituteWheel = false;
+    } else {
+      S.nearInstituteShow = pickNearInstituteShow();
+      S.nearInstituteAlbum = !S.nearInstituteShow && pickNearInstituteAlbum();
+      S.nearInstituteWheel = !S.nearInstituteShow && !S.nearInstituteAlbum && pickNearInstituteWheel();
+    }
   } else {
     S.nearInstituteAnimal = null;
+    S.nearInstituteShow = false;
+    S.nearInstituteAlbum = false;
+    S.nearInstituteWheel = false;
   }
 
   // Soft tip near festival marker
@@ -21436,6 +23224,27 @@ function updatePlayer(dt) {
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
+  } else if (S.instituteWheelAct) {
+    const left = Math.max(0, (S.instituteWheelAct.dur - S.instituteWheelAct.t) | 0);
+    btn.textContent = S.instituteWheelAct.sieu
+      ? `Hủy · thôi Siêu Quay (${left}s)`
+      : `Hủy · thôi Quay Gene (${left}s)`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+  } else if (S.instituteShowAct) {
+    const act = S.instituteShowAct;
+    const left = Math.max(0, (act.dur - act.t) | 0);
+    const u = Math.min(1, act.t / act.dur);
+    const canChup = !act.rehearsal && !act.chupDone && u >= 0.55 && u <= 0.92;
+    btn.textContent = canChup
+      ? `📸 Chụp Show (${left}s)`
+      : act.rehearsal
+        ? `Hủy · thôi diễn tập (${left}s)`
+        : `Hủy · thôi Show (${left}s)`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
   } else if (S.instituteAct) {
     const left = Math.max(0, (S.instituteAct.dur - S.instituteAct.t) | 0);
     const kind = S.instituteAct.kind;
@@ -21449,6 +23258,29 @@ function updatePlayer(dt) {
     bbar.classList.remove('show');
   } else if (!S.busy && S.nearInstituteAnimal) {
     btn.textContent = `${instituteVerbLabel(S.nearInstituteAnimal.verb)} · ${S.nearInstituteAnimal.name}`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearInstituteShow) {
+    const nightish = S.timePhase === 'dusk' || S.timePhase === 'night';
+    btn.textContent = nightish
+      ? '🌙 Bắt đầu Show'
+      : (vienDienTapUnlocked() ? '🌙 Diễn tập Show' : '🌙 Đợi đêm viện…');
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearInstituteAlbum) {
+    btn.textContent = '📷 Xem Album';
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearInstituteWheel) {
+    btn.textContent = vienSieuQuayAvailableNow()
+      ? '🌈 Siêu Quay'
+      : (vienVeGeneCount() > 0 && S._vienVeTipOffer ? '🎫 Xem Vé' : '🎡 Quay Gene');
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');

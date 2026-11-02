@@ -38,18 +38,22 @@ input,textarea,.input{
 .steps li{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;background:rgba(0,0,0,.25);padding:12px 14px;border-radius:12px;font-size:.95rem;line-height:1.4}
 .steps .n{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--ink);display:grid;place-items:center;font-weight:700;font-size:.85rem}
 #hud{position:absolute;inset:0;pointer-events:none;display:none}
-#hud .bar{position:absolute;top:calc(10px + var(--st));left:12px;right:60px}
-.chip{background:var(--panel);backdrop-filter:blur(12px);border:1px solid rgba(232,200,122,.28);border-radius:14px;padding:9px 14px;font-size:.76rem;line-height:1.4;display:inline-block;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+#hud .bar{position:absolute;top:calc(10px + var(--st));left:12px;right:60px;pointer-events:none}
+.chip{background:var(--panel);backdrop-filter:blur(12px);border:1px solid rgba(232,200,122,.28);border-radius:14px;padding:9px 14px;font-size:.76rem;line-height:1.4;display:inline-block;box-shadow:0 4px 18px rgba(0,0,0,.25);pointer-events:none}
 .chip strong{color:var(--gold);font-weight:600}
-#hud-btns{position:absolute;top:calc(10px + var(--st));right:12px;display:flex;flex-direction:column;gap:8px;pointer-events:auto}
+#hud-btns{position:absolute;top:calc(10px + var(--st));right:12px;display:flex;flex-direction:column;gap:8px;pointer-events:auto;z-index:20}
 .icon-btn{width:46px;height:46px;border-radius:14px;border:1px solid rgba(232,200,122,.35);background:var(--panel);color:var(--cream);font-size:1.15rem;cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(12px);box-shadow:0 4px 14px rgba(0,0,0,.25)}
-#action-btn{position:absolute;left:50%;bottom:calc(110px + var(--sb));transform:translateX(-50%);min-width:170px;min-height:54px;border-radius:16px;border:none;background:linear-gradient(180deg,#f0d48a,#c9a04a);color:var(--ink);font-size:1.05rem;font-weight:700;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);display:none;pointer-events:auto;padding:12px 22px;font-family:inherit}
+#action-btn{position:absolute;left:50%;bottom:calc(110px + var(--sb));transform:translateX(-50%);min-width:170px;min-height:54px;border-radius:16px;border:none;background:linear-gradient(180deg,#f0d48a,#c9a04a);color:var(--ink);font-size:1.05rem;font-weight:700;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);display:none;pointer-events:auto;padding:12px 22px;font-family:inherit;z-index:20}
 #action-btn.show{display:inline-flex;align-items:center;justify-content:center;animation:pulse 1.6s ease infinite}
 @keyframes pulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.04)}}
-#joy-zone{position:absolute;left:0;bottom:0;width:42%;height:38%;pointer-events:auto;touch-action:none}
-#joy-base{position:absolute;left:28px;bottom:calc(28px + var(--sb));width:110px;height:110px;border-radius:50%;background:rgba(0,0,0,.28);border:2px solid rgba(232,200,122,.3);display:none}
-#joy-knob{position:absolute;left:50%;top:50%;width:48px;height:48px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(232,200,122,.55);border:2px solid rgba(255,255,255,.35)}
-@media(min-width:900px){#joy-zone{display:none}}
+#joy-zone{position:absolute;left:0;bottom:0;width:48%;height:42%;pointer-events:auto;touch-action:none;z-index:30;-webkit-user-select:none;user-select:none}
+#joy-base{position:absolute;left:24px;bottom:calc(24px + var(--sb));width:120px;height:120px;border-radius:50%;background:rgba(0,0,0,.32);border:2px solid rgba(232,200,122,.45);display:block;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+#joy-knob{position:absolute;left:50%;top:50%;width:54px;height:54px;transform:translate(-50%,-50%);border-radius:50%;background:rgba(232,200,122,.7);border:2px solid rgba(255,255,255,.45);pointer-events:none}
+#joy-hint{position:absolute;left:24px;bottom:calc(150px + var(--sb));font-size:.68rem;color:rgba(245,230,200,.55);pointer-events:none;letter-spacing:.02em}
+/* Ẩn joystick chỉ khi chuột máy tính */
+@media(hover:hover) and (pointer:fine){
+  #joy-zone{display:none}
+}
 .modal{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);padding:16px;padding-bottom:calc(16px + var(--sb))}
 .modal.open{display:flex}
 .panel{width:min(420px,100%);max-height:min(78vh,640px);overflow-y:auto;background:linear-gradient(180deg,#2a1810,#1a0f08);border:1px solid rgba(232,200,122,.35);border-radius:20px 20px 16px 16px;padding:20px 18px 18px;box-shadow:0 -8px 40px rgba(0,0,0,.5)}
@@ -123,7 +127,10 @@ input,textarea,.input{
       <button class="icon-btn" id="btn-share" title="Chia sẻ">📤</button>
     </div>
     <button id="action-btn" type="button"></button>
-    <div id="joy-zone"><div id="joy-base"><div id="joy-knob"></div></div></div>
+    <div id="joy-zone">
+      <div id="joy-hint">Giữ & kéo để đi</div>
+      <div id="joy-base"><div id="joy-knob"></div></div>
+    </div>
     <div class="toast" id="toast"></div>
     <div id="shake-hint">Giữ chạm hoặc lắc điện thoại để xin quẻ…</div>
   </div>
@@ -1150,8 +1157,10 @@ addEventListener('keyup', e => {
 // Kéo xoay camera
 let lookPtr = null;
 canvas.addEventListener('pointerdown', e => {
-  if (!S.playing || S.busy) return;
-  if (e.target.closest && e.target.closest('#joy-zone')) return;
+  if (!S.playing) return;
+  // Không xoay camera khi đang dùng joystick / chạm nút UI
+  if (S.joy.on || S.joy.id === e.pointerId) return;
+  if (e.target !== canvas) return;
   lookPtr = e.pointerId; S.drag = true; S.lx = e.clientX; S.ly = e.clientY;
   try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
 });
@@ -1167,35 +1176,72 @@ canvas.addEventListener('pointermove', e => {
 const endLook = e => { if (e.pointerId === lookPtr) { S.drag = false; lookPtr = null; } };
 canvas.addEventListener('pointerup', endLook); canvas.addEventListener('pointercancel', endLook);
 
-// Joystick
+// Joystick (luôn hiện trên điện thoại; theo dõi pointer trên document cho chắc)
 const joyZone = $('joy-zone'), joyBase = $('joy-base'), joyKnob = $('joy-knob');
-joyZone.addEventListener('pointerdown', e => {
-  if (!S.playing || S.busy) return;
-  e.preventDefault(); e.stopPropagation();
-  S.joy.on = true; S.joy.id = e.pointerId;
-  joyBase.style.display = 'block';
+function joyStart(clientX, clientY, id) {
+  if (!S.playing) return;
+  S.joy.on = true; S.joy.id = id;
   const r = joyZone.getBoundingClientRect();
-  const x = Math.min(Math.max(e.clientX - r.left, 55), r.width - 55);
-  const y = Math.min(Math.max(e.clientY - r.top, 55), r.height - 55);
-  joyBase.style.left = (x - 55) + 'px'; joyBase.style.top = (y - 55) + 'px'; joyBase.style.bottom = 'auto';
-  S.joy.cx = r.left + x; S.joy.cy = r.top + y; S.joy.dx = 0; S.joy.dy = 0;
+  // Giữ joystick trong góc — dễ dùng hơn là nhảy theo ngón tay
+  const bx = 24, by = r.height - 24 - 120;
+  joyBase.style.left = bx + 'px';
+  joyBase.style.bottom = 'calc(24px + var(--sb))';
+  joyBase.style.top = 'auto';
+  S.joy.cx = r.left + bx + 60;
+  S.joy.cy = r.top + by + 60;
+  S.joy.dx = 0; S.joy.dy = 0;
   joyKnob.style.transform = 'translate(-50%,-50%)';
-  try { joyZone.setPointerCapture(e.pointerId); } catch (_) {}
-});
-joyZone.addEventListener('pointermove', e => {
-  if (!S.joy.on || e.pointerId !== S.joy.id) return;
-  const dx = e.clientX - S.joy.cx, dy = e.clientY - S.joy.cy;
-  const len = Math.hypot(dx, dy), max = 40;
+  joyMove(clientX, clientY);
+}
+function joyMove(clientX, clientY) {
+  if (!S.joy.on) return;
+  const dx = clientX - S.joy.cx, dy = clientY - S.joy.cy;
+  const len = Math.hypot(dx, dy), max = 46;
   const cl = Math.min(len, max), nx = dx / (len || 1) * cl, ny = dy / (len || 1) * cl;
   joyKnob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
   S.joy.dx = nx / max; S.joy.dy = ny / max;
-});
-const endJoy = e => {
-  if (e.pointerId !== S.joy.id) return;
+}
+function joyEnd(id) {
+  if (id != null && S.joy.id !== id) return;
   S.joy.on = false; S.joy.dx = 0; S.joy.dy = 0; S.joy.id = null;
-  joyBase.style.display = 'none'; joyKnob.style.transform = 'translate(-50%,-50%)';
-};
-joyZone.addEventListener('pointerup', endJoy); joyZone.addEventListener('pointercancel', endJoy);
+  joyKnob.style.transform = 'translate(-50%,-50%)';
+}
+joyZone.addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  joyStart(e.clientX, e.clientY, e.pointerId);
+  try { joyZone.setPointerCapture(e.pointerId); } catch (_) {}
+}, { passive: false });
+// Theo dõi trên document — tránh mất touch khi ngón tay ra ngoài vùng
+addEventListener('pointermove', e => {
+  if (!S.joy.on || e.pointerId !== S.joy.id) return;
+  e.preventDefault();
+  joyMove(e.clientX, e.clientY);
+}, { passive: false });
+addEventListener('pointerup', e => joyEnd(e.pointerId));
+addEventListener('pointercancel', e => joyEnd(e.pointerId));
+// Fallback touch (một số trình duyệt mobile cũ)
+joyZone.addEventListener('touchstart', e => {
+  if (!e.changedTouches[0]) return;
+  e.preventDefault(); e.stopPropagation();
+  const t = e.changedTouches[0];
+  joyStart(t.clientX, t.clientY, t.identifier);
+}, { passive: false });
+addEventListener('touchmove', e => {
+  if (!S.joy.on) return;
+  for (const t of e.changedTouches) {
+    if (t.identifier === S.joy.id) {
+      e.preventDefault();
+      joyMove(t.clientX, t.clientY);
+      break;
+    }
+  }
+}, { passive: false });
+addEventListener('touchend', e => {
+  for (const t of e.changedTouches) joyEnd(t.identifier);
+});
+addEventListener('touchcancel', e => {
+  for (const t of e.changedTouches) joyEnd(t.identifier);
+});
 
 // Device orientation / shake for fortune
 addEventListener('devicemotion', e => {
@@ -1717,7 +1763,10 @@ function updateRemotes(dt) {
 
 /* ========== VÒNG LẶP ========== */
 function updatePlayer(dt) {
-  if (!S.playing || S.busy) return;
+  if (!S.playing) return;
+  // Vẫn cho đi khi không mở minigame/modal (busy chỉ khoá lúc chơi mini-game)
+  const blocked = S.busy && ($('minigame').classList.contains('open') || $('modal').classList.contains('open'));
+  if (blocked) return;
   let mx = 0, mz = 0;
   if (S.keys['KeyW'] || S.keys['ArrowUp']) mz -= 1;
   if (S.keys['KeyS'] || S.keys['ArrowDown']) mz += 1;

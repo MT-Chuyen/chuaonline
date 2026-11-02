@@ -111,12 +111,12 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 }
 .weapon-btn.on{border-color:rgba(243,235,224,.55);background:rgba(243,235,224,.18)}
 #gun-actions{
-  position:absolute;right:14px;bottom:calc(24px + var(--sb));display:none;flex-direction:row;gap:12px;
+  position:absolute;right:16px;bottom:calc(28px + var(--sb));display:none;flex-direction:column;gap:14px;
   pointer-events:auto;z-index:55;align-items:center;
 }
 #gun-actions.show{display:flex}
 #btn-aim,#btn-fire{
-  width:72px;height:72px;border-radius:50%;border:2px solid rgba(243,235,224,.45);
+  width:78px;height:78px;border-radius:50%;border:2px solid rgba(243,235,224,.45);
   background:rgba(12,8,6,.78);color:#fff;font-size:.75rem;font-weight:700;cursor:pointer;
   font-family:inherit;backdrop-filter:blur(12px);line-height:1.15;box-shadow:0 8px 24px rgba(0,0,0,.45);
 }
@@ -144,17 +144,40 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   transition:opacity .2s;
 }
 #scope-vignette.on{opacity:1}
-#joy-zone{position:absolute;left:0;bottom:0;width:46%;height:40%;pointer-events:auto;touch-action:none;z-index:30;-webkit-user-select:none;user-select:none}
+/* Kiểu Free Fire / PUBG: trái = đi · phải = xoay nhìn */
+#look-zone{
+  position:absolute;right:0;top:0;width:58%;height:100%;
+  pointer-events:auto;touch-action:none;z-index:26;-webkit-user-select:none;user-select:none;
+}
+#look-hint{
+  position:absolute;right:18px;top:42%;font-size:.62rem;color:rgba(243,235,224,.28);
+  pointer-events:none;text-align:right;line-height:1.35;max-width:9em;
+}
+#joy-zone{
+  position:absolute;left:0;bottom:0;width:48%;height:48%;
+  pointer-events:auto;touch-action:none;z-index:30;-webkit-user-select:none;user-select:none;
+}
 #joy-base{
-  position:absolute;left:22px;bottom:calc(22px + var(--sb));width:112px;height:112px;border-radius:50%;
-  background:rgba(12,8,6,.28);border:1px solid rgba(243,235,224,.22);display:block;backdrop-filter:blur(6px);
+  position:absolute;left:28px;bottom:calc(28px + var(--sb));width:128px;height:128px;border-radius:50%;
+  background:rgba(12,8,6,.22);border:2px solid rgba(243,235,224,.2);display:block;backdrop-filter:blur(6px);
+  opacity:.85;
 }
 #joy-knob{
-  position:absolute;left:50%;top:50%;width:48px;height:48px;transform:translate(-50%,-50%);border-radius:50%;
-  background:rgba(243,235,224,.38);border:1px solid rgba(243,235,224,.35);pointer-events:none;
+  position:absolute;left:50%;top:50%;width:56px;height:56px;transform:translate(-50%,-50%);border-radius:50%;
+  background:rgba(243,235,224,.42);border:2px solid rgba(243,235,224,.4);pointer-events:none;
+  box-shadow:0 4px 16px rgba(0,0,0,.35);
 }
-#joy-hint{position:absolute;left:22px;bottom:calc(142px + var(--sb));font-size:.65rem;color:rgba(243,235,224,.4);pointer-events:none}
-@media(hover:hover) and (pointer:fine){#joy-zone{display:none}}
+#joy-hint{position:absolute;left:28px;bottom:calc(168px + var(--sb));font-size:.65rem;color:rgba(243,235,224,.4);pointer-events:none}
+#btn-sprint{
+  display:none;position:absolute;left:160px;bottom:calc(36px + var(--sb));width:56px;height:56px;border-radius:50%;
+  border:2px solid rgba(243,235,224,.3);background:rgba(12,8,6,.55);color:#fff;font-size:.65rem;font-weight:700;
+  pointer-events:auto;z-index:32;font-family:inherit;backdrop-filter:blur(10px);
+}
+#btn-sprint.show{display:grid;place-items:center}
+#btn-sprint.on{background:rgba(80,160,80,.45);border-color:rgba(140,220,140,.6)}
+@media(hover:hover) and (pointer:fine){
+  #joy-zone,#look-zone,#btn-sprint,#joy-hint,#look-hint{display:none !important}
+}
 
 .modal{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.4);padding:16px;padding-bottom:calc(16px + var(--sb));backdrop-filter:blur(2px)}
 .modal.open{display:flex}
@@ -222,8 +245,8 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
     <div class="welcome-card">
       <div class="logo" style="font-size:1.55rem;margin-bottom:14px">Cách đi trong chùa</div>
       <ol class="steps">
-        <li><span class="n">1</span><span>Điện thoại: kéo cần góc trái. Máy tính: WASD hoặc mũi tên.</span></li>
-        <li><span class="n">2</span><span>Kéo xuống để thấy biển mây dưới chân; kéo lên để thấy sao. Tới gần lư hương, chuông, mõ…</span></li>
+        <li><span class="n">1</span><span>Điện thoại kiểu Free Fire: trái kéo đi · phải kéo xoay nhìn. Máy tính: WASD + chuột.</span></li>
+        <li><span class="n">2</span><span>Nút Chạy để tăng tốc. Tới gần lư hương, chuông, mõ rồi bấm hành động.</span></li>
         <li><span class="n">3</span><span>Góc phải: chọn AK / Bazooka. Ngắm để zoom, Bắn (F) bắn bạn bè online.</span></li>
       </ol>
       <p class="tiny" style="margin:0 0 10px;text-align:center">Chọn góc nhìn khi vào chùa</p>
@@ -268,10 +291,12 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
     <div id="crosshair" aria-hidden="true"><span class="ch-v"></span><span class="ch-h"></span></div>
     <div id="scope-vignette"></div>
     <div id="hit-flash"></div>
+    <div id="look-zone"><div id="look-hint">Kéo phải<br/>để xoay nhìn</div></div>
     <div id="joy-zone">
-      <div id="joy-hint">Giữ & kéo để đi</div>
+      <div id="joy-hint">Kéo trái để đi</div>
       <div id="joy-base"><div id="joy-knob"></div></div>
     </div>
+    <button id="btn-sprint" type="button">Chạy</button>
     <div class="toast" id="toast"></div>
     <div id="shake-hint">Giữ chạm hoặc lắc điện thoại để xin quẻ…</div>
   </div>
@@ -339,7 +364,9 @@ const S = {
   name: '', muted: false, playing: false,
   yaw: 0, pitch: 0.28, drag: false, lx: 0, ly: 0,
   keys: Object.create(null),
-  joy: { on: false, dx: 0, dy: 0, id: null },
+  joy: { on: false, dx: 0, dy: 0, id: null, cx: 0, cy: 0 },
+  look: { on: false, id: null, lx: 0, ly: 0 },
+  sprint: false,
   near: null,
   incense: 0, bestCalm: 0, prayers: [], fortunes: [],
   visitBase: 130 + (Math.random() * 50 | 0), visitExtra: 0,
@@ -1917,8 +1944,8 @@ function startPlay() {
   canvas.style.outline = 'none';
   setTimeout(() => { try { canvas.focus({ preventScroll: true }); } catch (_) { canvas.focus(); } }, 50);
   toast(S.fpsMode
-    ? `Chào ${S.name}! Đang góc mắt (FPS) — bấm FPS góc phải để đổi.`
-    : `Chào ${S.name}! Góc 3 người — bấm 3rd / phím V để góc mắt.`);
+    ? `FPS: kéo phải xoay · trái đi · Chạy để tăng tốc`
+    : `PUBG-style: trái đi · phải xoay nhìn · Chạy · phím V = FPS`);
 }
 
 $('btn-view').onclick = () => toggleFpsMode();
@@ -1991,72 +2018,122 @@ addEventListener('blur', () => {
   for (const k of Object.keys(S.keys)) S.keys[k] = false;
 });
 
-// Kéo xoay camera
-let lookPtr = null;
+/* ========== ĐIỀU KHIỂN KIỂU FREE FIRE / PUBG MOBILE ========== */
+const LOOK_SENS = 0.0072;
+const joyZone = $('joy-zone'), joyBase = $('joy-base'), joyKnob = $('joy-knob');
+const lookZone = $('look-zone');
+const btnSprint = $('btn-sprint');
+
+function applyLookDelta(dx, dy) {
+  S.yaw -= dx * LOOK_SENS;
+  S.pitch += dy * (LOOK_SENS * 0.85);
+  S.pitch = Math.max(-0.95, Math.min(1.35, S.pitch));
+}
+
+// Máy tính: kéo chuột trên canvas để xoay
 canvas.addEventListener('pointerdown', e => {
   if (!S.playing) return;
-  // Không xoay camera khi đang dùng joystick / chạm nút UI
   if (S.joy.on || S.joy.id === e.pointerId) return;
+  if (S.look.on || S.look.id === e.pointerId) return;
   if (e.target !== canvas) return;
-  lookPtr = e.pointerId; S.drag = true; S.lx = e.clientX; S.ly = e.clientY;
+  // Chỉ dùng khi không có look-zone (desktop)
+  if (lookZone && getComputedStyle(lookZone).display !== 'none') return;
+  S.look.on = true; S.look.id = e.pointerId; S.look.lx = e.clientX; S.look.ly = e.clientY;
   try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
 });
-canvas.addEventListener('pointermove', e => {
-  if (!S.drag || e.pointerId !== lookPtr) return;
-  const dx = e.clientX - S.lx, dy = e.clientY - S.ly;
-  S.lx = e.clientX; S.ly = e.clientY;
-  // Kéo ngang xoay · kéo lên = trời · kéo xuống = biển mây
-  S.yaw -= dx * 0.0055;
-  S.pitch += dy * 0.0045;
-  S.pitch = Math.max(-0.95, Math.min(1.45, S.pitch)); // âm = nhìn trời · dương = nhìn biển mây
-});
-const endLook = e => { if (e.pointerId === lookPtr) { S.drag = false; lookPtr = null; } };
-canvas.addEventListener('pointerup', endLook); canvas.addEventListener('pointercancel', endLook);
 
-// Joystick (luôn hiện trên điện thoại; theo dõi pointer trên document cho chắc)
-const joyZone = $('joy-zone'), joyBase = $('joy-base'), joyKnob = $('joy-knob');
+// Mobile: nửa phải màn hình = xoay nhìn (song song với joystick trái)
+function lookStart(clientX, clientY, id) {
+  if (!S.playing) return;
+  if (id === S.joy.id) return;
+  S.look.on = true; S.look.id = id; S.look.lx = clientX; S.look.ly = clientY;
+}
+function lookMove(clientX, clientY, id) {
+  if (!S.look.on || id !== S.look.id) return;
+  applyLookDelta(clientX - S.look.lx, clientY - S.look.ly);
+  S.look.lx = clientX; S.look.ly = clientY;
+}
+function lookEnd(id) {
+  if (id != null && S.look.id !== id) return;
+  S.look.on = false; S.look.id = null;
+}
+if (lookZone) {
+  lookZone.addEventListener('pointerdown', e => {
+    if (e.target.closest('button, .weapon-btn, .combat-btn, #gun-actions, #action-btn, #hud-btns')) return;
+    e.preventDefault(); e.stopPropagation();
+    lookStart(e.clientX, e.clientY, e.pointerId);
+    try { lookZone.setPointerCapture(e.pointerId); } catch (_) {}
+  }, { passive: false });
+}
+
+// Joystick động kiểu Free Fire — hiện tại chỗ ngón tay chạm
 function joyStart(clientX, clientY, id) {
   if (!S.playing) return;
+  if (id === S.look.id) return;
   S.joy.on = true; S.joy.id = id;
   const r = joyZone.getBoundingClientRect();
-  // Giữ joystick trong góc — dễ dùng hơn là nhảy theo ngón tay
-  const bx = 24, by = r.height - 24 - 120;
-  joyBase.style.left = bx + 'px';
-  joyBase.style.bottom = 'calc(24px + var(--sb))';
-  joyBase.style.top = 'auto';
-  S.joy.cx = r.left + bx + 60;
-  S.joy.cy = r.top + by + 60;
+  const size = 128;
+  let lx = clientX - r.left - size / 2;
+  let ly = clientY - r.top - size / 2;
+  lx = Math.max(8, Math.min(r.width - size - 8, lx));
+  ly = Math.max(8, Math.min(r.height - size - 8, ly));
+  joyBase.style.left = lx + 'px';
+  joyBase.style.top = ly + 'px';
+  joyBase.style.bottom = 'auto';
+  joyBase.style.opacity = '1';
+  S.joy.cx = r.left + lx + size / 2;
+  S.joy.cy = r.top + ly + size / 2;
   S.joy.dx = 0; S.joy.dy = 0;
   joyKnob.style.transform = 'translate(-50%,-50%)';
   joyMove(clientX, clientY);
+  if (btnSprint) btnSprint.classList.add('show');
 }
 function joyMove(clientX, clientY) {
   if (!S.joy.on) return;
   const dx = clientX - S.joy.cx, dy = clientY - S.joy.cy;
-  const len = Math.hypot(dx, dy), max = 46;
+  const len = Math.hypot(dx, dy), max = 52;
   const cl = Math.min(len, max), nx = dx / (len || 1) * cl, ny = dy / (len || 1) * cl;
   joyKnob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
   S.joy.dx = nx / max; S.joy.dy = ny / max;
+  // Đẩy cần hết cỡ = chạy (như Free Fire)
+  if (len > max * 0.92) S.sprint = true;
 }
 function joyEnd(id) {
   if (id != null && S.joy.id !== id) return;
   S.joy.on = false; S.joy.dx = 0; S.joy.dy = 0; S.joy.id = null;
   joyKnob.style.transform = 'translate(-50%,-50%)';
+  joyBase.style.opacity = '0.85';
+  if (!S.keys['ShiftLeft'] && btnSprint && !btnSprint.classList.contains('on')) S.sprint = false;
 }
 joyZone.addEventListener('pointerdown', e => {
   e.preventDefault(); e.stopPropagation();
   joyStart(e.clientX, e.clientY, e.pointerId);
   try { joyZone.setPointerCapture(e.pointerId); } catch (_) {}
 }, { passive: false });
-// Theo dõi trên document — tránh mất touch khi ngón tay ra ngoài vùng
+
 addEventListener('pointermove', e => {
-  if (!S.joy.on || e.pointerId !== S.joy.id) return;
-  e.preventDefault();
-  joyMove(e.clientX, e.clientY);
+  if (S.joy.on && e.pointerId === S.joy.id) {
+    e.preventDefault();
+    joyMove(e.clientX, e.clientY);
+  } else if (S.look.on && e.pointerId === S.look.id) {
+    e.preventDefault();
+    lookMove(e.clientX, e.clientY, e.pointerId);
+  }
 }, { passive: false });
-addEventListener('pointerup', e => joyEnd(e.pointerId));
-addEventListener('pointercancel', e => joyEnd(e.pointerId));
-// Fallback touch (một số trình duyệt mobile cũ)
+addEventListener('pointerup', e => { joyEnd(e.pointerId); lookEnd(e.pointerId); });
+addEventListener('pointercancel', e => { joyEnd(e.pointerId); lookEnd(e.pointerId); });
+
+if (btnSprint) {
+  btnSprint.addEventListener('pointerdown', e => {
+    e.preventDefault(); e.stopPropagation();
+    S.sprint = true; btnSprint.classList.add('on');
+  });
+  const sprintUp = () => { if (!S.joy.on || Math.hypot(S.joy.dx, S.joy.dy) < 0.9) S.sprint = false; btnSprint.classList.remove('on'); };
+  btnSprint.addEventListener('pointerup', sprintUp);
+  btnSprint.addEventListener('pointerleave', sprintUp);
+}
+
+// Fallback touch cũ
 joyZone.addEventListener('touchstart', e => {
   if (!e.changedTouches[0]) return;
   e.preventDefault(); e.stopPropagation();
@@ -3077,28 +3154,41 @@ function updatePlayer(dt) {
   // Vẫn cho đi khi không mở minigame/modal (busy chỉ khoá lúc chơi mini-game)
   const blocked = S.busy && ($('minigame').classList.contains('open') || $('modal').classList.contains('open'));
   if (blocked) return;
-  let mx = 0, mz = 0;
-  if (S.keys['KeyW'] || S.keys['ArrowUp'] || S.keys['KeyZ']) mz -= 1;
-  if (S.keys['KeyS'] || S.keys['ArrowDown']) mz += 1;
-  if (S.keys['KeyA'] || S.keys['ArrowLeft'] || S.keys['KeyQ']) mx -= 1;
-  if (S.keys['KeyD'] || S.keys['ArrowRight']) mx += 1;
-  // Joystick: đảo trục Y — kéo lên = tiến vào cảnh (khác chiều pixel màn hình)
-  if (S.joy.on) { mx += S.joy.dx; mz -= S.joy.dy; }
-  const len = Math.hypot(mx, mz);
+  // Di chuyển kiểu PUBG/Free Fire: theo hướng nhìn camera
+  let strafe = 0, forward = 0;
+  if (S.keys['KeyW'] || S.keys['ArrowUp'] || S.keys['KeyZ']) forward += 1;
+  if (S.keys['KeyS'] || S.keys['ArrowDown']) forward -= 1;
+  if (S.keys['KeyA'] || S.keys['ArrowLeft'] || S.keys['KeyQ']) strafe -= 1;
+  if (S.keys['KeyD'] || S.keys['ArrowRight']) strafe += 1;
+  if (S.keys['ShiftLeft'] || S.keys['ShiftRight']) { /* shift = aim when gun; sprint via joy */ }
+  // Joystick: lên = tiến theo hướng nhìn, ngang = sang ngang
+  if (S.joy.on) {
+    strafe += S.joy.dx;
+    forward += -S.joy.dy; // kéo lên (dy<0) = tiến
+  }
+  const len = Math.hypot(strafe, forward);
   const moving = len > 0.08;
+  // Hướng nhìn vào thế giới (FPS/PUBG)
+  const fwdX = -Math.sin(S.yaw), fwdZ = -Math.cos(S.yaw);
+  const rightX = Math.cos(S.yaw), rightZ = -Math.sin(S.yaw);
+  const faceLook = Math.atan2(fwdX, fwdZ);
+
   if (moving) {
-    mx /= len; mz /= len;
-    // Hướng theo camera yaw (WASD máy tính)
-    const spd = 3.6 * dt;
-    const fx = Math.sin(S.yaw), fz = Math.cos(S.yaw);
-    const rx = Math.sin(S.yaw + Math.PI / 2), rz = Math.cos(S.yaw + Math.PI / 2);
-    const dx = (fx * -mz + rx * mx) * spd;
-    const dz = (fz * -mz + rz * mx) * spd;
+    strafe /= len; forward /= len;
+    const sprinting = S.sprint || Math.hypot(S.joy.dx, S.joy.dy) > 0.92;
+    const spd = (sprinting ? 5.6 : 3.7) * dt;
+    const dx = (fwdX * forward + rightX * strafe) * spd;
+    const dz = (fwdZ * forward + rightZ * strafe) * spd;
     const nx = playerRoot.position.x + dx, nz = playerRoot.position.z + dz;
     if (tryMove(nx, playerRoot.position.z)) playerRoot.position.x = nx;
     if (tryMove(playerRoot.position.x, nz)) playerRoot.position.z = nz;
-    player.rotation.y = Math.atan2(dx, dz);
-    const ud = player.userData; ud.walk += dt * 10;
+    // 3rd: mặt theo hướng chạy · FPS / đang ngắm: mặt theo hướng nhìn
+    if (S.fpsMode || S.aiming || S.gun) {
+      player.rotation.y = faceLook;
+    } else {
+      player.rotation.y = Math.atan2(dx, dz);
+    }
+    const ud = player.userData; ud.walk += dt * (sprinting ? 14 : 10);
     if (performance.now() >= S.combatUntil) {
       ud.legL.rotation.x = Math.sin(ud.walk) * 0.6; ud.legR.rotation.x = -Math.sin(ud.walk) * 0.6;
       if (!S.gun) {
@@ -3110,6 +3200,8 @@ function updatePlayer(dt) {
       }
     }
   } else {
+    // Đứng yên vẫn quay mặt theo hướng nhìn khi cầm súng / FPS
+    if (S.fpsMode || S.gun) player.rotation.y = faceLook;
     const ud = player.userData;
     if (performance.now() >= S.combatUntil) {
       ud.legL.rotation.x *= 0.8; ud.legR.rotation.x *= 0.8;
@@ -3151,10 +3243,11 @@ function updatePlayer(dt) {
     syncFpsGun(false);
     player.visible = true;
     let dist, shoulder, camH;
+    // Camera bám vai kiểu PUBG khi cầm súng
     if (armed) {
-      dist = 3.0; shoulder = 0.55; camH = 1.55;
+      dist = 2.6; shoulder = 0.72; camH = 1.58;
     } else {
-      dist = 6.2; shoulder = 0; camH = 1.45;
+      dist = 5.4; shoulder = 0.15; camH = 1.48;
     }
     const cx = px + backX * dist * Math.max(0.12, cosP) + rightX * shoulder;
     const cy = playerRoot.position.y + camH + Math.sin(phi) * dist * (armed ? 0.4 : 1);

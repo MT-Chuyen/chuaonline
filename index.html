@@ -2173,7 +2173,59 @@ const BTS_CHAT = [
   'RM: “Triết lý: tâm an thì chart cũng an.”',
   'Cả nhóm: “ARMY cầu an — Billboard cũng phải cúi!”',
 ];
-let btsCrew = []; // { mesh, member, label, baseX, baseZ, phase }
+const BTS_MAX_HP = 120; // idol máu trâu hơn khách thường một chút
+const BTS_DEATH_LINES = {
+  rm: 'RM down — triết lý cũng phải nằm!',
+  jin: 'Jin ngã — worldwide handsome cần encore!',
+  suga: 'Suga: “ok… cho anh ngủ thật sự.”',
+  jhope: 'J-Hope hết hope tạm thời 💥',
+  jimin: 'Jimin flop… đợi comeback 3 giây!',
+  v: 'V box — hộp sữa cũng đổ',
+  jk: 'Golden maknae… golden KO!',
+};
+let btsCrew = []; // { mesh, member, label, baseX, baseZ, phase, hp, deadUntil }
+
+function btsAlive(b) {
+  return b && b.mesh.visible && !(b.deadUntil && performance.now() < b.deadUntil);
+}
+function killBts(b, big = false) {
+  if (!b || !btsAlive(b)) return false;
+  b.hp = 0;
+  b.deadUntil = performance.now() + 3800;
+  b.body.rotation.z = 1.35;
+  b.body.rotation.x = 0.4;
+  b.body.position.y = 0.1;
+  b.label.classList.remove('on');
+  b.label.textContent = `💀 ${b.member.name}`;
+  spawnExplosionBurst(b.mesh.position.x, 1.0, b.mesh.position.z, !!big);
+  const line = BTS_DEATH_LINES[b.member.id] || `${b.member.name} đã hạ!`;
+  toast(line);
+  return true;
+}
+function respawnBts(b) {
+  b.deadUntil = 0;
+  b.hp = BTS_MAX_HP;
+  b.mesh.position.set(b.baseX, 0, b.baseZ);
+  b.body.rotation.set(0, 0, 0);
+  b.body.position.y = 0;
+  b.label.textContent = `🎤 ${b.member.name}`;
+  toast(`Encore! ${b.member.name} hồi sinh tại fanmeet 💜`);
+}
+function damageBts(b, amount, big = false) {
+  if (!btsAlive(b)) return false;
+  const dmg = Math.max(1, amount | 0);
+  b.hp = Math.max(0, (b.hp ?? BTS_MAX_HP) - dmg);
+  spawnDamageNumber(b.mesh.position.x, 1.5, b.mesh.position.z, dmg, dmg >= 50);
+  showTargetHp(`🎤 ${b.member.name}`, b.hp, BTS_MAX_HP);
+  // flinch
+  b.body.rotation.z = (Math.random() > 0.5 ? 1 : -1) * 0.25;
+  setTimeout(() => { if (btsAlive(b)) b.body.rotation.z = 0; }, 280);
+  if (b.hp <= 0) {
+    killBts(b, big);
+    return 'dead';
+  }
+  return 'hit';
+}
 
 function buildBtsCrew() {
   btsCrew = [];
@@ -2217,6 +2269,7 @@ function buildBtsCrew() {
     btsCrew.push({
       mesh: root, body: mesh, member: m, label,
       baseX: x, baseZ: z, phase: i * 0.9, bounce: 0,
+      hp: BTS_MAX_HP, deadUntil: 0,
     });
   });
   // Biển fanmeet nhỏ
@@ -2228,6 +2281,15 @@ function buildBtsCrew() {
 
 function updateBts(dt, t) {
   for (const b of btsCrew) {
+    if (b.deadUntil) {
+      if (performance.now() < b.deadUntil) {
+        // nằm sân khấu
+        b.body.rotation.z = 1.35;
+        b.label.classList.remove('on');
+        continue;
+      }
+      respawnBts(b);
+    }
     // Nhún nhảy nhẹ kiểu idol
     b.bounce += dt;
     const bob = Math.sin(t * 3.2 + b.phase) * 0.04;
@@ -2259,6 +2321,7 @@ function pickNearBts() {
   if (!playerRoot || !btsCrew.length) return null;
   let best = null, bestD = 2.8;
   for (const b of btsCrew) {
+    if (!btsAlive(b)) continue;
     const d = Math.hypot(playerRoot.position.x - b.mesh.position.x, playerRoot.position.z - b.mesh.position.z);
     if (d < bestD) { bestD = d; best = b; }
   }
@@ -3514,6 +3577,25 @@ function findGunTarget(maxDist, hitRadius = 0.95) {
       };
     }
   }
+  // BTS — cũng bắn / hạ được (fanmeet hardcore)
+  for (let i = 0; i < btsCrew.length; i++) {
+    const b = btsCrew[i];
+    if (!btsAlive(b)) continue;
+    const target = b.mesh.position.clone(); target.y += 1.1;
+    const to = target.clone().sub(origin);
+    const dist = to.length();
+    if (dist < 0.8 || dist > maxDist) continue;
+    const lateral = new THREE.Vector3().crossVectors(dir, to).length();
+    const along = to.dot(dir);
+    if (along < 0.5) continue;
+    if (lateral < hitRadius * 1.2 && dist < bestD) {
+      bestD = dist;
+      best = {
+        kind: 'bts', id: 'bts_' + b.member.id, btsIndex: i, name: b.member.name,
+        dist, point: origin.clone().add(dir.clone().multiplyScalar(along)),
+      };
+    }
+  }
   return best;
 }
 
@@ -3760,12 +3842,29 @@ async function fireWeapon() {
         dist, point: new THREE.Vector3(a.x, 0, a.z),
       };
     }
+    for (let i = 0; i < btsCrew.length; i++) {
+      const b = btsCrew[i];
+      if (!btsAlive(b)) continue;
+      const dx = b.mesh.position.x - origin.x, dz = b.mesh.position.z - origin.z;
+      const dist = Math.hypot(dx, dz);
+      if (dist > bestD || dist < 0.25) continue;
+      const along = dx * fx + dz * fz;
+      if (along < 0.15) continue;
+      bestD = dist;
+      best = {
+        kind: 'bts', btsIndex: i, name: b.member.name,
+        dist, point: b.mesh.position.clone(),
+      };
+    }
     if (best) {
       const dmg = DMG.knife;
       spawnExplosionBurst(best.point.x, 1.0, best.point.z, false);
       if (best.kind === 'npc') {
         const r = damageNPC(best.aiIndex, dmg, false);
         toast(r === 'dead' ? `Hạ NPC ${best.name}! 🗡️` : `Chém ${best.name} −${dmg}`);
+      } else if (best.kind === 'bts') {
+        const r = damageBts(btsCrew[best.btsIndex], dmg, false);
+        toast(r === 'dead' ? `Hạ idol ${best.name}! 🗡️💜` : `Chém ${best.name} −${dmg}`);
       } else {
         if (remotePlayers.has(best.id)) {
           const rp = remotePlayers.get(best.id);
@@ -3785,7 +3884,7 @@ async function fireWeapon() {
         }
       }
     } else {
-      toast('Chém vào không khí — lại gần NPC / bạn bè hơn!');
+      toast('Chém vào không khí — lại gần NPC / BTS / bạn bè hơn!');
     }
     return;
   }
@@ -3823,12 +3922,16 @@ async function fireWeapon() {
       if (impact?.kind === 'npc' && impact.aiIndex != null) {
         damageNPC(impact.aiIndex, dmg, true);
       }
+      if (impact?.kind === 'bts' && impact.btsIndex != null) {
+        damageBts(btsCrew[impact.btsIndex], dmg, true);
+      }
       if (impact?.kind === 'world' && impact.col) {
         if (destroyStructure(impact.col)) toast('Công trình bị phá! Dựng lại sau 2 giây…');
       }
     });
     if (impact?.kind === 'player') toast(`Bazooka → ${impact.name} (−${dmg})!`);
     else if (impact?.kind === 'npc') toast(`Bazooka → NPC ${impact.name} (−${dmg})! 💥`);
+    else if (impact?.kind === 'bts') toast(`Bazooka → idol ${impact.name} (−${dmg})! 💥💜`);
     else if (impact?.kind === 'world') toast(impact.col ? 'Bazooka nổ vào công trình! 💥' : 'Bazooka nổ xuống đất! 💥');
     else toast('Bazooka bay vào mây…');
   } else {
@@ -3864,11 +3967,15 @@ async function fireWeapon() {
     } else if (impact?.kind === 'npc') {
       const r = damageNPC(impact.aiIndex, dmg, false);
       toast(r === 'dead' ? `AK hạ NPC ${impact.name}!` : `AK trúng ${impact.name} (−${dmg})`);
+    } else if (impact?.kind === 'bts') {
+      const r = damageBts(btsCrew[impact.btsIndex], dmg, false);
+      spawnExplosionBurst(impact.point.x, impact.point.y, impact.point.z, false);
+      toast(r === 'dead' ? `AK hạ idol ${impact.name}! 💜` : `AK trúng ${impact.name} (−${dmg})`);
     } else if (impact?.kind === 'world') {
       spawnExplosionBurst(end.x, end.y, end.z, false);
       toast(impact.col ? 'AK bắn trúng công trình! 💥' : 'AK trúng đất! 💥');
     } else {
-      toast('Trượt — ngắm NPC, bạn bè hoặc công trình');
+      toast('Trượt — ngắm NPC, BTS, bạn bè hoặc công trình');
     }
   }
   // Pose bắn

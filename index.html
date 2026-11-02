@@ -3910,10 +3910,12 @@ function vienVuotUnlocked() {
 function vienChupUnlocked() {
   return vienDistinctSeen() >= 6 || (S.vienChup | 0) >= 1;
 }
-function pickInstituteVerb() {
-  if (!vienVuotUnlocked()) return 'quanSat';
-  if (!vienChupUnlocked()) return 'vuotVe';
-  return 'chupAnh';
+function pickInstituteVerb(animalId) {
+  // Unseen exhibits always offer Quan sát first (collection progress)
+  if (animalId && !(S.vienSeen && S.vienSeen[animalId])) return 'quanSat';
+  if (vienChupUnlocked()) return 'chupAnh';
+  if (vienVuotUnlocked()) return 'vuotVe';
+  return 'quanSat';
 }
 function instituteVerbLabel(v) {
   if (v === 'vuotVe') return 'Vuốt ve';
@@ -4197,7 +4199,7 @@ function pickNearInstituteAnimal() {
     if (d < a.r && d < bestD) { bestD = d; best = a; }
   }
   if (!best) return null;
-  const verb = pickInstituteVerb();
+  const verb = pickInstituteVerb(best.id);
   return { id: best.id, name: best.name, verb, label: instituteVerbLabel(verb), animal: best, pos: best.pos };
 }
 
@@ -14763,6 +14765,10 @@ function updateCuaMoFantasy(dt, t) {
 /* —— Nghe nhạc · màn YouTube lớn bên Phố An Lạc —— */
 // Màn dựng mép nam phố, trụ cao ~7.5–8m
 const MUSIC_SPOT = { x: 14.6, z: STREET_Z - 7.8, r: 4.8 };
+/** Điểm im lặng không gian — tại tượng Superman âm lượng = 0 */
+const MUSIC_SILENCE_AT = { x: 4.2, z: 11.2 }; // buildSupermanStatue(4.2, 11.2)
+/** Trong bán kính này (m) cạnh loa = full volume */
+const MUSIC_FULL_RADIUS = 2.6;
 const MUSIC_CHIPS = [
   { q: 'nhạc thiền Phật giáo', label: 'Nhạc thiền' },
   { q: 'nhạc chùa Việt Nam', label: 'Nhạc chùa' },
@@ -15039,7 +15045,7 @@ function goToMusicScreen() {
   toast(S.musicPlaying
     ? (S.musicMuted
       ? '🔊 Đứng giữa hai loa · bấm Bật loa phố'
-      : '🎵 Nhạc đang phát từ loa cạnh màn')
+      : '🎵 Gần màn mới nghe — tại tượng Superman = im')
     : '🎵 Màn hình lớn Phố An Lạc · hai loa bên cạnh');
 }
 
@@ -15585,6 +15591,11 @@ function streetSpeakerWorldPos() {
   };
 }
 
+function musicSilenceDistance() {
+  const sp = streetSpeakerWorldPos();
+  return Math.hypot(MUSIC_SILENCE_AT.x - sp.x, MUSIC_SILENCE_AT.z - sp.z);
+}
+
 function setStreetSpeakersLive(on) {
   const list = S.musicSpeakers || S.musicRoot?.userData?.speakers || [];
   for (const sp of list) {
@@ -15595,20 +15606,43 @@ function setStreetSpeakersLive(on) {
   }
 }
 
-/** Âm lượng theo khoảng cách tới loa — gần loa to, xa thì nhỏ */
+/**
+ * Âm thanh thật: to sát loa, nhỏ dần theo khoảng cách, = 0 tại tượng Superman.
+ * Chỉ vùng từ tượng → màn nhạc nghe được — cả map ngoài bán kính đó im.
+ */
+function streetMusicVolumeForDistance(d) {
+  const r0 = MUSIC_FULL_RADIUS;
+  const rMax = musicSilenceDistance(); // ~15m tới tượng
+  if (!(d >= 0) || d >= rMax) return 0;
+  if (d <= r0) return 100;
+  // Cường độ ~ 1/r², chuẩn hóa về 0 tại tượng (cutoff mềm)
+  const raw = (r0 / d) * (r0 / d);
+  const edge = (r0 / rMax) * (r0 / rMax);
+  const t = (raw - edge) / Math.max(1e-6, 1 - edge);
+  return Math.round(100 * Math.max(0, Math.min(1, t)));
+}
+
 function updateStreetMusicSpatialVolume() {
   if (!S.musicPlaying || !S.musicVideoId || S.musicMuted || S.muted) return;
   if (!playerRoot) return;
   const sp = streetSpeakerWorldPos();
   const d = Math.hypot(playerRoot.position.x - sp.x, playerRoot.position.z - sp.z);
-  // Full ~ trong 7m, tắt dần tới ~42m
-  let vol = 100;
-  if (d > 7) vol = Math.round(100 * Math.max(0, 1 - (d - 7) / 35));
+  const vol = streetMusicVolumeForDistance(d);
   if (vol === S._musicYtVol) return;
+  const wasSilent = (S._musicYtVol | 0) <= 0;
   S._musicYtVol = vol;
   const audio = $('yt-audio');
   if (!audio?.contentWindow) return;
-  try { audio.contentWindow.postMessage('pho-volume:' + vol, '*'); } catch (_) {}
+  try {
+    if (vol <= 0) {
+      audio.contentWindow.postMessage('pho-volume:0', '*');
+      audio.contentWindow.postMessage('pho-mute', '*');
+    } else {
+      if (wasSilent) audio.contentWindow.postMessage('pho-unmute', '*');
+      audio.contentWindow.postMessage('pho-volume:' + vol, '*');
+      audio.contentWindow.postMessage('pho-play', '*');
+    }
+  } catch (_) {}
 }
 
 function kickStreetAudio(opts = {}) {
@@ -16128,11 +16162,12 @@ function updateMusicScreenFx(dt, t) {
     ud.upLight.intensity = S.musicPlaying ? 0.65 + 0.2 * Math.sin(t * 5) : 0.28;
   }
 
-  // Loa hai bên — rung nhẹ + LED theo nhịp
+  // Loa hai bên — rung nhẹ + LED theo nhịp (mạnh hơn khi ta đứng gần / nghe to)
   const speakers = S.musicSpeakers || ud.speakers || [];
   if (speakers.length) {
-    const live = !!(S.musicPlaying && !S.musicMuted);
-    const beat = live ? 1 + 0.06 * Math.sin(t * 10) : 1;
+    const hear = Math.max(0, Math.min(1, (S._musicYtVol | 0) / 100));
+    const live = !!(S.musicPlaying && !S.musicMuted && hear > 0.02);
+    const beat = live ? 1 + 0.06 * Math.sin(t * 10) * (0.35 + 0.65 * hear) : 1;
     for (const sp of speakers) {
       if (sp.woofer) sp.woofer.scale.setScalar(live ? beat : 1);
       if (sp.mid) sp.mid.scale.setScalar(live ? (1 + 0.04 * Math.sin(t * 14 + 1)) : 1);
@@ -16237,8 +16272,8 @@ function updateMusicScreenFx(dt, t) {
       toast(S.musicPlaying
         ? (S.musicMuted
           ? '🔊 Đứng gần loa · bấm Bật loa phố'
-          : '🎶 Hòa nhịp · bắt nốt ♪ · nhạc phát từ loa')
-        : '🎵 Chọn bài — nhạc phát từ loa cạnh màn');
+          : '🎶 Gần loa = to · về tượng Superman = hết tiếng')
+        : '🎵 Chọn bài — chỉ nghe gần màn nhạc');
     }
   }
   updateYardYtOverlay();

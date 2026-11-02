@@ -5,35 +5,45 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
 <meta name="theme-color" content="#1a0f08"/>
 <title>Lên Chùa Cầu An</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet"/>
 <style>
-:root{--bg:#1a0f08;--gold:#e8c87a;--amber:#d4a574;--red:#c44536;--cream:#f5e6c8;--ink:#2a1810;--panel:rgba(26,15,8,.88);--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)}
+:root{--bg:#140c08;--gold:#e8c87a;--amber:#d4a574;--red:#c44536;--cream:#f5e6c8;--ink:#2a1810;--panel:rgba(20,12,8,.82);--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:"Segoe UI","Noto Sans",system-ui,sans-serif;color:var(--cream);touch-action:none;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:"Be Vietnam Pro",sans-serif;color:var(--cream);touch-action:none;user-select:none;-webkit-user-select:none}
 canvas#c{display:block;width:100%;height:100%;position:fixed;inset:0;z-index:0}
 #ui{position:fixed;inset:0;z-index:10;pointer-events:none}#ui>*{pointer-events:auto}
-.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(165deg,#3d1f0f,#1a0f08 45%,#0d0806);padding:calc(24px + var(--st)) 20px calc(24px + var(--sb));text-align:center;transition:opacity .45s;touch-action:manipulation}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:
+  radial-gradient(ellipse 80% 50% at 50% 20%,rgba(232,160,80,.18),transparent 55%),
+  linear-gradient(165deg,#4a2814 0%,#1a0f08 42%,#0a0705 100%);
+  padding:calc(24px + var(--st)) 20px calc(24px + var(--sb));text-align:center;transition:opacity .45s;touch-action:manipulation}
+.screen::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.03) 3px,rgba(0,0,0,.03) 4px);pointer-events:none}
 .screen.hidden{opacity:0;pointer-events:none;visibility:hidden}
-.logo{font-size:clamp(1.8rem,8vw,2.8rem);font-weight:700;letter-spacing:.04em;background:linear-gradient(180deg,#fff4d6,var(--gold),#b8860b);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:8px}
-.tagline{color:var(--amber);font-size:.95rem;margin-bottom:28px;opacity:.9}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 28px;border:none;border-radius:999px;font-size:1.05rem;font-weight:600;cursor:pointer;background:linear-gradient(180deg,#e8c87a,#c9a04a);color:var(--ink);box-shadow:0 4px 16px rgba(0,0,0,.35)}
-.btn:active{transform:scale(.96)}.btn.secondary{background:transparent;color:var(--cream);border:1.5px solid rgba(232,200,122,.5);box-shadow:none;margin-top:10px}
-.btn.big{min-height:56px;font-size:1.15rem;padding:14px 36px}
+.logo{position:relative;font-family:"Cormorant Garamond",serif;font-size:clamp(2.2rem,9vw,3.4rem);font-weight:700;letter-spacing:.06em;background:linear-gradient(180deg,#fff8e8,var(--gold),#a67c2a);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px;line-height:1.15}
+.logo-ornament{width:min(220px,60vw);height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 14px;position:relative}
+.logo-ornament::before,.logo-ornament::after{content:"";position:absolute;top:-3px;width:7px;height:7px;border:1px solid var(--gold);transform:rotate(45deg);background:rgba(232,200,122,.25)}
+.logo-ornament::before{left:50%;margin-left:-20px}.logo-ornament::after{left:50%;margin-left:12px}
+.tagline{color:var(--amber);font-size:.95rem;margin-bottom:26px;opacity:.92;font-weight:400;letter-spacing:.02em}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 28px;border:none;border-radius:14px;font-size:1.05rem;font-weight:600;cursor:pointer;background:linear-gradient(180deg,#f0d48a,#c9a04a);color:var(--ink);box-shadow:0 6px 20px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.35);font-family:inherit}
+.btn:active{transform:scale(.96)}.btn.secondary{background:transparent;color:var(--cream);border:1.5px solid rgba(232,200,122,.45);box-shadow:none;margin-top:10px}
+.btn.big{min-height:54px;font-size:1.12rem;padding:14px 40px;border-radius:16px}
 input,textarea,.input{
   touch-action:manipulation;user-select:text;-webkit-user-select:text;pointer-events:auto;
   font-family:inherit;caret-color:var(--gold);
 }
-.input{width:min(320px,90vw);padding:14px 18px;border-radius:12px;border:1.5px solid rgba(232,200,122,.4);background:rgba(0,0,0,.35);color:var(--cream);font-size:1.05rem;text-align:center;outline:none;margin-bottom:16px}
-.hint{font-size:.85rem;color:rgba(245,230,200,.65);margin-top:12px;max-width:320px;line-height:1.45}
+.input{width:min(320px,90vw);padding:14px 18px;border-radius:14px;border:1.5px solid rgba(232,200,122,.4);background:rgba(0,0,0,.4);color:var(--cream);font-size:1.05rem;text-align:center;outline:none;margin-bottom:16px;backdrop-filter:blur(6px)}
+.hint{font-size:.82rem;color:rgba(245,230,200,.62);margin-top:14px;max-width:340px;line-height:1.5}
 .steps{list-style:none;text-align:left;max-width:320px;margin:0 auto 24px}
 .steps li{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px;background:rgba(0,0,0,.25);padding:12px 14px;border-radius:12px;font-size:.95rem;line-height:1.4}
 .steps .n{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--ink);display:grid;place-items:center;font-weight:700;font-size:.85rem}
 #hud{position:absolute;inset:0;pointer-events:none;display:none}
 #hud .bar{position:absolute;top:calc(10px + var(--st));left:12px;right:60px}
-.chip{background:var(--panel);backdrop-filter:blur(8px);border:1px solid rgba(232,200,122,.25);border-radius:12px;padding:8px 12px;font-size:.78rem;line-height:1.35;display:inline-block}
-.chip strong{color:var(--gold)}
+.chip{background:var(--panel);backdrop-filter:blur(12px);border:1px solid rgba(232,200,122,.28);border-radius:14px;padding:9px 14px;font-size:.76rem;line-height:1.4;display:inline-block;box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.chip strong{color:var(--gold);font-weight:600}
 #hud-btns{position:absolute;top:calc(10px + var(--st));right:12px;display:flex;flex-direction:column;gap:8px;pointer-events:auto}
-.icon-btn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(232,200,122,.35);background:var(--panel);color:var(--cream);font-size:1.1rem;cursor:pointer;display:grid;place-items:center}
-#action-btn{position:absolute;left:50%;bottom:calc(110px + var(--sb));transform:translateX(-50%);min-width:160px;min-height:54px;border-radius:16px;border:none;background:linear-gradient(180deg,#e8c87a,#c9a04a);color:var(--ink);font-size:1.05rem;font-weight:700;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.4);display:none;pointer-events:auto;padding:12px 22px}
+.icon-btn{width:46px;height:46px;border-radius:14px;border:1px solid rgba(232,200,122,.35);background:var(--panel);color:var(--cream);font-size:1.15rem;cursor:pointer;display:grid;place-items:center;backdrop-filter:blur(12px);box-shadow:0 4px 14px rgba(0,0,0,.25)}
+#action-btn{position:absolute;left:50%;bottom:calc(110px + var(--sb));transform:translateX(-50%);min-width:170px;min-height:54px;border-radius:16px;border:none;background:linear-gradient(180deg,#f0d48a,#c9a04a);color:var(--ink);font-size:1.05rem;font-weight:700;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.35);display:none;pointer-events:auto;padding:12px 22px;font-family:inherit}
 #action-btn.show{display:inline-flex;align-items:center;justify-content:center;animation:pulse 1.6s ease infinite}
 @keyframes pulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.04)}}
 #joy-zone{position:absolute;left:0;bottom:0;width:42%;height:38%;pointer-events:auto;touch-action:none}
@@ -83,7 +93,8 @@ input,textarea,.input{
 <div id="ui">
   <div class="screen" id="screen-welcome">
     <div class="logo">Lên Chùa Cầu An</div>
-    <p class="tagline">Một buổi chiều an lành tại Chùa An Lạc</p>
+    <div class="logo-ornament"></div>
+    <p class="tagline">Hoàng hôn dịu dàng tại Chùa An Lạc</p>
     <input class="input" id="name-input" maxlength="20" placeholder="Tên của bạn…" autocomplete="off"/>
     <button class="btn big" id="btn-enter">Vào chùa</button>
     <p class="hint">Chơi cùng bạn bè realtime (Firebase) · Không quảng cáo · Sổ cá nhân lưu trên máy bạn</p>
@@ -319,18 +330,34 @@ function playWhoosh() {
 
 /* ========== VẬT LIỆU & HÌNH ========== */
 const M = {
-  wood: mat(0x5c3a22, 0.85), woodD: mat(0x3a2415, 0.8), tile: mat(0xb84a3a, 0.55, 0.12),
-  wall: mat(0xe8d5b5, 0.92), stone: mat(0x8a7a68, 0.95), brick: mat(0x9a6b4a, 0.9),
-  bronze: mat(0x8b6914, 0.35, 0.75), gold: mat(0xd4af37, 0.3, 0.7),
-  robe: mat(0x3d5c8a, 0.75), skin: mat(0xe0b090, 0.85), leaf: mat(0x3a6b35, 0.8),
-  water: mat(0x3a6a7a, 0.25, 0.4, 0.75), red: mat(0xc44536, 0.7), silk: mat(0xc44536, 0.65, 0.05, 1, true),
-  buddha: mat(0xd4af37, 0.4, 0.55), dark: mat(0x2a2018, 0.9),
+  wood: mat(0x6b4228, 0.82), woodD: mat(0x3a2415, 0.85), tile: mat(0xb84332, 0.5, 0.15),
+  tileDark: mat(0x8f3226, 0.55, 0.12), wall: mat(0xf0e0c4, 0.9), wallTrim: mat(0xe2c9a0, 0.88),
+  stone: mat(0x8a7a68, 0.95), brick: mat(0x9a6b4a, 0.9),
+  bronze: mat(0x8b6914, 0.35, 0.75), gold: mat(0xd4af37, 0.28, 0.72),
+  robe: mat(0x355f8f, 0.72), skin: mat(0xe2b496, 0.82), leaf: mat(0x3f7240, 0.78),
+  leafD: mat(0x2d5530, 0.82), water: mat(0x3a6a7a, 0.22, 0.45, 0.78),
+  red: mat(0xc44536, 0.68), silk: mat(0xc44536, 0.65, 0.05, 1, true),
+  buddha: mat(0xd4af37, 0.38, 0.58), dark: mat(0x2a2018, 0.9),
+  plaster: mat(0xf5ead4, 0.92), rail: mat(0x5a3018, 0.8),
 };
 function mat(c, r = 0.8, m = 0.05, op = 1, ds = false) {
   const o = { color: c, roughness: r, metalness: m };
   if (op < 1) { o.transparent = true; o.opacity = op; }
   if (ds) o.side = THREE.DoubleSide;
   return new THREE.MeshStandardMaterial(o);
+}
+function makeBrickTex() {
+  const cv = document.createElement('canvas'); cv.width = 256; cv.height = 256;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#8f6548'; ctx.fillRect(0, 0, 256, 256);
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 12; x++) {
+    const ox = (y % 2) * 10;
+    ctx.fillStyle = `rgb(${130 + ((x*7+y*3)%40)},${90 + ((x+y*5)%25)},${60 + (x%20)})`;
+    ctx.fillRect(x * 22 + ox, y * 16, 20, 14);
+    ctx.strokeStyle = 'rgba(60,35,20,.35)'; ctx.strokeRect(x * 22 + ox, y * 16, 20, 14);
+  }
+  const tex = new THREE.CanvasTexture(cv); tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(14, 14); tex.colorSpace = THREE.SRGBColorSpace; return tex;
 }
 const colliders = [];
 function addCol(x, z, w, d) { colliders.push({ a: x - w/2, b: x + w/2, c: z - d/2, d: z + d/2 }); }
@@ -342,161 +369,320 @@ function cyl(rt, rb, h, mat, x, y, z, p = scene, seg = 10) {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, h, seg), mat);
   m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true; p.add(m); return m;
 }
-function roof(w, d, h, mat) {
+/** Mái cong kiểu Việt — nhiều lớp, đầu đao */
+function roof(w, d, h, matTile = M.tile) {
   const g = new THREE.Group();
-  box(w, h * 0.32, d, mat, 0, 0, 0, g);
-  const L = box(w * 0.16, h * 0.22, d * 1.05, mat, -w * 0.42, -h * 0.04, 0, g); L.rotation.z = 0.32;
-  const R = box(w * 0.16, h * 0.22, d * 1.05, mat, w * 0.42, -h * 0.04, 0, g); R.rotation.z = -0.32;
-  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => box(0.14, 0.32, 0.14, M.gold, sx * (w/2 + 0.08), h * 0.08, sz * (d/2), g));
-  box(w * 0.1, h * 0.45, d * 0.1, M.gold, 0, h * 0.3, 0, g);
+  // lớp mái chính
+  box(w, h * 0.22, d, matTile, 0, 0, 0, g);
+  box(w * 0.92, h * 0.12, d * 0.92, M.tileDark, 0, h * 0.14, 0, g);
+  // vát cong hai bên
+  const L = box(w * 0.18, h * 0.2, d * 1.08, matTile, -w * 0.44, -h * 0.02, 0, g); L.rotation.z = 0.38;
+  const R = box(w * 0.18, h * 0.2, d * 1.08, matTile, w * 0.44, -h * 0.02, 0, g); R.rotation.z = -0.38;
+  // mép trước/sau hơi nâng
+  const F = box(w * 1.02, h * 0.14, d * 0.14, matTile, 0, h * 0.02, d * 0.48, g); F.rotation.x = -0.28;
+  const B = box(w * 1.02, h * 0.14, d * 0.14, matTile, 0, h * 0.02, -d * 0.48, g); B.rotation.x = 0.28;
+  // nóc + đầu đao
+  box(w * 0.08, h * 0.55, d * 0.08, M.gold, 0, h * 0.38, 0, g);
+  [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+    const tip = box(0.12, 0.45, 0.12, M.gold, sx * (w / 2 + 0.12), h * 0.12, sz * (d / 2 + 0.05), g);
+    tip.rotation.z = sx * 0.45; tip.rotation.x = -sz * 0.25;
+  });
+  // đường gờ trang trí
+  box(w * 0.7, 0.06, 0.06, M.gold, 0, h * 0.22, 0, g);
   return g;
 }
 function textPlane(text, tw, th, fill, bg, fs) {
   const cv = document.createElement('canvas'); cv.width = tw; cv.height = th;
   const ctx = cv.getContext('2d');
-  ctx.fillStyle = bg; ctx.beginPath();
-  const r = 8; ctx.moveTo(r, 4); ctx.arcTo(tw-4, 4, tw-4, th-4, r); ctx.arcTo(tw-4, th-4, 4, th-4, r); ctx.arcTo(4, th-4, 4, 4, r); ctx.arcTo(4, 4, tw-4, 4, r); ctx.fill();
-  ctx.fillStyle = fill; ctx.font = `bold ${fs}px "Segoe UI","Noto Sans",sans-serif`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, tw/2, th/2);
+  const grd = ctx.createLinearGradient(0, 0, tw, th);
+  grd.addColorStop(0, bg); grd.addColorStop(1, '#4a1008');
+  ctx.fillStyle = grd; ctx.beginPath();
+  const r = 10; ctx.moveTo(r, 4); ctx.arcTo(tw-4, 4, tw-4, th-4, r); ctx.arcTo(tw-4, th-4, 4, th-4, r); ctx.arcTo(4, th-4, 4, 4, r); ctx.arcTo(4, 4, tw-4, 4, r); ctx.fill();
+  ctx.strokeStyle = 'rgba(232,200,122,.55)'; ctx.lineWidth = 3; ctx.stroke();
+  ctx.fillStyle = fill; ctx.font = `700 ${fs}px "Be Vietnam Pro","Noto Sans",sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, tw/2, th/2 + 1);
   const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, th/tw), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
   mesh.userData.tex = tex; return mesh;
 }
 function makeLantern(x, y, z) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), M.red); body.scale.set(1, 1.25, 1); g.add(body);
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), M.red); body.scale.set(1, 1.35, 1); g.add(body);
+  box(0.22, 0.04, 0.22, M.gold, 0, 0.22, 0, g, false);
+  box(0.22, 0.04, 0.22, M.gold, 0, -0.22, 0, g, false);
   const gm = new THREE.MeshStandardMaterial({ color: 0xffaa44, emissive: 0xff6622, emissiveIntensity: 0.9, roughness: 0.5 });
-  const glow = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 4), gm); g.add(glow);
-  box(0.02, 0.35, 0.02, M.woodD, 0, 0.38, 0, g, false);
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 4), gm));
+  box(0.02, 0.38, 0.02, M.woodD, 0, 0.42, 0, g, false);
   g.position.set(x, y, z); g.userData.gm = gm; g.userData.ph = Math.random() * 6.28;
   scene.add(g); S.lanterns.push(g); return g;
+}
+
+/** Nhân vật low-poly chân thực hơn (chibi) — dùng chung player / remote */
+function buildHumanoid({ robeColor = 0x355f8f, scale = 1, withFace = true } = {}) {
+  const g = new THREE.Group();
+  const robe = new THREE.MeshStandardMaterial({ color: robeColor, roughness: 0.72 });
+  const skin = M.skin;
+  // thân + cổ
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.26, 0.42, 4, 8), robe);
+  torso.position.y = 0.92; g.add(torso);
+  const hips = new THREE.Mesh(new THREE.SphereGeometry(0.24, 8, 6), robe);
+  hips.scale.set(1.05, 0.7, 0.85); hips.position.y = 0.62; g.add(hips);
+  // đai áo
+  box(0.52, 0.06, 0.36, M.gold, 0, 0.78, 0, g, false);
+  // đầu
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 8), skin); head.position.y = 1.48; g.add(head);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.09, 0.12, 6), skin); neck.position.y = 1.28; g.add(neck);
+  // tóc
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.275, 8, 6), M.dark);
+  hair.scale.set(1.05, 0.72, 1.05); hair.position.y = 1.58; g.add(hair);
+  const bang = new THREE.Mesh(new THREE.SphereGeometry(0.14, 6, 5), M.dark);
+  bang.scale.set(1.6, 0.45, 0.7); bang.position.set(0, 1.58, 0.16); g.add(bang);
+  if (withFace) {
+    const eyeM = new THREE.MeshBasicMaterial({ color: 0x2a1810 });
+    const eL = new THREE.Mesh(new THREE.SphereGeometry(0.035, 5, 4), eyeM); eL.position.set(-0.08, 1.5, 0.22); g.add(eL);
+    const eR = eL.clone(); eR.position.x = 0.08; g.add(eR);
+  }
+  // tay
+  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.065, 0.32, 3, 6), robe);
+  armL.position.set(-0.36, 0.98, 0); g.add(armL);
+  const armR = new THREE.Mesh(new THREE.CapsuleGeometry(0.065, 0.32, 3, 6), robe);
+  armR.position.set(0.36, 0.98, 0); g.add(armR);
+  const handL = new THREE.Mesh(new THREE.SphereGeometry(0.055, 6, 5), skin); handL.position.set(-0.36, 0.72, 0.02); g.add(handL);
+  const handR = handL.clone(); handR.position.x = 0.36; g.add(handR);
+  // chân + dép
+  const legL = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.32, 3, 6), M.dark);
+  legL.position.set(-0.12, 0.3, 0); g.add(legL);
+  const legR = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.32, 3, 6), M.dark);
+  legR.position.set(0.12, 0.3, 0); g.add(legR);
+  box(0.14, 0.05, 0.22, M.woodD, -0.12, 0.04, 0.04, g, false);
+  box(0.14, 0.05, 0.22, M.woodD, 0.12, 0.04, 0.04, g, false);
+  g.scale.setScalar(scale);
+  g.userData = { armL, armR, legL, legR, handL, handR, walk: 0, robe };
+  return g;
 }
 
 /* ========== CẢNH CHÙA ========== */
 let hemi, sun, fillL;
 function buildScene() {
-  // Đất & sân
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(42, 42), mat(0x8b6548, 0.95));
-  ground.rotation.x = -Math.PI/2; ground.receiveShadow = true; scene.add(ground);
-  for (let i = -7; i <= 7; i++) box(0.035, 0.015, 16, M.brick, i * 1.15, 0.01, -1, scene, false);
-  for (let j = -7; j <= 5; j++) box(16, 0.015, 0.035, M.brick, 0, 0.012, j * 1.15 - 1, scene, false);
+  // Nền cỏ + sân gạch
+  const grass = new THREE.Mesh(new THREE.PlaneGeometry(48, 48), mat(0x4a5c38, 0.95));
+  grass.rotation.x = -Math.PI / 2; grass.position.y = -0.02; grass.receiveShadow = true; scene.add(grass);
+  const yard = new THREE.Mesh(new THREE.PlaneGeometry(22, 28), new THREE.MeshStandardMaterial({
+    map: makeBrickTex(), roughness: 0.92, metalness: 0.02, color: 0xffffff,
+  }));
+  yard.rotation.x = -Math.PI / 2; yard.position.set(0, 0.01, 0); yard.receiveShadow = true; scene.add(yard);
+  // Viền sân đá
+  box(22.4, 0.18, 0.35, M.stone, 0, 0.08, 14, scene, false);
+  box(22.4, 0.18, 0.35, M.stone, 0, 0.08, -14, scene, false);
+  box(0.35, 0.18, 28.4, M.stone, 11.2, 0.08, 0, scene, false);
+  box(0.35, 0.18, 28.4, M.stone, -11.2, 0.08, 0, scene, false);
 
-  // Cổng tam quan
-  const gz = 12;
-  [-3.2, 0, 3.2].forEach(x => { box(0.7, 4.2, 0.7, M.wall, x, 2.1, gz); box(1, 0.32, 1, M.tile, x, 4.3, gz); addCol(x, gz, 0.9, 0.9); });
-  const rg = roof(4.2, 2.2, 1.15, M.tile); rg.position.set(0, 4.8, gz); scene.add(rg);
-  [-3.2, 3.2].forEach(x => { const r = roof(2.4, 1.8, 0.85, M.tile); r.position.set(x, 4.5, gz); scene.add(r); });
-  const sign = textPlane('Chùa An Lạc', 256, 64, '#f5e6c8', '#8b1a1a', 28);
-  sign.position.set(0, 3.55, gz + 0.42); sign.scale.set(3.2, 0.8, 1); scene.add(sign);
+  // ——— Cổng tam quan ———
+  const gz = 12.5;
+  // nền cổng
+  box(11, 0.35, 3.2, M.stone, 0, 0.15, gz);
+  // trụ giữa + hai bên (to hơn, có đế)
+  const pillars = [-3.6, 0, 3.6];
+  pillars.forEach((x, i) => {
+    box(1.15, 0.45, 1.15, M.stone, x, 0.35, gz);
+    box(0.85, 4.6, 0.85, M.plaster, x, 2.55, gz);
+    box(0.95, 0.22, 0.95, M.tile, x, 4.95, gz);
+    // khung cửa gỗ giữa các trụ
+    if (i < 2) {
+      const mid = (pillars[i] + pillars[i + 1]) / 2;
+      box(2.4, 0.18, 0.18, M.wood, mid, 3.6, gz + 0.15);
+      box(0.12, 3.2, 0.12, M.wood, pillars[i] + 0.55, 2.0, gz + 0.15);
+      box(0.12, 3.2, 0.12, M.wood, pillars[i + 1] - 0.55, 2.0, gz + 0.15);
+    }
+    addCol(x, gz, 1.0, 1.0);
+  });
+  // tường nối hai bên cổng
+  box(2.2, 2.4, 0.4, M.plaster, -5.5, 1.3, gz);
+  box(2.2, 2.4, 0.4, M.plaster, 5.5, 1.3, gz);
+  const rg = roof(5.2, 2.6, 1.35, M.tile); rg.position.set(0, 5.4, gz); scene.add(rg);
+  [-3.6, 3.6].forEach(x => { const r = roof(3.0, 2.2, 1.0, M.tile); r.position.set(x, 5.15, gz); scene.add(r); });
+  const sign = textPlane('Chùa An Lạc', 320, 72, '#f5e6c8', '#8b1a1a', 32);
+  sign.position.set(0, 3.85, gz + 0.55); sign.scale.set(3.6, 0.82, 1); scene.add(sign);
 
-  // Chính điện
-  const hz = -10;
-  box(10, 4.5, 7, M.wall, 0, 2.25, hz); box(11, 0.4, 8, M.stone, 0, 0.2, hz);
-  box(6, 0.22, 1.1, M.stone, 0, 0.14, hz + 4.15); box(5, 0.22, 0.95, M.stone, 0, 0.32, hz + 3.45);
-  [-3.5, -1.2, 1.2, 3.5].forEach(x => cyl(0.2, 0.24, 4.1, M.wood, x, 2.25, hz + 3.15));
-  const rh = roof(12, 9, 2.1, M.tile); rh.position.set(0, 5.15, hz); scene.add(rh);
-  const rp = roof(8, 3, 1.1, M.tile); rp.position.set(0, 4.55, hz + 3.45); scene.add(rp);
-  box(2.1, 3.1, 0.14, M.woodD, 0, 1.75, hz + 3.52);
-  const hs = textPlane('Chính điện', 200, 48, '#f5e6c8', '#6b1510', 22);
-  hs.position.set(0, 3.95, hz + 3.65); hs.scale.set(2.3, 0.55, 1); scene.add(hs);
-  // Chỉ chặn thân điện (để sân trước / mõ vẫn đi được)
-  addCol(0, hz - 0.5, 10.5, 6.0);
-
-  // Tượng Phật cách điệu
-  const bud = new THREE.Group();
-  cyl(1.05, 1.15, 0.32, M.stone, 0, 0.35, 0, bud, 12);
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.82, 12, 10), M.buddha); body.scale.set(1, 1.12, 0.82); body.position.y = 1.3; bud.add(body);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8), M.buddha); head.position.y = 2.38; bud.add(head);
-  cyl(0.11, 0.16, 0.22, M.buddha, 0, 2.82, 0, bud, 8);
-  box(1.55, 0.32, 0.65, M.red, 0, 1.65, 0.08, bud);
-  bud.position.set(0, 0.45, hz - 1.15); scene.add(bud); addCol(0, hz - 1.15, 2.3, 1.9);
-
-  // Lư hương
-  const lu = new THREE.Group();
-  cyl(0.68, 0.82, 0.45, M.bronze, 0, 0.32, 0, lu, 12);
-  cyl(0.92, 0.92, 0.1, M.bronze, 0, 0.6, 0, lu, 12);
-  cyl(0.52, 0.52, 0.75, M.bronze, 0, 1.05, 0, lu, 10);
-  box(0.14, 0.32, 0.07, M.bronze, -0.72, 0.95, 0, lu); box(0.14, 0.32, 0.07, M.bronze, 0.72, 0.95, 0, lu);
-  cyl(0.42, 0.42, 0.07, M.dark, 0, 1.42, 0, lu, 10);
-  lu.position.set(0, 0, 2.5); scene.add(lu); addCol(0, 2.5, 1.7, 1.7);
-  S.incenseY = 1.5;
-
-  // Gác chuông
-  const bx = -9.5, bz = -2;
-  [[-1.15,-1.15],[1.15,-1.15],[-1.15,1.15],[1.15,1.15]].forEach(([x,z]) => box(0.32, 5.4, 0.32, M.wood, bx+x, 2.7, bz+z));
-  box(3.1, 0.28, 3.1, M.wood, bx, 5.4, bz);
-  const rb = roof(3.9, 3.9, 1.3, M.tile); rb.position.set(bx, 6.1, bz); scene.add(rb);
-  const bell = new THREE.Group();
-  bell.add(new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.72, 1.05, 12), M.bronze));
-  const bt = new THREE.Mesh(new THREE.SphereGeometry(0.38, 10, 6), M.bronze); bt.position.y = 0.52; bt.scale.y = 0.55; bell.add(bt);
-  cyl(0.07, 0.07, 0.45, M.bronze, 0, 0.95, 0, bell, 6);
-  bell.position.set(bx, 4.15, bz); scene.add(bell); S.bell = bell; addCol(bx, bz, 2.7, 2.7);
-
-  // Cây bồ đề
-  const tx = 8, tz = 2;
-  cyl(0.32, 0.52, 4.4, M.woodD, tx, 2.2, tz, scene, 8);
-  for (let i = 0; i < 14; i++) {
-    const s = new THREE.Mesh(new THREE.IcosahedronGeometry(1 + Math.random() * 0.55, 0), M.leaf);
-    const a = Math.random() * 6.28, r = 0.4 + Math.random() * 1.9;
-    s.position.set(tx + Math.cos(a)*r, 4.4 + Math.random()*2.2, tz + Math.sin(a)*r); s.castShadow = true; scene.add(s);
+  // Hàng rào / tường bao sân trước
+  for (const side of [-1, 1]) {
+    box(0.35, 1.6, 10, M.plaster, side * 10.5, 0.85, 6);
+    for (let z = 2; z <= 10; z += 2) {
+      box(0.45, 1.9, 0.45, M.stone, side * 10.5, 0.95, z);
+    }
   }
-  addCol(tx, tz, 1.3, 1.3); S.bodhi = new THREE.Vector3(tx, 0, tz);
-  for (let i = 0; i < 16; i++) addRibbon(tx + (Math.random()-0.5)*3.4, 3.1 + Math.random()*2, tz + (Math.random()-0.5)*3.4, true);
 
-  // Hồ sen
+  // ——— Chính điện ———
+  const hz = -10;
+  // nền cao + bậc cấp
+  box(12.5, 0.55, 9, M.stone, 0, 0.25, hz);
+  box(7.5, 0.28, 1.4, M.stone, 0, 0.2, hz + 4.7);
+  box(6.2, 0.28, 1.15, M.stone, 0, 0.42, hz + 3.9);
+  box(5.2, 0.28, 1.0, M.stone, 0, 0.64, hz + 3.2);
+  // thân điện
+  box(10.5, 4.8, 7.2, M.plaster, 0, 2.95, hz);
+  // viền gỗ
+  box(10.7, 0.25, 7.4, M.wood, 0, 5.3, hz);
+  box(10.7, 0.18, 7.4, M.wood, 0, 0.7, hz);
+  // cột hiên
+  [-4.2, -1.4, 1.4, 4.2].forEach(x => {
+    cyl(0.22, 0.26, 4.4, M.wood, x, 2.85, hz + 3.55, scene, 10);
+    box(0.5, 0.18, 0.5, M.stone, x, 0.7, hz + 3.55);
+  });
+  // xà ngang
+  box(9.2, 0.22, 0.28, M.wood, 0, 4.9, hz + 3.55);
+  // lan can hiên
+  box(9.5, 0.08, 0.08, M.rail, 0, 1.35, hz + 4.15);
+  for (let x = -4; x <= 4; x += 1) box(0.06, 0.55, 0.06, M.rail, x, 1.1, hz + 4.15);
+  // cửa chính + cửa sổ
+  box(2.4, 3.4, 0.16, M.woodD, 0, 2.35, hz + 3.62);
+  box(0.12, 3.4, 0.05, M.gold, 0, 2.35, hz + 3.72);
+  box(1.2, 1.4, 0.1, M.wood, -3.2, 2.8, hz + 3.62);
+  box(1.2, 1.4, 0.1, M.wood, 3.2, 2.8, hz + 3.62);
+  // mái đôi
+  const rh = roof(13.2, 9.5, 2.35, M.tile); rh.position.set(0, 5.85, hz); scene.add(rh);
+  const rh2 = roof(10.5, 7.5, 1.5, M.tile); rh2.position.set(0, 7.35, hz); scene.add(rh2);
+  const rp = roof(9, 3.4, 1.25, M.tile); rp.position.set(0, 5.35, hz + 3.7); scene.add(rp);
+  const hs = textPlane('Chính điện', 220, 52, '#f5e6c8', '#6b1510', 24);
+  hs.position.set(0, 4.55, hz + 3.85); hs.scale.set(2.5, 0.58, 1); scene.add(hs);
+  addCol(0, hz - 0.4, 11, 6.2);
+
+  // Tượng Phật trang nghiêm hơn
+  const bud = new THREE.Group();
+  cyl(1.2, 1.35, 0.28, M.stone, 0, 0.35, 0, bud, 14);
+  for (let i = 0; i < 10; i++) {
+    const petal = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.55, 5), M.plaster);
+    const a = (i / 10) * Math.PI * 2;
+    petal.position.set(Math.cos(a) * 1.05, 0.4, Math.sin(a) * 1.05);
+    petal.rotation.z = Math.PI; petal.rotation.y = -a; bud.add(petal);
+  }
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.78, 14, 12), M.buddha);
+  body.scale.set(1.05, 1.2, 0.88); body.position.y = 1.35; bud.add(body);
+  const robe = new THREE.Mesh(new THREE.SphereGeometry(0.82, 12, 10), M.red);
+  robe.scale.set(1.05, 0.55, 0.9); robe.position.set(0, 1.05, 0.05); bud.add(robe);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 10), M.buddha); head.position.y = 2.42; bud.add(head);
+  cyl(0.1, 0.16, 0.28, M.buddha, 0, 2.88, 0, bud, 8);
+  // tai dài cách điệu
+  box(0.08, 0.28, 0.06, M.buddha, -0.34, 2.38, 0, bud);
+  box(0.08, 0.28, 0.06, M.buddha, 0.34, 2.38, 0, bud);
+  bud.position.set(0, 0.7, hz - 1.3); scene.add(bud); addCol(0, hz - 1.3, 2.4, 2.0);
+
+  // Lư hương đồng
+  const lu = new THREE.Group();
+  cyl(0.72, 0.88, 0.42, M.bronze, 0, 0.35, 0, lu, 14);
+  cyl(1.0, 1.0, 0.12, M.bronze, 0, 0.62, 0, lu, 14);
+  cyl(0.55, 0.55, 0.85, M.bronze, 0, 1.1, 0, lu, 12);
+  box(0.16, 0.4, 0.08, M.bronze, -0.78, 1.0, 0, lu); box(0.16, 0.4, 0.08, M.bronze, 0.78, 1.0, 0, lu);
+  [[-0.45, -0.4], [0.45, -0.4], [0, 0.45]].forEach(([x, z]) => cyl(0.08, 0.12, 0.28, M.bronze, x, 0.14, z, lu, 6));
+  cyl(0.45, 0.45, 0.08, M.dark, 0, 1.5, 0, lu, 10);
+  lu.position.set(0, 0, 2.5); scene.add(lu); addCol(0, 2.5, 1.8, 1.8);
+  S.incenseY = 1.55;
+
+  // ——— Gác chuông ———
+  const bx = -9.5, bz = -2;
+  box(3.6, 0.35, 3.6, M.stone, bx, 0.15, bz);
+  [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]].forEach(([x, z]) => {
+    box(0.38, 5.6, 0.38, M.wood, bx + x, 2.95, bz + z);
+    box(0.5, 0.2, 0.5, M.stone, bx + x, 0.35, bz + z);
+  });
+  box(3.4, 0.28, 3.4, M.wood, bx, 5.7, bz);
+  // lan can gác
+  for (let i = -1; i <= 1; i++) {
+    box(0.08, 0.55, 0.08, M.rail, bx + i * 1.1, 6.05, bz + 1.45);
+    box(0.08, 0.55, 0.08, M.rail, bx + i * 1.1, 6.05, bz - 1.45);
+  }
+  const rb = roof(4.4, 4.4, 1.45, M.tile); rb.position.set(bx, 6.5, bz); scene.add(rb);
+  const bell = new THREE.Group();
+  bell.add(new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.78, 1.15, 14), M.bronze));
+  const bt = new THREE.Mesh(new THREE.SphereGeometry(0.42, 10, 6), M.bronze); bt.position.y = 0.55; bt.scale.y = 0.55; bell.add(bt);
+  cyl(0.08, 0.08, 0.5, M.bronze, 0, 1.0, 0, bell, 6);
+  bell.position.set(bx, 4.3, bz); scene.add(bell); S.bell = bell; addCol(bx, bz, 2.9, 2.9);
+
+  // Nhà tả (nhỏ bên phải) — cân bố cục
+  const sx = 9.5, sz = -8;
+  box(4.5, 2.8, 3.5, M.plaster, sx, 1.6, sz);
+  box(5, 0.3, 4, M.stone, sx, 0.15, sz);
+  const sr = roof(5.4, 4.2, 1.3, M.tile); sr.position.set(sx, 3.5, sz); scene.add(sr);
+  box(1.2, 1.8, 0.12, M.woodD, sx, 1.2, sz + 1.78);
+  addCol(sx, sz, 5, 4);
+
+  // ——— Cây bồ đề ———
+  const tx = 8, tz = 2.2;
+  cyl(0.38, 0.58, 5.0, M.woodD, tx, 2.5, tz, scene, 9);
+  // cành
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * 6.28;
+    const br = box(0.12, 1.8, 0.12, M.woodD, 0, 0, 0, scene, true);
+    br.position.set(tx + Math.cos(a) * 0.3, 4.2, tz + Math.sin(a) * 0.3);
+    br.rotation.z = Math.cos(a) * 0.9; br.rotation.x = Math.sin(a) * 0.9;
+  }
+  for (let i = 0; i < 18; i++) {
+    const s = new THREE.Mesh(new THREE.IcosahedronGeometry(0.95 + Math.random() * 0.55, 0), i % 2 ? M.leaf : M.leafD);
+    const a = Math.random() * 6.28, r = 0.5 + Math.random() * 2.1;
+    s.position.set(tx + Math.cos(a) * r, 4.6 + Math.random() * 2.4, tz + Math.sin(a) * r);
+    s.castShadow = true; scene.add(s);
+  }
+  addCol(tx, tz, 1.4, 1.4); S.bodhi = new THREE.Vector3(tx, 0, tz);
+  for (let i = 0; i < 18; i++) addRibbon(tx + (Math.random() - 0.5) * 3.6, 3.2 + Math.random() * 2.2, tz + (Math.random() - 0.5) * 3.6, true);
+
+  // ——— Hồ sen ———
   const px = 7, pz = -5;
-  cyl(3.15, 3.15, 0.32, M.stone, px, 0.1, pz, scene, 16);
-  const water = new THREE.Mesh(new THREE.CircleGeometry(2.85, 24), M.water);
-  water.rotation.x = -Math.PI/2; water.position.set(px, 0.28, pz); scene.add(water);
-  S.pond = new THREE.Vector3(px, 0.3, pz);
-  for (let i = 0; i < 8; i++) {
-    const a = i/8*6.28 + 0.2, r = 1.1 + (i%3)*0.45;
-    const leaf = new THREE.Mesh(new THREE.CircleGeometry(0.42, 8), M.leaf);
-    leaf.rotation.x = -Math.PI/2; leaf.position.set(px+Math.cos(a)*r, 0.32, pz+Math.sin(a)*r); scene.add(leaf);
-    if (i % 2 === 0) { const fl = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.32, 6), M.red); fl.position.set(px+Math.cos(a)*r, 0.48, pz+Math.sin(a)*r); scene.add(fl); }
+  cyl(3.35, 3.35, 0.4, M.stone, px, 0.12, pz, scene, 18);
+  const water = new THREE.Mesh(new THREE.CircleGeometry(3.0, 28), M.water);
+  water.rotation.x = -Math.PI / 2; water.position.set(px, 0.3, pz); scene.add(water);
+  S.pond = new THREE.Vector3(px, 0.32, pz);
+  for (let i = 0; i < 10; i++) {
+    const a = i / 10 * 6.28 + 0.15, r = 1.0 + (i % 3) * 0.5;
+    const leaf = new THREE.Mesh(new THREE.CircleGeometry(0.45, 10), M.leaf);
+    leaf.rotation.x = -Math.PI / 2; leaf.position.set(px + Math.cos(a) * r, 0.34, pz + Math.sin(a) * r); scene.add(leaf);
+    if (i % 2 === 0) {
+      const fl = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.38, 7), M.red);
+      fl.position.set(px + Math.cos(a) * r, 0.52, pz + Math.sin(a) * r); scene.add(fl);
+    }
   }
   for (let i = 0; i < 12; i++) addFloat(true);
-  addCol(px, pz, 5.4, 5.4);
+  addCol(px, pz, 5.6, 5.6);
 
   // Ống xăm
   const fx = -4.5, fz = 4.5;
-  box(1.15, 0.65, 0.75, M.wood, fx, 0.32, fz);
-  S.fortuneTube = cyl(0.2, 0.26, 0.65, M.woodD, fx, 1.0, fz, scene, 10);
-  for (let i = 0; i < 7; i++) {
-    const st = box(0.025, 0.5, 0.025, M.wood, (Math.random()-0.5)*0.18, 0.2, (Math.random()-0.5)*0.18, S.fortuneTube, false);
-    st.rotation.z = (Math.random()-0.5)*0.12;
+  box(1.3, 0.75, 0.85, M.wood, fx, 0.38, fz);
+  box(1.4, 0.08, 0.95, M.woodD, fx, 0.78, fz);
+  S.fortuneTube = cyl(0.22, 0.28, 0.7, M.woodD, fx, 1.15, fz, scene, 10);
+  for (let i = 0; i < 8; i++) {
+    const st = box(0.025, 0.55, 0.025, M.wood, (Math.random() - 0.5) * 0.2, 0.22, (Math.random() - 0.5) * 0.2, S.fortuneTube, false);
+    st.rotation.z = (Math.random() - 0.5) * 0.12;
   }
-  addCol(fx, fz, 1.35, 1.1);
+  addCol(fx, fz, 1.45, 1.2);
 
-  // Đèn lồng
+  // Đèn lồng hai hàng
   for (let i = -5; i <= 5; i++) {
     if (Math.abs(i) < 1) continue;
-    box(0.08, 2.7, 0.08, M.woodD, i*1.55, 1.35, 6.4);
-    makeLantern(i*1.55, 2.85, 6.4);
-    box(0.08, 2.7, 0.08, M.woodD, i*1.55, 1.35, -5.8);
-    makeLantern(i*1.55, 2.85, -5.8);
+    box(0.1, 2.9, 0.1, M.woodD, i * 1.55, 1.45, 6.6);
+    box(0.22, 0.08, 0.22, M.stone, i * 1.55, 0.08, 6.6);
+    makeLantern(i * 1.55, 3.05, 6.6);
+    box(0.1, 2.9, 0.1, M.woodD, i * 1.55, 1.45, -5.5);
+    makeLantern(i * 1.55, 3.05, -5.5);
   }
-  [-2, 2].forEach(x => { box(0.08, 3.1, 0.08, M.woodD, x, 1.55, 10.4); makeLantern(x, 3.25, 10.4); });
+  [-2.2, 2.2].forEach(x => { box(0.1, 3.3, 0.1, M.woodD, x, 1.65, 11); makeLantern(x, 3.45, 11); });
 
-  // Mõ gần cửa điện
+  // Mõ
   const mok = new THREE.Group();
-  const mb = new THREE.Mesh(new THREE.SphereGeometry(0.32, 10, 8), M.wood); mb.scale.set(1.15, 0.88, 1); mok.add(mb);
-  box(0.07, 0.45, 0.07, M.woodD, 0.45, 0.08, 0, mok);
-  mok.position.set(3.2, 0.95, -6.0); scene.add(mok);
+  const mb = new THREE.Mesh(new THREE.SphereGeometry(0.34, 10, 8), M.wood); mb.scale.set(1.15, 0.9, 1); mok.add(mb);
+  box(0.08, 0.5, 0.08, M.woodD, 0.48, 0.1, 0, mok);
+  mok.position.set(3.2, 1.05, -6.0); scene.add(mok);
 
-  // Ánh sáng hoàng hôn → đêm
-  hemi = new THREE.HemisphereLight(0xffc8a0, 0x2a1a10, 0.55); scene.add(hemi);
-  sun = new THREE.DirectionalLight(0xffaa66, 0.95); sun.position.set(-12, 14, 8);
+  // Ánh sáng
+  hemi = new THREE.HemisphereLight(0xffc8a0, 0x2a1a10, 0.58); scene.add(hemi);
+  sun = new THREE.DirectionalLight(0xffaa66, 1.0); sun.position.set(-12, 16, 8);
   sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
-  sun.shadow.camera.near = 1; sun.shadow.camera.far = 50;
-  sun.shadow.camera.left = -20; sun.shadow.camera.right = 20;
-  sun.shadow.camera.top = 20; sun.shadow.camera.bottom = -20;
+  sun.shadow.camera.near = 1; sun.shadow.camera.far = 55;
+  sun.shadow.camera.left = -22; sun.shadow.camera.right = 22;
+  sun.shadow.camera.top = 22; sun.shadow.camera.bottom = -22;
   scene.add(sun);
-  fillL = new THREE.DirectionalLight(0x6688cc, 0.25); fillL.position.set(8, 6, -6); scene.add(fillL);
-  // Điểm sáng đèn lồng
+  fillL = new THREE.DirectionalLight(0x6688cc, 0.28); fillL.position.set(8, 6, -6); scene.add(fillL);
   S.lanterns.forEach((L, i) => {
     if (i % 3 !== 0) return;
-    const pl = new THREE.PointLight(0xff8844, 0.35, 6, 2);
+    const pl = new THREE.PointLight(0xff8844, 0.38, 7, 2);
     pl.position.copy(L.position); scene.add(pl); L.userData.pl = pl;
   });
 
@@ -597,21 +783,9 @@ function updateParticles(dt) {
 let player, playerRoot;
 function buildPlayer() {
   playerRoot = new THREE.Group();
-  player = new THREE.Group();
-  // Thân áo lam chibi
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.45, 4, 8), M.robe); body.position.y = 0.85; player.add(body);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), M.skin); head.position.y = 1.45; player.add(head);
-  // Tóc
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.29, 8, 6), M.dark); hair.position.y = 1.55; hair.scale.set(1, 0.7, 1); player.add(hair);
-  // Tay
-  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.28, 3, 6), M.robe); armL.position.set(-0.38, 0.95, 0); player.add(armL);
-  const armR = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.28, 3, 6), M.robe); armR.position.set(0.38, 0.95, 0); player.add(armR);
-  // Chân
-  const legL = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.28, 3, 6), M.dark); legL.position.set(-0.12, 0.28, 0); player.add(legL);
-  const legR = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.28, 3, 6), M.dark); legR.position.set(0.12, 0.28, 0); player.add(legR);
-  player.userData = { armL, armR, legL, legR, walk: 0 };
+  player = buildHumanoid({ robeColor: 0x355f8f, withFace: true });
   playerRoot.add(player);
-  playerRoot.position.set(0, 0, 8);
+  playerRoot.position.set(0, 0, 8.5);
   scene.add(playerRoot);
 }
 
@@ -624,42 +798,51 @@ function tryMove(nx, nz) {
   return true;
 }
 
-/* ========== KHÁCH AI (InstancedMesh) ========== */
-const AI_N = 48;
+/* ========== KHÁCH AI (InstancedMesh — thân + đầu + tóc + chân) ========== */
+const AI_N = 42;
 let aiMesh, aiData = [], aiDummy = new THREE.Object3D();
 const bubbleEls = [];
 const bubbleRoot = document.getElementById('bubbles');
 
 function buildAI() {
-  // Hình người đơn giản: hộp thân + đầu (một geometry gộp bằng group bake → dùng thân capsule-ish box)
-  const geo = new THREE.BoxGeometry(0.35, 0.9, 0.28);
-  const colors = [0x3d5c8a, 0xc44536, 0xe8d5b5, 0x5c3a22, 0x4a7c59, 0x8b6914, 0x6b4c7a, 0xd4a574];
-  aiMesh = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ roughness: 0.8, metalness: 0.05 }), AI_N);
+  const colors = [0x3d5c8a, 0xc44536, 0xe8d5b5, 0x5c3a22, 0x4a7c59, 0x8b6914, 0x6b4c7a, 0xd4a574, 0x2f6f8f, 0xb85c38];
+  // Thân capsule → trông người hơn hộp
+  const bodyGeo = new THREE.CapsuleGeometry(0.22, 0.38, 3, 6);
+  aiMesh = new THREE.InstancedMesh(bodyGeo, new THREE.MeshStandardMaterial({ roughness: 0.75, metalness: 0.04 }), AI_N);
   aiMesh.castShadow = true; aiMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  // Đầu riêng
-  const headGeo = new THREE.SphereGeometry(0.18, 6, 5);
-  const headMesh = new THREE.InstancedMesh(headGeo, M.skin, AI_N);
-  headMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-  scene.add(aiMesh); scene.add(headMesh); S.aiHead = headMesh;
 
-  const colorAttr = new Float32Array(AI_N * 3);
+  const headMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.2, 7, 6), M.skin, AI_N);
+  headMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); headMesh.castShadow = true;
+
+  const hairMesh = new THREE.InstancedMesh(
+    new THREE.SphereGeometry(0.21, 6, 5),
+    new THREE.MeshStandardMaterial({ color: 0x1a1410, roughness: 0.9 }),
+    AI_N
+  );
+  hairMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+  const legGeo = new THREE.CapsuleGeometry(0.06, 0.22, 2, 5);
+  const legL = new THREE.InstancedMesh(legGeo, new THREE.MeshStandardMaterial({ color: 0x2a2018, roughness: 0.9 }), AI_N);
+  const legR = new THREE.InstancedMesh(legGeo, legL.material, AI_N);
+  legL.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  legR.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+
+  scene.add(aiMesh, headMesh, hairMesh, legL, legR);
+  S.aiHead = headMesh; S.aiHair = hairMesh; S.aiLegL = legL; S.aiLegR = legR;
+
   for (let i = 0; i < AI_N; i++) {
     const c = new THREE.Color(colors[i % colors.length]);
-    colorAttr[i*3] = c.r; colorAttr[i*3+1] = c.g; colorAttr[i*3+2] = c.b;
-    const kind = i % 5; // 0 walk, 1 pray, 2 incense, 3 sit, 4 photo
+    aiMesh.setColorAt(i, c);
+    const kind = i % 5;
     const age = i % 4; // 0 adult, 1 elder, 2 child, 3 adult
-    const scale = age === 2 ? 0.65 : age === 1 ? 0.9 : 1;
+    const scale = age === 2 ? 0.68 : age === 1 ? 0.88 : 1;
     aiData.push({
-      x: (Math.random()-0.5)*16, z: (Math.random()-0.5)*14 + 1,
-      yaw: Math.random()*6.28, speed: 0.4 + Math.random()*0.6,
-      kind, age, scale, timer: Math.random()*8, state: 'walk',
-      tx: 0, tz: 0, bubble: -1, bubbleT: 0,
+      x: (Math.random() - 0.5) * 14, z: (Math.random() - 0.5) * 12 + 1,
+      yaw: Math.random() * 6.28, speed: 0.45 + Math.random() * 0.55,
+      kind, age, scale, timer: Math.random() * 8, state: 'walk',
+      tx: 0, tz: 0, bubble: -1, bubbleT: 0, walk: Math.random() * 10,
     });
-    // random target
     pickAITarget(aiData[i]);
-  }
-  for (let i = 0; i < AI_N; i++) {
-    aiMesh.setColorAt(i, new THREE.Color(colorAttr[i*3], colorAttr[i*3+1], colorAttr[i*3+2]));
   }
   if (aiMesh.instanceColor) aiMesh.instanceColor.needsUpdate = true;
 
@@ -716,19 +899,41 @@ function updateAI(dt) {
       a.bubble = -1;
     }
 
-    const h = 0.45 * a.scale;
-    aiDummy.position.set(a.x, h, a.z);
+    const moving = a.state === 'walk';
+    if (moving) a.walk += dt * 9;
+    const bob = moving ? Math.sin(a.walk) * 0.04 : 0;
+    const legSwing = moving ? Math.sin(a.walk) * 0.55 : 0;
+    const sc = a.scale;
+
+    // thân
+    aiDummy.position.set(a.x, 0.85 * sc + bob, a.z);
     aiDummy.rotation.set(0, a.yaw, 0);
-    aiDummy.scale.set(a.scale, a.scale, a.scale);
+    aiDummy.scale.set(sc, sc, sc);
     aiDummy.updateMatrix();
     aiMesh.setMatrixAt(i, aiDummy.matrix);
-    aiDummy.position.set(a.x, 1.05 * a.scale, a.z);
-    aiDummy.scale.set(a.scale, a.scale, a.scale);
+    // đầu
+    aiDummy.position.set(a.x, 1.42 * sc + bob, a.z);
+    aiDummy.scale.set(sc, sc, sc);
     aiDummy.updateMatrix();
     S.aiHead.setMatrixAt(i, aiDummy.matrix);
+    // tóc
+    aiDummy.position.set(a.x, 1.52 * sc + bob, a.z);
+    aiDummy.scale.set(sc * 1.05, sc * 0.7, sc * 1.05);
+    aiDummy.updateMatrix();
+    S.aiHair.setMatrixAt(i, aiDummy.matrix);
+    // chân
+    aiDummy.position.set(a.x - 0.1 * sc, 0.28 * sc, a.z);
+    aiDummy.rotation.set(legSwing, a.yaw, 0);
+    aiDummy.scale.set(sc, sc, sc);
+    aiDummy.updateMatrix();
+    S.aiLegL.setMatrixAt(i, aiDummy.matrix);
+    aiDummy.position.set(a.x + 0.1 * sc, 0.28 * sc, a.z);
+    aiDummy.rotation.set(-legSwing, a.yaw, 0);
+    aiDummy.updateMatrix();
+    S.aiLegR.setMatrixAt(i, aiDummy.matrix);
 
     if (a.bubble >= 0) {
-      _v.set(a.x, 1.7 * a.scale, a.z); _v.project(camera);
+      _v.set(a.x, 1.85 * sc, a.z); _v.project(camera);
       const el = bubbleEls[a.bubble];
       if (_v.z < 1) {
         el.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
@@ -738,6 +943,9 @@ function updateAI(dt) {
   }
   aiMesh.instanceMatrix.needsUpdate = true;
   S.aiHead.instanceMatrix.needsUpdate = true;
+  S.aiHair.instanceMatrix.needsUpdate = true;
+  S.aiLegL.instanceMatrix.needsUpdate = true;
+  S.aiLegR.instanceMatrix.needsUpdate = true;
 }
 
 function spawnGroup() {
@@ -1222,14 +1430,7 @@ function robeColorFor(uid) {
 }
 
 function makeRemoteAvatar(uid, name) {
-  const g = new THREE.Group();
-  const robe = new THREE.MeshStandardMaterial({ color: robeColorFor(uid), roughness: 0.75 });
-  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.45, 4, 8), robe); body.position.y = 0.85; g.add(body);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), M.skin); head.position.y = 1.45; g.add(head);
-  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.29, 8, 6), M.dark); hair.position.y = 1.55; hair.scale.set(1, 0.7, 1); g.add(hair);
-  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.28, 3, 6), robe); armL.position.set(-0.38, 0.95, 0); g.add(armL);
-  const armR = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.28, 3, 6), robe); armR.position.set(0.38, 0.95, 0); g.add(armR);
-  g.userData = { armL, armR };
+  const g = buildHumanoid({ robeColor: robeColorFor(uid), withFace: true });
   scene.add(g);
   const label = document.createElement('div');
   label.className = 'bubble3d on';

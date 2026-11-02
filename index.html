@@ -2234,15 +2234,16 @@ function updatePlayer(dt) {
   if (S.keys['KeyS'] || S.keys['ArrowDown']) mz += 1;
   if (S.keys['KeyA'] || S.keys['ArrowLeft']) mx -= 1;
   if (S.keys['KeyD'] || S.keys['ArrowRight']) mx += 1;
-  if (S.joy.on) { mx += S.joy.dx; mz -= S.joy.dy; } // đảo tiến/lùi joystick
+  // Joystick: kéo lên (dy < 0) = tiến, giống W
+  if (S.joy.on) { mx += S.joy.dx; mz += S.joy.dy; }
   const len = Math.hypot(mx, mz);
   const moving = len > 0.08;
   if (moving) {
     mx /= len; mz /= len;
-    // Hướng theo camera yaw
+    // Camera đứng sau nhân vật tại +yaw → hướng nhìn (tiến) là -yaw
     const spd = 3.6 * dt;
-    const fx = Math.sin(S.yaw), fz = Math.cos(S.yaw);
-    const rx = Math.sin(S.yaw + Math.PI/2), rz = Math.cos(S.yaw + Math.PI/2);
+    const fx = -Math.sin(S.yaw), fz = -Math.cos(S.yaw);
+    const rx = Math.cos(S.yaw), rz = -Math.sin(S.yaw);
     const dx = (fx * -mz + rx * mx) * spd;
     const dz = (fz * -mz + rz * mx) * spd;
     const nx = playerRoot.position.x + dx, nz = playerRoot.position.z + dz;

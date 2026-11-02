@@ -224,8 +224,13 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <ol class="steps">
         <li><span class="n">1</span><span>Điện thoại: kéo cần góc trái. Máy tính: WASD hoặc mũi tên.</span></li>
         <li><span class="n">2</span><span>Kéo xuống để thấy biển mây dưới chân; kéo lên để thấy sao. Tới gần lư hương, chuông, mõ…</span></li>
-        <li><span class="n">3</span><span>Góc phải: chọn AK / Bazooka. Ngắm (Shift) để zoom, Bắn (F) bắn bạn bè online.</span></li>
+        <li><span class="n">3</span><span>Góc phải: chọn AK / Bazooka. Ngắm để zoom, Bắn (F) bắn bạn bè online.</span></li>
       </ol>
+      <p class="tiny" style="margin:0 0 10px;text-align:center">Chọn góc nhìn khi vào chùa</p>
+      <div class="row" style="margin-bottom:14px">
+        <button type="button" class="choice sel" id="view-third" style="flex:1">Góc 3 người<br/><span class="tiny">Nhìn nhân vật</span></button>
+        <button type="button" class="choice" id="view-fps" style="flex:1">Góc mắt (FPS)<br/><span class="tiny">Nhìn từ mắt</span></button>
+      </div>
       <button class="btn big" id="btn-guide-ok">Bắt đầu</button>
       <button class="btn secondary" id="btn-guide-skip">Bỏ qua</button>
     </div>
@@ -239,6 +244,7 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       </div>
     </div>
     <div id="hud-btns">
+      <button class="icon-btn" id="btn-view" title="Đổi góc nhìn">3rd</button>
       <button class="icon-btn" id="btn-mute" title="Âm thanh">Âm</button>
       <button class="icon-btn" id="btn-book" title="Sổ cầu an">Sổ</button>
       <button class="icon-btn" id="btn-share" title="Chia sẻ">Chia</button>
@@ -346,6 +352,7 @@ const S = {
   netVisit: null, seenWishes: Object.create(null),
   combatUntil: 0, flinchUntil: 0,
   gun: '', aiming: false, fireUntil: 0, baseFov: 55, projectiles: [], bursts: [],
+  fpsMode: false,
 };
 
 const SPOTS = [
@@ -1786,23 +1793,60 @@ $('btn-enter').onclick = async () => {
 };
 function finishGuide() {
   localStorage.setItem('chua_guided', '1');
+  localStorage.setItem('chua_fps', S.fpsMode ? '1' : '0');
   $('screen-guide').classList.add('hidden');
   startPlay();
 }
 $('btn-guide-ok').onclick = finishGuide;
 $('btn-guide-skip').onclick = finishGuide;
 
+// Chọn góc nhìn trên màn hướng dẫn
+$('view-third').onclick = () => {
+  S.fpsMode = false;
+  $('view-third').classList.add('sel');
+  $('view-fps').classList.remove('sel');
+};
+$('view-fps').onclick = () => {
+  S.fpsMode = true;
+  $('view-fps').classList.add('sel');
+  $('view-third').classList.remove('sel');
+};
+if (localStorage.getItem('chua_fps') === '1') {
+  S.fpsMode = true;
+  $('view-fps')?.classList.add('sel');
+  $('view-third')?.classList.remove('sel');
+}
+
+function updateViewBtn() {
+  const b = $('btn-view');
+  if (!b) return;
+  b.textContent = S.fpsMode ? 'FPS' : '3rd';
+  b.title = S.fpsMode ? 'Đang góc mắt — bấm để về 3 người' : 'Đang 3 người — bấm để góc mắt (FPS)';
+  b.style.borderColor = S.fpsMode ? 'rgba(100,180,255,.55)' : '';
+}
+function setFpsMode(on) {
+  S.fpsMode = !!on;
+  localStorage.setItem('chua_fps', S.fpsMode ? '1' : '0');
+  updateViewBtn();
+  toast(S.fpsMode ? 'Góc nhìn từ mắt (FPS)' : 'Góc nhìn 3 người');
+}
+function toggleFpsMode() { setFpsMode(!S.fpsMode); }
+
 function startPlay() {
   S.playing = true; $('hud').style.display = 'block'; updateVisitorUI();
   $('weapon-bar').classList.add('show');
+  updateViewBtn();
   // Trả focus khỏi ô tên / nút — không thì WASD trên máy tính bị nuốt
   try { document.activeElement && document.activeElement.blur(); } catch (_) {}
   canvas.setAttribute('tabindex', '0');
   canvas.style.outline = 'none';
   setTimeout(() => { try { canvas.focus({ preventScroll: true }); } catch (_) { canvas.focus(); } }, 50);
-  toast(`Chào ${S.name}! Chọn AK / Bazooka góc phải — Ngắm + Bắn bạn bè.`);
+  toast(S.fpsMode
+    ? `Chào ${S.name}! Đang góc mắt (FPS) — bấm FPS góc phải để đổi.`
+    : `Chào ${S.name}! Góc 3 người — bấm 3rd / phím V để góc mắt.`);
 }
 
+$('btn-view').onclick = () => toggleFpsMode();
 $('btn-mute').onclick = () => setMute(!S.muted);
 $('btn-book').onclick = () => openBook();
 $('btn-share').onclick = () => doShare();
@@ -1848,9 +1892,11 @@ addEventListener('keydown', e => {
   if (typingInField()) return;
   bindKey(e, true);
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) e.preventDefault();
-  // Shift / Q = bật tắt zoom (không cần giữ)
-  if (e.repeat) { /* ignore */ }
-  else if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') toggleAiming();
+  // Shift = bật/tắt ngắm súng · V = đổi FPS / 3rd
+  if (!e.repeat) {
+    if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') toggleAiming();
+    if (e.code === 'KeyV') toggleFpsMode();
+  }
   if (e.code === 'KeyF' || e.code === 'Space') { if (S.gun) fireWeapon(); }
   if (e.code === 'KeyR') {
     const order = ['', 'ak', 'bazooka'];
@@ -2924,7 +2970,7 @@ function updatePlayer(dt) {
     }
   }
 
-  // Camera: bình thường / cầm súng 3rd · zoom = góc nhìn từ mắt (FPS)
+  // Camera: 3rd · FPS mode · hoặc ngắm súng = góc mắt
   const armed = !!S.gun;
   const phi = S.pitch;
   const cosP = Math.cos(phi);
@@ -2933,9 +2979,10 @@ function updatePlayer(dt) {
   const rightX = Math.cos(S.yaw), rightZ = -Math.sin(S.yaw);
   const fwdX = -backX, fwdZ = -backZ;
   const eyeH = 1.52;
+  const useEye = S.fpsMode || (S.aiming && armed);
 
-  if (S.aiming && armed) {
-    // First-person: camera đúng vị trí mắt, nhìn theo yaw/pitch
+  if (useEye) {
+    // First-person từ mắt
     const eyeX = px + fwdX * 0.12;
     const eyeY = playerRoot.position.y + eyeH;
     const eyeZ = pz + fwdZ * 0.12;
@@ -2947,8 +2994,8 @@ function updatePlayer(dt) {
       eyeZ + fwdZ * ahead * Math.cos(phi)
     );
     camera.lookAt(_v2);
-    player.visible = false; // không thấy đầu/thân mình
-    syncFpsGun(true);
+    player.visible = false;
+    syncFpsGun(armed); // chỉ hiện súng FPS khi đang cầm súng
   } else {
     syncFpsGun(false);
     player.visible = true;
@@ -2972,8 +3019,10 @@ function updatePlayer(dt) {
     camera.lookAt(_v2);
   }
 
-  // Zoom FOV khi ngắm từ mắt
-  const wantFov = S.aiming && armed ? (S.gun === 'bazooka' ? 28 : 22) : S.baseFov;
+  // FOV: FPS rộng hơn · ngắm súng thì zoom hẹp
+  let wantFov = S.baseFov;
+  if (S.aiming && armed) wantFov = S.gun === 'bazooka' ? 28 : 22;
+  else if (S.fpsMode) wantFov = 68;
   camera.fov += (wantFov - camera.fov) * Math.min(1, dt * 14);
   camera.updateProjectionMatrix();
 

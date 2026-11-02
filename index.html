@@ -86,7 +86,7 @@ input,textarea,.input{
     <p class="tagline">Một buổi chiều an lành tại Chùa An Lạc</p>
     <input class="input" id="name-input" maxlength="20" placeholder="Tên của bạn…" autocomplete="off"/>
     <button class="btn big" id="btn-enter">Vào chùa</button>
-    <p class="hint">Không thu thập dữ liệu · Không quảng cáo · Chỉ lưu trên máy bạn</p>
+    <p class="hint">Chơi cùng bạn bè realtime (Firebase) · Không quảng cáo · Sổ cá nhân lưu trên máy bạn</p>
   </div>
   <div class="screen hidden" id="screen-guide">
     <div class="logo" style="font-size:1.5rem;margin-bottom:16px">Hướng dẫn nhanh</div>
@@ -99,7 +99,13 @@ input,textarea,.input{
     <button class="btn secondary" id="btn-guide-skip">Bỏ qua</button>
   </div>
   <div id="hud">
-    <div class="bar"><div class="chip">Hôm nay có <strong id="visitor-count">0</strong> người lên chùa cầu an</div></div>
+    <div class="bar">
+      <div class="chip">
+        <span id="online-dot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#666;margin-right:6px;vertical-align:middle"></span>
+        Online <strong id="online-count">0</strong>
+        · Hôm nay có <strong id="visitor-count">0</strong> người lên chùa cầu an
+      </div>
+    </div>
     <div id="hud-btns">
       <button class="icon-btn" id="btn-mute" title="Tắt tiếng">🔊</button>
       <button class="icon-btn" id="btn-book" title="Sổ cầu an">📔</button>
@@ -123,11 +129,35 @@ input,textarea,.input{
 <div id="bubbles"></div>
 
 <script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js",
+    "firebase/database": "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"
+  }
+}
 </script>
 <script type="module">
-/* Lên Chùa Cầu An — một file: cảnh · nhân vật · khách AI · hoạt động · âm thanh · lưu · chia sẻ */
+/* Lên Chùa Cầu An — cảnh · nhân vật · khách AI · hoạt động · âm thanh · lưu · chia sẻ · multiplayer Firebase */
 import * as THREE from 'three';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import {
+  getDatabase, ref, set, update, onValue, onChildAdded, push, remove, onDisconnect, runTransaction, serverTimestamp, query, limitToLast
+} from 'firebase/database';
+
+/* ========== FIREBASE (điền config project free của bạn) ========== */
+const FIREBASE_CONFIG = {
+  apiKey: 'YOUR_API_KEY',
+  authDomain: 'YOUR_PROJECT.firebaseapp.com',
+  databaseURL: 'https://YOUR_PROJECT-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId: 'YOUR_PROJECT',
+  storageBucket: 'YOUR_PROJECT.appspot.com',
+  messagingSenderId: 'YOUR_SENDER_ID',
+  appId: 'YOUR_APP_ID',
+};
+const FIREBASE_READY = FIREBASE_CONFIG.apiKey && !String(FIREBASE_CONFIG.apiKey).startsWith('YOUR_');
 
 /* ========== KHỞI TẠO ========== */
 const canvas = document.getElementById('c');
@@ -159,6 +189,8 @@ const S = {
   smoke: null, fireflies: null, petals: null,
   dusk: 0, shake: 0, fortuneMode: false, busy: false,
   groupTimer: 40,
+  uid: null, online: false, nearPlayer: null, onlineCount: 0,
+  netVisit: null, seenWishes: Object.create(null),
 };
 
 const SPOTS = [
@@ -734,9 +766,15 @@ function toast(msg) {
 }
 function openModal(html) { $('modal-body').innerHTML = html; $('modal').classList.add('open'); }
 function closeModal() { $('modal').classList.remove('open'); $('modal-body').innerHTML = ''; }
-function updateVisitorUI() { $('visitor-count').textContent = S.visitBase + S.visitExtra + AI_N; }
+function updateVisitorUI() {
+  const local = S.visitBase + S.visitExtra + AI_N;
+  $('visitor-count').textContent = S.netVisit != null ? S.netVisit : local;
+  $('online-count').textContent = S.onlineCount;
+  const dot = $('online-dot');
+  if (dot) dot.style.background = S.online ? '#6dcf6d' : '#666';
+}
 
-$('btn-enter').onclick = () => {
+$('btn-enter').onclick = async () => {
   const n = ($('name-input').value || '').trim() || 'Bạn hiền';
   S.name = n.slice(0, 20); saveAll();
   audio(); startAmbient();
@@ -744,6 +782,11 @@ $('btn-enter').onclick = () => {
   const guided = localStorage.getItem('chua_guided');
   if (guided) startPlay();
   else { $('screen-guide').classList.remove('hidden'); }
+  // Kết nối Firebase song song (không chặn vào chùa)
+  connectMultiplayer().catch(err => {
+    console.warn(err);
+    toast('Chơi offline — chưa kết nối được bạn bè');
+  });
 };
 function finishGuide() {
   localStorage.setItem('chua_guided', '1');
@@ -761,7 +804,11 @@ function startPlay() {
 $('btn-mute').onclick = () => setMute(!S.muted);
 $('btn-book').onclick = () => openBook();
 $('btn-share').onclick = () => doShare();
-$('action-btn').onclick = () => { if (S.near && !S.busy) startActivity(S.near.id); };
+$('action-btn').onclick = () => {
+  if (S.busy) return;
+  if (S.nearPlayer) { greetPlayer(S.nearPlayer); return; }
+  if (S.near) startActivity(S.near.id);
+};
 $('mg-close').onclick = () => endMinigame(false);
 $('modal').addEventListener('click', e => { if (e.target === $('modal')) closeModal(); });
 
@@ -1018,17 +1065,21 @@ function submitWish(raw, way) {
   let text = filterBad((raw || '').trim()).slice(0, 120);
   if (!text) { toast('Hãy viết vài lời cầu an'); return; }
   closeModal();
-  S.prayers.push({ text, way, at: Date.now() }); saveAll();
+  const at = Date.now();
+  S.prayers.push({ text, way, at }); saveAll();
+  spawnWishVisual(way);
+  publishWish({ text, way, at, name: S.name });
+  toast(way === 'ribbon' ? 'Lời cầu đã treo lên cây bồ đề' : 'Đèn hoa đăng đã thả xuống hồ sen');
+  playWhoosh();
+  S.busy = false;
+}
+function spawnWishVisual(way) {
   if (way === 'ribbon') {
     const b = S.bodhi;
     addRibbon(b.x + (Math.random()-0.5)*2.5, 3.5 + Math.random()*1.5, b.z + (Math.random()-0.5)*2.5, false);
-    toast('Lời cầu đã treo lên cây bồ đề');
   } else {
     addFloat(false);
-    toast('Đèn hoa đăng đã thả xuống hồ sen');
   }
-  playWhoosh();
-  S.busy = false;
 }
 
 function actFortune() {
@@ -1155,6 +1206,200 @@ function shakeScreen(amt) {
   setTimeout(() => { canvas.style.transform = ''; }, 180);
 }
 
+/* ========== MULTIPLAYER (Firebase Realtime Database) ========== */
+let fbApp = null, fbAuth = null, fbDb = null;
+const remotePlayers = new Map(); // uid -> { mesh, name, label, tx,tz,tyaw, emoteUntil }
+let lastNetPush = 0;
+const nameLabels = document.createElement('div');
+nameLabels.id = 'name-labels';
+nameLabels.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:6';
+document.body.appendChild(nameLabels);
+
+function robeColorFor(uid) {
+  const colors = [0x3d5c8a, 0xc44536, 0x4a7c59, 0x8b6914, 0x6b4c7a, 0xd4a574, 0x2f6f8f, 0xb85c38];
+  let h = 0; for (let i = 0; i < uid.length; i++) h = (h * 31 + uid.charCodeAt(i)) >>> 0;
+  return colors[h % colors.length];
+}
+
+function makeRemoteAvatar(uid, name) {
+  const g = new THREE.Group();
+  const robe = new THREE.MeshStandardMaterial({ color: robeColorFor(uid), roughness: 0.75 });
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.45, 4, 8), robe); body.position.y = 0.85; g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), M.skin); head.position.y = 1.45; g.add(head);
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(0.29, 8, 6), M.dark); hair.position.y = 1.55; hair.scale.set(1, 0.7, 1); g.add(hair);
+  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.28, 3, 6), robe); armL.position.set(-0.38, 0.95, 0); g.add(armL);
+  const armR = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.28, 3, 6), robe); armR.position.set(0.38, 0.95, 0); g.add(armR);
+  g.userData = { armL, armR };
+  scene.add(g);
+  const label = document.createElement('div');
+  label.className = 'bubble3d on';
+  label.style.borderColor = 'rgba(109,207,109,.55)';
+  label.textContent = name || 'Bạn';
+  nameLabels.appendChild(label);
+  return { mesh: g, name: name || 'Bạn', label, tx: 0, tz: 8, tyaw: 0, emoteUntil: 0 };
+}
+
+async function connectMultiplayer() {
+  if (!FIREBASE_READY) {
+    console.info('Firebase chưa cấu hình — chơi offline');
+    return;
+  }
+  if (fbApp) return;
+  fbApp = initializeApp(FIREBASE_CONFIG);
+  fbAuth = getAuth(fbApp);
+  fbDb = getDatabase(fbApp);
+  await signInAnonymously(fbAuth);
+  await new Promise((resolve, reject) => {
+    const unsub = onAuthStateChanged(fbAuth, u => {
+      if (u) { unsub(); resolve(u); }
+    }, reject);
+  });
+  S.uid = fbAuth.currentUser.uid;
+  S.online = true;
+  updateVisitorUI();
+
+  const pref = ref(fbDb, `players/${S.uid}`);
+  await set(pref, {
+    name: S.name, x: playerRoot.position.x, z: playerRoot.position.z,
+    yaw: player.rotation.y, emote: null, t: Date.now(),
+  });
+  onDisconnect(pref).remove();
+
+  // Đếm lượt vào chùa chung
+  runTransaction(ref(fbDb, 'stats/visits'), v => (typeof v === 'number' ? v + 1 : (S.visitBase + AI_N + 1)));
+  onValue(ref(fbDb, 'stats/visits'), snap => {
+    const v = snap.val();
+    if (typeof v === 'number') { S.netVisit = v; updateVisitorUI(); }
+  });
+
+  // Nghe người chơi khác
+  onValue(ref(fbDb, 'players'), snap => {
+    const all = snap.val() || {};
+    const now = Date.now();
+    const alive = new Set();
+    let online = 0;
+    for (const [id, data] of Object.entries(all)) {
+      if (!data || typeof data.x !== 'number') continue;
+      if (data.t && now - data.t > 20000) continue; // stale
+      online++;
+      if (id === S.uid) continue;
+      alive.add(id);
+      let rp = remotePlayers.get(id);
+      if (!rp) {
+        rp = makeRemoteAvatar(id, data.name);
+        remotePlayers.set(id, rp);
+        toast(`${data.name || 'Ai đó'} vừa vào chùa`);
+      }
+      rp.name = data.name || rp.name;
+      rp.label.textContent = rp.name;
+      rp.tx = data.x; rp.tz = data.z; rp.tyaw = data.yaw || 0;
+      if (data.emote === 'chao' && data.emoteAt && now - data.emoteAt < 2500) {
+        rp.emoteUntil = Math.max(rp.emoteUntil, data.emoteAt + 2000);
+      }
+    }
+    for (const [id, rp] of remotePlayers) {
+      if (!alive.has(id)) {
+        scene.remove(rp.mesh); rp.label.remove(); remotePlayers.delete(id);
+        toast(`${rp.name} đã rời chùa`);
+      }
+    }
+    S.onlineCount = online;
+    updateVisitorUI();
+  });
+
+  // Hộp thư chào
+  onChildAdded(ref(fbDb, `inbox/${S.uid}`), async snap => {
+    const msg = snap.val();
+    remove(snap.ref);
+    if (!msg) return;
+    if (msg.type === 'chao') toast(`${msg.fromName || 'Ai đó'} đang chào bạn 🙏`);
+  });
+
+  // Lời cầu chung (20 lời gần nhất)
+  onChildAdded(query(ref(fbDb, 'wishes'), limitToLast(20)), snap => {
+    const w = snap.val(); if (!w || !w.text) return;
+    const key = snap.key;
+    if (S.seenWishes[key]) return;
+    S.seenWishes[key] = 1;
+    if (w.uid === S.uid) return;
+    spawnWishVisual(w.way === 'lantern' ? 'lantern' : 'ribbon');
+    const fresh = w.at && Date.now() - w.at < 20000;
+    if (fresh) toast(`${w.name || 'Ai đó'}: ${String(w.text).slice(0, 40)}`);
+  });
+
+  toast('Đã kết nối online — bạn bè vào cùng link sẽ thấy bạn');
+}
+
+function publishPresence(force = false) {
+  if (!fbDb || !S.uid || !S.playing) return;
+  const now = performance.now();
+  if (!force && now - lastNetPush < 100) return;
+  lastNetPush = now;
+  update(ref(fbDb, `players/${S.uid}`), {
+    name: S.name,
+    x: +playerRoot.position.x.toFixed(2),
+    z: +playerRoot.position.z.toFixed(2),
+    yaw: +player.rotation.y.toFixed(2),
+    t: Date.now(),
+  });
+}
+
+function publishWish(w) {
+  if (!fbDb || !S.uid) return;
+  const r = push(ref(fbDb, 'wishes'));
+  S.seenWishes[r.key] = 1;
+  set(r, { ...w, uid: S.uid, t: serverTimestamp() });
+}
+
+async function greetPlayer(target) {
+  if (!fbDb || !S.uid || !target) return;
+  playWhoosh();
+  toast(`Bạn chào ${target.name}`);
+  // Emote chắp tay trên người mình (local)
+  const ud = player.userData;
+  ud.armL.rotation.x = -1.1; ud.armL.rotation.z = 0.5;
+  ud.armR.rotation.x = -1.1; ud.armR.rotation.z = -0.5;
+  setTimeout(() => {
+    if (!S.busy) { ud.armL.rotation.set(0,0,0); ud.armR.rotation.set(0,0,0); }
+  }, 1200);
+  update(ref(fbDb, `players/${S.uid}`), { emote: 'chao', emoteAt: Date.now(), t: Date.now() });
+  push(ref(fbDb, `inbox/${target.id}`), { type: 'chao', fromName: S.name, from: S.uid, t: Date.now() });
+}
+
+function updateRemotes(dt) {
+  const now = Date.now();
+  for (const [, rp] of remotePlayers) {
+    rp.mesh.position.x += (rp.tx - rp.mesh.position.x) * Math.min(1, dt * 8);
+    rp.mesh.position.z += (rp.tz - rp.mesh.position.z) * Math.min(1, dt * 8);
+    // xoay mượt
+    let dy = rp.tyaw - rp.mesh.rotation.y;
+    while (dy > Math.PI) dy -= Math.PI * 2;
+    while (dy < -Math.PI) dy += Math.PI * 2;
+    rp.mesh.rotation.y += dy * Math.min(1, dt * 8);
+
+    if (rp.emoteUntil > now) {
+      rp.mesh.userData.armL.rotation.x = -1.1;
+      rp.mesh.userData.armL.rotation.z = 0.5;
+      rp.mesh.userData.armR.rotation.x = -1.1;
+      rp.mesh.userData.armR.rotation.z = -0.5;
+    } else {
+      rp.mesh.userData.armL.rotation.x *= 0.85;
+      rp.mesh.userData.armR.rotation.x *= 0.85;
+      rp.mesh.userData.armL.rotation.z *= 0.85;
+      rp.mesh.userData.armR.rotation.z *= 0.85;
+    }
+
+    // nhãn tên
+    _v.set(rp.mesh.position.x, 1.9, rp.mesh.position.z);
+    _v.project(camera);
+    if (_v.z < 1) {
+      rp.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
+      rp.label.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
+      rp.label.classList.add('on');
+    } else rp.label.classList.remove('on');
+  }
+}
+
 /* ========== VÒNG LẶP ========== */
 function updatePlayer(dt) {
   if (!S.playing || S.busy) return;
@@ -1196,16 +1441,30 @@ function updatePlayer(dt) {
   _v2.set(playerRoot.position.x, playerRoot.position.y + 1.3, playerRoot.position.z);
   camera.lookAt(_v2);
 
-  // Spot gần
+  // Spot gần + người chơi thật gần
   let near = null, best = 99;
   for (const s of SPOTS) {
     const d = playerRoot.position.distanceTo(s.pos);
     if (d < s.r && d < best) { best = d; near = s; }
   }
   S.near = near;
+
+  let nearP = null, pBest = 99;
+  for (const [id, rp] of remotePlayers) {
+    if (!rp.mesh.visible) continue;
+    const d = playerRoot.position.distanceTo(rp.mesh.position);
+    if (d < 2.4 && d < pBest) { pBest = d; nearP = { id, name: rp.name, dist: d }; }
+  }
+  S.nearPlayer = nearP;
+
   const btn = $('action-btn');
-  if (near && !S.busy) { btn.textContent = near.label; btn.classList.add('show'); }
-  else btn.classList.remove('show');
+  if (!S.busy && nearP) {
+    btn.textContent = `Chào ${nearP.name}`;
+    btn.classList.add('show');
+  } else if (!S.busy && near) {
+    btn.textContent = near.label;
+    btn.classList.add('show');
+  } else btn.classList.remove('show');
 }
 
 function updateWorld(dt, t) {
@@ -1255,6 +1514,8 @@ function updateWorld(dt, t) {
   updateAI(dt);
   updateMinigame(dt);
   updateFortune(dt);
+  updateRemotes(dt);
+  if (S.playing && S.online) publishPresence();
 
   // Đoàn khách (chỉ khi đang chơi)
   if (S.playing) {

@@ -1,0 +1,33 @@
+{
+  "rules": {
+    "players": {
+      ".read": true,
+      "$uid": {
+        ".write": "auth != null && auth.uid == $uid",
+        ".validate": "newData.hasChildren(['name','x','z','t']) && newData.child('name').isString() && newData.child('name').val().length <= 24"
+      }
+    },
+    "inbox": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null",
+        "$msg": {
+          ".validate": "newData.hasChildren(['type','fromName','t']) && newData.child('fromName').val().length <= 24"
+        }
+      }
+    },
+    "wishes": {
+      ".read": true,
+      ".write": "auth != null",
+      "$id": {
+        ".validate": "newData.hasChildren(['text','way','name','uid']) && newData.child('text').isString() && newData.child('text').val().length <= 120"
+      }
+    },
+    "stats": {
+      ".read": true,
+      "visits": {
+        ".write": "auth != null"
+      }
+    }
+  }
+}

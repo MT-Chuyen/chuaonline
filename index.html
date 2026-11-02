@@ -586,30 +586,13 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
   border:1px solid #3f3f3f;background:#272727;color:#fff;
   border-radius:18px;padding:7px 12px;font-size:.72rem;font-family:inherit;cursor:pointer;
 }
-/* Dock nhạc nhỏ — trình duyệt chỉ cho phát tiếng khi iframe nhìn thấy được */
+/* Nguồn nhạc ẩn — tiếng phát từ loa 3D cạnh màn (không UI player) */
 #yt-dock{
-  display:none;position:fixed;left:50%;bottom:max(12px, calc(10px + var(--sb)));
-  transform:translateX(-50%);z-index:150;width:min(300px,92vw);
-  background:#121212;border:1px solid #3a3a3a;border-radius:14px;overflow:hidden;
-  box-shadow:0 10px 32px rgba(0,0,0,.55);font-family:"Be Vietnam Pro",sans-serif;
-  pointer-events:auto;
+  position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;
+  overflow:hidden;z-index:1;pointer-events:none;border:0;
 }
-#yt-dock.on{display:block}
-#yt-dock-bar{
-  display:flex;align-items:center;gap:8px;padding:8px 10px;background:#1a1a1a;
-  border-bottom:1px solid #2a2a2a;
-}
-#yt-dock-title{
-  flex:1;min-width:0;font-size:.75rem;color:#f1f1f1;white-space:nowrap;
-  overflow:hidden;text-overflow:ellipsis;
-}
-#yt-dock-bar button{
-  flex-shrink:0;border:1px solid #444;background:#2a2a2a;color:#fff;
-  border-radius:16px;padding:6px 10px;font-size:.72rem;font-family:inherit;cursor:pointer;
-}
-#yt-dock-bar button#yt-dock-play{background:#cc0000;border-color:#e33}
-#yt-dock-frame{position:relative;width:100%;aspect-ratio:16/9;background:#000}
-#yt-dock-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+#yt-dock-frame,#yt-dock-bar{display:none}
+#yt-dock iframe{width:2px;height:2px;border:0;opacity:0.01}
 </style>
 </head>
 <body>
@@ -773,19 +756,14 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
     </div>
   </div>
 </div>
-<!-- Dock nhạc nhỏ (cần nhìn thấy để trình duyệt cho phát tiếng). Poster vẫn trên bảng 3D. -->
+<!-- Nguồn YouTube ẩn — âm thanh gắn loa 3D cạnh màn phố -->
 <div id="yt-dock" aria-hidden="true">
-  <div id="yt-dock-bar">
-    <span id="yt-dock-title">Nhạc phố</span>
-    <button type="button" id="yt-dock-play" title="Bật tiếng">▶ Nghe</button>
-    <button type="button" id="yt-dock-close" title="Tắt">Tắt</button>
-  </div>
-  <div id="yt-dock-frame">
-    <iframe id="yt-audio" title="Nhạc phố"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-      referrerpolicy="strict-origin-when-cross-origin"
-      allowfullscreen></iframe>
-  </div>
+  <div id="yt-dock-bar" hidden></div>
+  <div id="yt-dock-frame" hidden></div>
+  <iframe id="yt-audio" title="Loa phố"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen></iframe>
 </div>
 <div id="bubbles"></div>
 
@@ -1218,6 +1196,18 @@ function loadSave() {
         at: w.at | 0,
       })).filter(w => w.text);
     }
+    if (typeof d.bongDaChams === 'number') S.bongDaChams = Math.max(0, d.bongDaChams | 0);
+    if (typeof d.bongDaBans === 'number') S.bongDaBans = Math.max(0, d.bongDaBans | 0);
+    if (typeof d.bongDaVolleys === 'number') S.bongDaVolleys = Math.max(0, d.bongDaVolleys | 0);
+    if (typeof d.cauThuPho === 'boolean') S.cauThuPho = d.cauThuPho;
+    if (typeof d.sieuSaoHe === 'boolean') S.sieuSaoHe = d.sieuSaoHe;
+    if (Array.isArray(d.bongDaLog)) {
+      S.bongDaLog = d.bongDaLog.slice(-12).map(w => ({
+        text: String(w.text || '').slice(0, 80),
+        kind: String(w.kind || '').slice(0, 12),
+        at: w.at | 0,
+      })).filter(w => w.text);
+    }
     if (typeof d.phongLonKills === 'number') S.phongLonKills = Math.max(0, d.phongLonKills | 0);
     if (typeof d.truGian === 'boolean') S.truGian = d.truGian;
     if (typeof d.vuaTruGian === 'boolean') S.vuaTruGian = d.vuaTruGian;
@@ -1380,6 +1370,12 @@ function saveAll() {
       banPho: !!S.banPho,
       anhEmPho: !!S.anhEmPho,
       boyPhoLog: (S.boyPhoLog || []).slice(-12),
+      bongDaChams: S.bongDaChams | 0,
+      bongDaBans: S.bongDaBans | 0,
+      bongDaVolleys: S.bongDaVolleys | 0,
+      cauThuPho: !!S.cauThuPho,
+      sieuSaoHe: !!S.sieuSaoHe,
+      bongDaLog: (S.bongDaLog || []).slice(-12),
       phongLonKills: S.phongLonKills | 0,
       truGian: !!S.truGian,
       vuaTruGian: !!S.vuaTruGian,
@@ -1451,6 +1447,8 @@ function templeFlairSuffix() {
   if (S.khachGioVang) parts.push('Khách Giờ Vàng');
   if (S.anhEmPho) parts.push('Anh Em Phố');
   else if (S.banPho) parts.push('Bạn Phố');
+  if (S.sieuSaoHe) parts.push('Siêu Sao Hè');
+  else if (S.cauThuPho) parts.push('Cầu Thủ Phố');
   if (S.vuaTruGian) parts.push('Vua Trừ Gian');
   else if (S.truGian) parts.push('Trừ Gian');
   if (S.khachSenBay) parts.push('Khách Sen Bay');
@@ -1751,6 +1749,9 @@ function toastDailyGoalsHint() {
   }
   if ((S.boyPhoChaos | 0) < 1) {
     setTimeout(() => toast('🛹 Khi ra phố · đầu hè có Boy Phố · đội hè đang chờ'), 11200);
+  }
+  if ((S.bongDaChams | 0) < 1) {
+    setTimeout(() => toast('⚽ Khi ra phố · cuối hè có Khung Thành Bay'), 12400);
   }
 }
 function dailyGoalsBookHtml() {
@@ -3474,6 +3475,7 @@ function buildStreetDistrict() {
   buildHotHoStand();
   buildMuaTraStand();
   buildBoyPhoStand();
+  buildBongDaStand();
   buildGioVangStand();
   buildGossipCircle();
   buildGossipCircleNgoaiTinh();
@@ -11539,7 +11541,7 @@ function buildYardMusicScreen() {
     })
   );
   glow.rotation.x = -Math.PI / 2; glow.position.set(0, 0.04, 1.1); base.add(glow);
-  const tip2 = textPlane('Nghe nhạc · YouTube', 320, 48, '#fff8e0', '#b01020', 18);
+  const tip2 = textPlane('Nhạc phát từ loa', 320, 48, '#fff8e0', '#b01020', 18);
   tip2.position.set(0, 0.72, 0.4); tip2.scale.set(2.6, 0.4, 1); base.add(tip2);
   g.add(base);
 
@@ -11589,6 +11591,45 @@ function buildYardMusicScreen() {
   const upLight = new THREE.PointLight(0xffcc88, 0.35, 14, 2);
   upLight.position.set(0, 7.2, 1.2); fly.add(upLight);
   g.add(fly);
+
+  // Loa đứng hai bên màn — tiếng nhạc phát từ đây
+  const speakers = [];
+  const wooferMat = new THREE.MeshStandardMaterial({
+    color: 0x0d0d0d, metalness: 0.55, roughness: 0.38,
+    emissive: 0x1a4030, emissiveIntensity: 0.15,
+  });
+  const coneMat = new THREE.MeshStandardMaterial({
+    color: 0x222222, metalness: 0.35, roughness: 0.55,
+    emissive: 0x244030, emissiveIntensity: 0.1,
+  });
+  for (const side of [-1, 1]) {
+    const sp = new THREE.Group();
+    const x = side * 5.55;
+    box(0.7, 0.28, 0.7, M.stone, x, 0.16, 0.55, sp);
+    box(1.2, 2.55, 0.95, M.dark, x, 1.55, 0.48, sp);
+    box(1.28, 0.1, 1.02, M.gold, x, 2.88, 0.48, sp);
+    box(1.28, 0.08, 1.02, M.woodD, x, 0.28, 0.48, sp);
+    const woofer = new THREE.Mesh(new THREE.CircleGeometry(0.46, 28), wooferMat.clone());
+    woofer.position.set(x, 1.95, 0.98); sp.add(woofer);
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.46, 0.52, 28),
+      new THREE.MeshBasicMaterial({ color: 0x8a6a30, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
+    );
+    ring.position.set(x, 1.95, 0.99); sp.add(ring);
+    const mid = new THREE.Mesh(new THREE.CircleGeometry(0.22, 22), coneMat.clone());
+    mid.position.set(x, 1.05, 0.98); sp.add(mid);
+    const led = new THREE.Mesh(
+      new THREE.SphereGeometry(0.06, 8, 6),
+      new THREE.MeshBasicMaterial({ color: 0x44cc88 })
+    );
+    led.position.set(x, 2.65, 0.95); led.visible = false; sp.add(led);
+    const spLight = new THREE.PointLight(0x66cc99, 0, 7, 2);
+    spLight.position.set(x, 1.8, 1.4); sp.add(spLight);
+    const label = textPlane(side < 0 ? 'LOA L' : 'LOA R', 160, 40, '#e8fff2', '#1a3020', 16);
+    label.position.set(x, 0.55, 1.05); label.scale.set(0.9, 0.28, 1); sp.add(label);
+    g.add(sp);
+    speakers.push({ group: sp, woofer, mid, led, light: spLight, label, side, x });
+  }
 
   scene.add(g);
   addCol(MUSIC_SPOT.x, MUSIC_SPOT.z, 9.2, 2.0, g);
@@ -11647,8 +11688,9 @@ function buildYardMusicScreen() {
   S.musicScreenAnchor = anchor;
   S.musicFaceNormal = face;
   S.musicLift = 0;
+  S.musicSpeakers = speakers;
   g.userData = {
-    panel, rim, glow, tip, tip2, nowTip, light, upLight, fly, base,
+    panel, rim, glow, tip, tip2, nowTip, light, upLight, fly, base, speakers,
     ph: Math.random() * 6.28, baseEmissive: 0.4,
   };
   sky.userData = { panel: skyPanel, rim: skyRim, tip: skyTip, light: skyLight };
@@ -11657,7 +11699,16 @@ function buildYardMusicScreen() {
 function pickNearMusic() {
   if (!playerRoot || S.musicMode) return null;
   const d = Math.hypot(playerRoot.position.x - MUSIC_SPOT.x, playerRoot.position.z - MUSIC_SPOT.z);
-  if (d < MUSIC_SPOT.r) {
+  const reach = S.musicPlaying ? MUSIC_SPOT.r + 1.6 : MUSIC_SPOT.r;
+  if (d < reach) {
+    if (S.musicPlaying && S.musicMuted) {
+      return {
+        id: 'music',
+        pos: MUSIC_SPOT,
+        label: '🔊 Bật loa phố',
+        act: 'speaker',
+      };
+    }
     return {
       id: 'music',
       pos: MUSIC_SPOT,
@@ -11681,8 +11732,10 @@ function goToMusicScreen() {
   player.rotation.y = Math.atan2(dx, dz);
   S.yaw = player.rotation.y;
   toast(S.musicPlaying
-    ? '🎵 Màn đang bay — nhìn lên mây cũng có chiếu'
-    : '🎵 Màn hình lớn Phố An Lạc');
+    ? (S.musicMuted
+      ? '🔊 Đứng giữa hai loa · bấm Bật loa phố'
+      : '🎵 Nhạc đang phát từ loa cạnh màn')
+    : '🎵 Màn hình lớn Phố An Lạc · hai loa bên cạnh');
 }
 
 function updateMusicBtn() {
@@ -12190,26 +12243,62 @@ function hideStreetVideoOverlay() {
   }
 }
 
-function showMusicDock(title) {
+function showMusicDock(_title) {
   const dock = $('yt-dock');
-  const t = $('yt-dock-title');
-  if (t) t.textContent = String(title || 'Nhạc phố').slice(0, 48);
-  if (dock) {
-    dock.classList.add('on');
-    dock.setAttribute('aria-hidden', 'false');
-  }
+  if (dock) dock.setAttribute('aria-hidden', 'false');
 }
 
 function hideMusicDock() {
   const dock = $('yt-dock');
   const audio = $('yt-audio');
-  if (dock) {
-    dock.classList.remove('on');
-    dock.setAttribute('aria-hidden', 'true');
-  }
+  if (dock) dock.setAttribute('aria-hidden', 'true');
   if (audio) {
     try { audio.src = 'about:blank'; } catch (_) {}
   }
+  S._musicYtVol = -1;
+  setStreetSpeakersLive(false);
+}
+
+function streetSpeakerWorldPos() {
+  // Trung điểm hai loa cạnh màn
+  return {
+    x: MUSIC_SPOT.x,
+    z: MUSIC_SPOT.z + 0.55,
+  };
+}
+
+function setStreetSpeakersLive(on) {
+  const list = S.musicSpeakers || S.musicRoot?.userData?.speakers || [];
+  for (const sp of list) {
+    if (sp.led) sp.led.visible = !!on;
+    if (sp.light) sp.light.intensity = on ? 0.55 : 0;
+    if (sp.woofer?.material) sp.woofer.material.emissiveIntensity = on ? 0.45 : 0.12;
+    if (sp.mid?.material) sp.mid.material.emissiveIntensity = on ? 0.35 : 0.08;
+  }
+}
+
+/** Âm lượng theo khoảng cách tới loa — gần loa to, xa thì nhỏ */
+function updateStreetMusicSpatialVolume() {
+  if (!S.musicPlaying || !S.musicVideoId || S.musicMuted || S.muted) return;
+  if (!playerRoot) return;
+  const sp = streetSpeakerWorldPos();
+  const d = Math.hypot(playerRoot.position.x - sp.x, playerRoot.position.z - sp.z);
+  // Full ~ trong 7m, tắt dần tới ~42m
+  let vol = 100;
+  if (d > 7) vol = Math.round(100 * Math.max(0, 1 - (d - 7) / 35));
+  if (vol === S._musicYtVol) return;
+  S._musicYtVol = vol;
+  const audio = $('yt-audio');
+  if (!audio?.contentWindow) return;
+  try { audio.contentWindow.postMessage('pho-volume:' + vol, '*'); } catch (_) {}
+}
+
+function kickStreetAudio() {
+  const audio = $('yt-audio');
+  if (!audio?.contentWindow) return;
+  try { audio.contentWindow.postMessage('pho-play', '*'); } catch (_) {}
+  try { audio.contentWindow.postMessage('pho-unmute', '*'); } catch (_) {}
+  updateStreetMusicSpatialVolume();
 }
 
 function mountStreetVideo(videoId, title, muted, startSec = 0) {
@@ -12217,32 +12306,17 @@ function mountStreetVideo(videoId, title, muted, startSec = 0) {
   const audio = $('yt-audio');
   if (!id || !audio) return;
 
-  // Không phủ hộp đen lên 3D — poster trên bảng + dock nhạc nhỏ để có tiếng
+  // Poster trên bảng + tiếng từ loa 3D — không mở player nổi
   hideStreetVideoOverlay();
   showMusicDock(title || 'Nhạc phố');
+  setStreetSpeakersLive(true);
+  S._musicYtVol = -1;
 
-  const wantSound = !muted;
-  // Trình duyệt chặn tiếng nếu iframe ẩn — dock phải hiện; mute trước rồi bật tiếng
-  S.musicMuted = true;
-  audio.src = streetEmbedUrl(id, true, startSec);
+  S.musicMuted = !!muted;
+  audio.src = streetEmbedUrl(id, !!muted, startSec);
 
-  const kick = () => {
-    if (S.musicVideoId !== id) return;
-    try { audio.contentWindow?.postMessage('pho-play', '*'); } catch (_) {}
-    try { audio.contentWindow?.postMessage('pho-unmute', '*'); } catch (_) {}
-  };
-  setTimeout(kick, 400);
-  setTimeout(kick, 1400);
-
-  if (wantSound) {
-    setTimeout(() => {
-      if (S.musicVideoId !== id) return;
-      S.musicMuted = false;
-      audio.src = streetEmbedUrl(id, false, streetMusicElapsedSec(S.musicStartedAt));
-      setTimeout(kick, 500);
-      toast('🔊 Nếu chưa nghe: bấm ▶ Nghe trên khung nhạc nhỏ');
-    }, 600);
-  }
+  setTimeout(() => { if (S.musicVideoId === id) kickStreetAudio(); }, 500);
+  setTimeout(() => { if (S.musicVideoId === id) kickStreetAudio(); }, 1600);
 }
 
 function publishStreetMusic(id, title) {
@@ -12371,8 +12445,9 @@ function playMusicOnYard(videoId, title, opts = {}) {
   if (remote) S.musicHost = false;
   else if (!opts.skipNet) S.musicHost = true;
   S.musicByName = opts.byName || (remote ? '' : (S.name || ''));
-  // wantSound: phát có tiếng cho cả phòng (đã có cử chỉ vào game / vào phố)
-  S.musicMuted = opts.wantSound ? false : !!remote;
+  // Chọn bài (cử chỉ) → loa có tiếng; nhạc sync từ người khác → tắt tiếng đến khi bật loa
+  const startMuted = !!remote || opts.forceMute === true;
+  S.musicMuted = startMuted;
   S.musicStartedAt = opts.startedAt || (!opts.skipNet ? Date.now() : (S.musicStartedAt || Date.now()));
   S.musicBeatT = 0;
   S._musicNoteSpawn = 0;
@@ -12387,14 +12462,21 @@ function playMusicOnYard(videoId, title, opts = {}) {
     saveAll();
   }
 
-  // Poster trên mesh bảng + iframe YouTube (autoplay + seek cùng nhịp)
+  // Poster trên mesh bảng + tiếng phát qua loa cạnh màn
   paintMusicBoardPoster(id, niceTitle, S.musicByName);
   setMusicNowTip(`▶ ${niceTitle}`);
   const startSec = streetMusicElapsedSec(S.musicStartedAt);
-  mountStreetVideo(id, niceTitle, S.musicMuted, startSec);
+  mountStreetVideo(id, niceTitle, startMuted, startSec);
   const now = $('yt-yard-now');
   if (now) {
     now.textContent = S.musicByName ? `${niceTitle} · ${S.musicByName}` : niceTitle;
+  }
+  if (startMuted && (isOnAnLacStreet() || opts.wantSound)) {
+    setTimeout(() => {
+      if (S.musicPlaying && S.musicMuted) {
+        toast('🔊 Đứng gần loa cạnh màn · bấm Bật loa phố');
+      }
+    }, 1400);
   }
 
   if (S.musicSkyRoot) {
@@ -12429,17 +12511,26 @@ function playMusicOnYard(videoId, title, opts = {}) {
 function unmuteStreetMusic() {
   if (!S.musicPlaying || !S.musicVideoId) return;
   S.musicMuted = false;
+  S._musicYtVol = -1;
+  setStreetSpeakersLive(true);
   showMusicDock(S.musicTitle || 'Nhạc phố');
   const audio = $('yt-audio');
   const sec = streetMusicElapsedSec(S.musicStartedAt);
   if (audio) {
     audio.src = streetEmbedUrl(S.musicVideoId, false, sec);
-    setTimeout(() => {
-      try { audio.contentWindow?.postMessage('pho-play', '*'); } catch (_) {}
-      try { audio.contentWindow?.postMessage('pho-unmute', '*'); } catch (_) {}
-    }, 400);
+    setTimeout(kickStreetAudio, 400);
+    setTimeout(kickStreetAudio, 1200);
   }
-  toast('🔊 Đang bật tiếng — nếu vẫn tắt, bấm ▶ trên khung YouTube');
+  toast('🔊 Loa phố đang phát');
+}
+
+function actMusicSpeakerOn() {
+  if (!S.musicPlaying || S.busy) return;
+  S.busy = true;
+  unmuteStreetMusic();
+  spawnMusicBeatPulse(true);
+  try { playWhoosh(); } catch (_) {}
+  setTimeout(() => { if (!S.musicMode) S.busy = false; }, 500);
 }
 
 /** ④ Kéo ngay một nhóm AI tới trước màn để nhún */
@@ -12668,6 +12759,26 @@ function updateMusicScreenFx(dt, t) {
     ud.upLight.intensity = S.musicPlaying ? 0.65 + 0.2 * Math.sin(t * 5) : 0.28;
   }
 
+  // Loa hai bên — rung nhẹ + LED theo nhịp
+  const speakers = S.musicSpeakers || ud.speakers || [];
+  if (speakers.length) {
+    const live = !!(S.musicPlaying && !S.musicMuted);
+    const beat = live ? 1 + 0.06 * Math.sin(t * 10) : 1;
+    for (const sp of speakers) {
+      if (sp.woofer) sp.woofer.scale.setScalar(live ? beat : 1);
+      if (sp.mid) sp.mid.scale.setScalar(live ? (1 + 0.04 * Math.sin(t * 14 + 1)) : 1);
+      if (sp.led) sp.led.visible = live;
+      if (sp.light) {
+        sp.light.intensity = live ? 0.45 + 0.35 * Math.max(0, Math.sin(t * 8)) : 0;
+      }
+      if (sp.woofer?.material) {
+        sp.woofer.material.emissiveIntensity = live ? 0.35 + 0.35 * Math.sin(t * 9) : 0.1;
+      }
+      if (sp.label && camera) sp.label.quaternion.copy(camera.quaternion);
+    }
+    if (S.musicPlaying) updateStreetMusicSpatialVolume();
+  }
+
   // ② Chiếu lên mây
   const sky = S.musicSkyRoot;
   if (sky) {
@@ -12755,8 +12866,10 @@ function updateMusicScreenFx(dt, t) {
     if (now - (S._musicTipAt || 0) > 16000) {
       S._musicTipAt = now;
       toast(S.musicPlaying
-        ? '🎶 Bấm Hòa nhịp · chạy bắt nốt ♪ · nhìn lên mây'
-        : '🎵 Màn Phố An Lạc — mở nhạc để màn bay + chiếu mây');
+        ? (S.musicMuted
+          ? '🔊 Đứng gần loa · bấm Bật loa phố'
+          : '🎶 Hòa nhịp · bắt nốt ♪ · nhạc phát từ loa')
+        : '🎵 Chọn bài — nhạc phát từ loa cạnh màn');
     }
   }
   updateYardYtOverlay();
@@ -12784,17 +12897,6 @@ function bindMusicUi() {
       e.preventDefault();
       searchYoutubeMusic($('music-q')?.value || '');
     }
-  });
-  $('yt-dock-play') && ($('yt-dock-play').onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    unmuteStreetMusic();
-    try { actMusicHoaNhip(); } catch (_) {}
-  });
-  $('yt-dock-close') && ($('yt-dock-close').onclick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    stopMusicOnYard();
   });
   $('yt-yard-close') && ($('yt-yard-close').onclick = e => {
     e.stopPropagation();
@@ -14418,6 +14520,10 @@ $('action-btn').onclick = () => {
     return;
   }
   if (S.nearMusic) {
+    if (S.nearMusic.act === 'speaker' && S.musicPlaying) {
+      actMusicSpeakerOn();
+      return;
+    }
     if (S.nearMusic.act === 'beat' && S.musicPlaying) {
       actMusicHoaNhip();
       return;

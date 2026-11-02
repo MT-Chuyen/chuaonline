@@ -79,10 +79,30 @@
     setTimeout(forcePlay, 1200);
   });
 
-  // Parent có thể gọi play
+  function setVol(n) {
+    const v = Math.max(0, Math.min(100, n | 0));
+    try {
+      frame.contentWindow.postMessage(JSON.stringify({
+        event: 'command', func: 'setVolume', args: [v]
+      }), '*');
+    } catch (_) {}
+  }
+
+  // Parent: play / unmute / volume từ khoảng cách tới loa 3D
   window.addEventListener('message', function (ev) {
-    if (!ev || !ev.data) return;
-    if (ev.data === 'pho-play' || ev.data === 'pho-unmute') forcePlay();
+    if (!ev || ev.data == null) return;
+    const d = ev.data;
+    if (d === 'pho-play' || d === 'pho-unmute') {
+      forcePlay();
+      return;
+    }
+    if (typeof d === 'string' && d.indexOf('pho-volume:') === 0) {
+      setVol(parseInt(d.slice(11), 10) || 0);
+      return;
+    }
+    if (d && typeof d === 'object' && d.type === 'pho-volume') {
+      setVol(d.value);
+    }
   });
 })();
 </script>

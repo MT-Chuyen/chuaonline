@@ -1046,21 +1046,29 @@ const S = {
   vienShowDem: 0, vienShowTap: 0, vienAlbumStamps: {},
   khanGiaDotBien: false, daoDienSanVien: false,
   vienQuayGene: 0, vienVeGene: {}, tayQuayGene: false, chuQuayCarnival: false, vienSieuQuay: false,
+  vienCafePhucVu: 0, vienLyGene: {}, nguoiPhaGene: false, chuCafeBay: false, vienTiecBay: false,
   nearInstituteAnimal: null, nearInstituteShow: false, nearInstituteAlbum: false, nearInstituteWheel: false,
+  nearInstituteCafe: false,
   instituteAnimals: null, instituteRareAnimals: null, instituteAct: null, instituteShowAct: null,
-  instituteWheelAct: null,
+  instituteWheelAct: null, instituteCafeAct: null,
   instituteRoot: null, instituteRimAurora: null, instituteGateTip: null,
   instituteShowPad: null, instituteShowLabel: null, instituteAlbumWall: null,
   instituteAlbumSlots: null, instituteAlbumTip: null, instituteAlbumRim: null,
   instituteWheelDisk: null, instituteWheelStand: null, instituteWheelTip: null,
   instituteBoothTip: null, instituteBoothRim: null, instituteVeSlots: null,
   instituteWheelLight: null, instituteCarnivalRing: null,
+  instituteCafeRoot: null, instituteCafeDeck: null, instituteCafeTip: null,
+  instituteCafeMenuBoard: null, instituteCafeMenuTip: null, instituteCafeRim: null,
+  instituteCafeTeapot: null, instituteCafeSteam: null, instituteCafeLySlots: null,
+  instituteCafeStools: null, instituteCafeZoneRing: null,
   _instituteEntered: false, _instituteTipAt: 0, _instituteWarpTips: false,
   _instituteCourtyardTip: false, _instituteSoTip: false, _vienDuyenReady: false,
   _vienRareSpawned: false, _vienShowWarpTip: false, _vienAlbumFullTip: false,
   _vienDaoDienPulse: false, _vienShowPulseBoost: false,
   _vienWheelWarpTip: false, _vienVeGlowTip: false, _vienWheelDense: false,
   _vienSieuQuaySession: false, _vienSieuYardWashUntil: 0,
+  _vienCafeWarpTip: false, _vienCafeMenuTip: false, _vienCafeSteamBoost: false,
+  _vienTiecBaySession: false, _vienCafeTipOffer: false, _vienCafeTipAt: 0,
 };
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
@@ -1478,6 +1486,16 @@ function loadSave() {
     if (typeof d.tayQuayGene === 'boolean') S.tayQuayGene = d.tayQuayGene;
     if (typeof d.chuQuayCarnival === 'boolean') S.chuQuayCarnival = d.chuQuayCarnival;
     if (typeof d.vienSieuQuay === 'boolean') S.vienSieuQuay = d.vienSieuQuay;
+    if (typeof d.vienCafePhucVu === 'number') S.vienCafePhucVu = Math.max(0, d.vienCafePhucVu | 0);
+    if (d.vienLyGene && typeof d.vienLyGene === 'object') {
+      S.vienLyGene = {};
+      Object.keys(d.vienLyGene).forEach((k) => {
+        if (d.vienLyGene[k]) S.vienLyGene[String(k).slice(0, 28)] = true;
+      });
+    }
+    if (typeof d.nguoiPhaGene === 'boolean') S.nguoiPhaGene = d.nguoiPhaGene;
+    if (typeof d.chuCafeBay === 'boolean') S.chuCafeBay = d.chuCafeBay;
+    if (typeof d.vienTiecBay === 'boolean') S.vienTiecBay = d.vienTiecBay;
   } catch (_) {}
 }
 function saveAll() {
@@ -1633,6 +1651,11 @@ function saveAll() {
       tayQuayGene: !!S.tayQuayGene,
       chuQuayCarnival: !!S.chuQuayCarnival,
       vienSieuQuay: !!S.vienSieuQuay,
+      vienCafePhucVu: S.vienCafePhucVu | 0,
+      vienLyGene: S.vienLyGene || {},
+      nguoiPhaGene: !!S.nguoiPhaGene,
+      chuCafeBay: !!S.chuCafeBay,
+      vienTiecBay: !!S.vienTiecBay,
     }));
   } catch (_) {}
 }
@@ -1690,6 +1713,8 @@ function templeFlairSuffix() {
   else if (S.khanGiaDotBien) parts.push('Khán Giả Đột Biến');
   if (S.chuQuayCarnival) parts.push('Chủ Quầy Carnival Viện');
   else if (S.tayQuayGene) parts.push('Tay Quay Gene');
+  if (S.chuCafeBay) parts.push('Chủ Cafe Bay Viện');
+  else if (S.nguoiPhaGene) parts.push('Người Pha Gene');
   if (S.streakFlair === 'nhatTu') parts.push('Nhật Tu');
   else if (S.streakFlair === 'chuyenCan') parts.push('Chuyên Cần');
   return parts.length ? ` · ${parts.join(' · ')}` : '';
@@ -3115,8 +3140,8 @@ function hangWallPoster() {
   caption.scale.set(2.1, 0.38, 1);
   root.add(caption);
 
-  // Cạnh gác chuông (−9.5, −2) · phía cổng (+Z), mặt hướng vào sân
-  root.position.set(-10.35, 0, 0.55);
+  // Cạnh gác chuông (−9.5, −2) · phía sân (+X), không chắn lối sang Viện (−X)
+  root.position.set(-7.55, 0, -2.0);
   scene.add(root);
 
   const loader = new THREE.TextureLoader();
@@ -4024,278 +4049,6 @@ function instituteBusyBlocked() {
   return false;
 }
 
-/** Khủng long đột biến khổng lồ — landmark giữa Sân Thú (carnival fantasy, PG) */
-function buildMutationDinoMesh() {
-  const g = new THREE.Group();
-  const hide = new THREE.MeshStandardMaterial({
-    color: 0x3d8a58, roughness: 0.62, metalness: 0.12,
-    emissive: 0x1a5030, emissiveIntensity: 0.28,
-  });
-  const belly = new THREE.MeshStandardMaterial({
-    color: 0xc8e878, roughness: 0.7, metalness: 0.08,
-    emissive: 0x66aa33, emissiveIntensity: 0.22,
-  });
-  const neon = new THREE.MeshStandardMaterial({
-    color: 0x66ffcc, roughness: 0.35, metalness: 0.55,
-    emissive: 0x44ffaa, emissiveIntensity: 0.85,
-  });
-  const crystal = new THREE.MeshStandardMaterial({
-    color: 0xff66aa, roughness: 0.25, metalness: 0.45,
-    emissive: 0xff3388, emissiveIntensity: 0.7,
-  });
-  const clawMat = new THREE.MeshStandardMaterial({
-    color: 0xffe8a0, roughness: 0.4, metalness: 0.35,
-    emissive: 0xffaa44, emissiveIntensity: 0.35,
-  });
-
-  // Thân + bụng phát sáng
-  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.85, 1.6, 6, 12), hide);
-  torso.rotation.z = Math.PI / 2;
-  torso.position.set(0.15, 2.35, 0);
-  torso.scale.set(1, 1.05, 1.15);
-  g.add(torso);
-  const under = new THREE.Mesh(new THREE.CapsuleGeometry(0.55, 1.2, 4, 10), belly);
-  under.rotation.z = Math.PI / 2;
-  under.position.set(0.15, 1.95, 0);
-  under.scale.set(1, 0.85, 0.9);
-  g.add(under);
-
-  // Chân sau to
-  const legGeo = new THREE.CapsuleGeometry(0.28, 1.1, 4, 8);
-  const thighL = new THREE.Mesh(legGeo, hide);
-  thighL.position.set(-0.15, 1.15, 0.55);
-  thighL.rotation.z = 0.15;
-  g.add(thighL);
-  const thighR = new THREE.Mesh(legGeo, hide);
-  thighR.position.set(-0.15, 1.15, -0.55);
-  thighR.rotation.z = 0.15;
-  g.add(thighR);
-  const shinL = new THREE.Mesh(new THREE.CapsuleGeometry(0.2, 0.85, 4, 8), hide);
-  shinL.position.set(-0.35, 0.55, 0.55);
-  g.add(shinL);
-  const shinR = shinL.clone();
-  shinR.position.z = -0.55;
-  g.add(shinR);
-  const footL = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.22, 0.45), hide);
-  footL.position.set(-0.55, 0.12, 0.55);
-  g.add(footL);
-  const footR = footL.clone();
-  footR.position.z = -0.55;
-  g.add(footR);
-  for (const fz of [0.55, -0.55]) {
-    for (let i = -1; i <= 1; i++) {
-      const claw = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.22, 5), clawMat);
-      claw.rotation.z = Math.PI / 2;
-      claw.position.set(-0.92, 0.1, fz + i * 0.12);
-      g.add(claw);
-    }
-  }
-
-  // Tay teo (T-rex) + móng neon
-  const armL = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.35, 3, 6), hide);
-  armL.position.set(0.55, 2.55, 0.55);
-  armL.rotation.z = -0.9;
-  g.add(armL);
-  const armR = armL.clone();
-  armR.position.z = -0.55;
-  armR.rotation.z = -0.9;
-  g.add(armR);
-  const handL = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 5), neon);
-  handL.position.set(0.72, 2.35, 0.55);
-  g.add(handL);
-  const handR = handL.clone();
-  handR.position.z = -0.55;
-  g.add(handR);
-
-  // Cổ + đầu
-  const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 0.7, 4, 8), hide);
-  neck.position.set(1.15, 3.15, 0);
-  neck.rotation.z = -0.55;
-  g.add(neck);
-  const head = new THREE.Group();
-  head.position.set(1.75, 3.55, 0);
-  const skull = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.7, 0.72), hide);
-  skull.position.set(0.15, 0, 0);
-  head.add(skull);
-  const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.28, 0.62), hide);
-  jaw.position.set(0.22, -0.38, 0);
-  head.add(jaw);
-  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.38, 0.48), hide);
-  snout.position.set(0.72, -0.05, 0);
-  head.add(snout);
-  // Răng
-  for (let i = 0; i < 5; i++) {
-    const tooth = new THREE.Mesh(new THREE.ConeGeometry(0.04, 0.14, 4), clawMat);
-    tooth.position.set(0.45 + i * 0.12, -0.22, (i % 2 ? 0.12 : -0.12));
-    tooth.rotation.x = Math.PI;
-    head.add(tooth);
-  }
-  // Mắt thường + mắt đột biến thứ 3
-  const eyeMat = new THREE.MeshStandardMaterial({
-    color: 0xffee66, emissive: 0xffcc22, emissiveIntensity: 0.9, roughness: 0.3,
-  });
-  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), eyeMat);
-  eyeL.position.set(0.35, 0.18, 0.32);
-  head.add(eyeL);
-  const eyeR = eyeL.clone();
-  eyeR.position.z = -0.32;
-  head.add(eyeR);
-  const eye3 = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), neon);
-  eye3.position.set(0.15, 0.42, 0);
-  head.add(eye3);
-  // Sừng tinh thể đột biến
-  const hornL = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.55, 6), crystal);
-  hornL.position.set(-0.15, 0.55, 0.18);
-  hornL.rotation.z = -0.35;
-  head.add(hornL);
-  const hornR = hornL.clone();
-  hornR.position.z = -0.18;
-  hornR.rotation.z = -0.35;
-  head.add(hornR);
-  const hornMid = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.4, 6), neon);
-  hornMid.position.set(0.05, 0.62, 0);
-  head.add(hornMid);
-  g.add(head);
-
-  // Đuôi dài + gai neon
-  const tail = new THREE.Group();
-  tail.position.set(-1.05, 2.15, 0);
-  const segMats = [hide, hide, belly];
-  let tx = 0;
-  for (let i = 0; i < 5; i++) {
-    const r = 0.38 - i * 0.055;
-    const seg = new THREE.Mesh(new THREE.CapsuleGeometry(r, 0.55, 3, 8), segMats[i % 3]);
-    seg.rotation.z = Math.PI / 2;
-    seg.position.set(tx - 0.35, Math.sin(i * 0.35) * 0.08, 0);
-    tail.add(seg);
-    const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.35 + i * 0.04, 5), neon);
-    spike.position.set(tx - 0.35, r + 0.2, 0);
-    tail.add(spike);
-    tx -= 0.55;
-  }
-  g.add(tail);
-
-  // Cánh buồm / gai lưng đột biến (sail)
-  const spines = [];
-  for (let i = 0; i < 7; i++) {
-    const h = 0.55 + (i % 3) * 0.25;
-    const sp = new THREE.Mesh(new THREE.ConeGeometry(0.1, h, 5), i % 2 ? neon : crystal);
-    sp.position.set(-0.35 + i * 0.28, 3.05 + h * 0.35, 0);
-    g.add(sp);
-    spines.push(sp);
-  }
-
-  // Vệt gene phát sáng quanh thân
-  const vein = new THREE.Mesh(
-    new THREE.TorusGeometry(0.95, 0.045, 6, 24),
-    neon
-  );
-  vein.rotation.y = Math.PI / 2;
-  vein.position.set(0.2, 2.4, 0);
-  g.add(vein);
-
-  // Đèn điểm nhấn
-  if (!IS_MOBILE) {
-    const dl = new THREE.PointLight(0x66ffcc, 0.55, 10, 2);
-    dl.position.set(1.2, 3.8, 0);
-    g.add(dl);
-    const dl2 = new THREE.PointLight(0xff66aa, 0.3, 7, 2);
-    dl2.position.set(-0.5, 3.2, 0);
-    g.add(dl2);
-  }
-
-  g.userData.head = head;
-  g.userData.jaw = jaw;
-  g.userData.tail = tail;
-  g.userData.spines = spines;
-  g.userData.vein = vein;
-  g.userData.eye3 = eye3;
-  g.userData.pulse = [torso, under, skull, snout, vein, eye3];
-  g.userData.floatY = 0;
-  g.userData.baseScale = 1.15;
-  g.userData.isDino = true;
-  return g;
-}
-
-function placeInstituteMutationDino(root, ix, iz) {
-  // Landmark trước mặt khi warp I — local (0, 3.2) giữa cổng và sân show
-  const dx = 0, dz = 3.2;
-  const ax = ix + dx, az = iz + dz;
-  const stand = new THREE.Group();
-
-  const pad = new THREE.Mesh(
-    new THREE.CylinderGeometry(2.4, 2.6, 0.28, 24),
-    new THREE.MeshStandardMaterial({
-      color: 0x2a4840, metalness: 0.4, roughness: 0.4,
-      emissive: 0x1a6048, emissiveIntensity: 0.25,
-    })
-  );
-  pad.position.y = 0.14;
-  stand.add(pad);
-  const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(2.45, 0.06, 6, 36),
-    new THREE.MeshStandardMaterial({
-      color: 0x66ffcc, metalness: 0.7, roughness: 0.25,
-      emissive: 0x44ffaa, emissiveIntensity: 0.55,
-    })
-  );
-  ring.rotation.x = Math.PI / 2;
-  ring.position.y = 0.3;
-  stand.add(ring);
-
-  const dino = buildMutationDinoMesh();
-  dino.position.y = 0.28;
-  dino.rotation.y = -Math.PI / 2; // mặt nhìn về cổng / người tới (+Z)
-  dino.scale.setScalar(1.15);
-  stand.add(dino);
-
-  const namePlaque = textPlane('Khủng Long Đột Biến Viện', 420, 56, '#e8fff8', '#0a4038', 18);
-  namePlaque.position.set(0, 5.6, 0);
-  namePlaque.scale.set(3.2, 0.48, 1);
-  stand.add(namePlaque);
-  const subTip = textPlane('🧬 Gene khổng lồ · carnival fantasy', 360, 44, '#c8ffe8', '#145048', 14);
-  subTip.position.set(0, 5.15, 0);
-  subTip.scale.set(2.6, 0.34, 1);
-  stand.add(subTip);
-
-  const glow = new THREE.Mesh(
-    new THREE.CircleGeometry(3.2, 28),
-    new THREE.MeshBasicMaterial({
-      color: 0x44ffaa, transparent: true, opacity: 0.16,
-      depthWrite: false, side: THREE.DoubleSide,
-    })
-  );
-  glow.rotation.x = -Math.PI / 2;
-  glow.position.y = 0.05;
-  stand.add(glow);
-
-  stand.position.set(ax, 0, az);
-  root.add(stand);
-  addCol(ax, az, 3.6, 3.2, stand);
-  markIndestructible(stand);
-
-  const entry = {
-    id: 'khungLongDotBien',
-    name: 'Khủng Long Đột Biến Viện',
-    dx, dz,
-    color: 0x44ffaa,
-    beat: 'dino',
-    joke: 'Khủng long đột biến gật đầu: “Gene khổng lồ? Tôi chỉ… cao thêm tí thôi.”',
-    x: ax, z: az,
-    pos: new THREE.Vector3(ax, 0, az),
-    mesh: stand,
-    animal: dino,
-    tip: namePlaque,
-    tip2: subTip,
-    glow,
-    ring,
-    r: 4.2,
-    phase: Math.random() * 6.28,
-    landmark: true,
-  };
-  return entry;
-}
-
 function buildInstituteAnimalMesh(spec) {
   const g = new THREE.Group();
   const col = spec.color || 0xffffff;
@@ -4583,14 +4336,6 @@ function buildInstituteDistrict() {
     });
   });
   S.instituteAnimals = animals;
-  // Landmark khổng lồ — khủng long đột biến giữa sân (trước mặt khi warp I)
-  try {
-    const dinoEntry = placeInstituteMutationDino(root, ix, iz);
-    animals.push(dinoEntry);
-    S.instituteDino = dinoEntry;
-  } catch (err) {
-    console.warn('institute dino', err);
-  }
   buildInstituteShowAlbum(root, ix, iz);
   buildInstituteGeneWheel(root, ix, iz);
   // Restore rare habitats if already unlocked in save
@@ -4958,14 +4703,7 @@ function goToInstituteGate() {
   if (player) player.rotation.y = Math.PI;
   S._instituteEntered = true;
   S._instituteEnteredAt = performance.now();
-  toast('🧬 Giữa Sân Thú Biến Đổi — khủng long đột biến đứng giữa sân!');
-  if (!S._vienDinoTip) {
-    S._vienDinoTip = true;
-    setTimeout(() => {
-      if (!S.playing) return;
-      toast('🦕 Khủng Long Đột Biến Viện — lại gần để Quan sát / Vuốt ve');
-    }, 2800);
-  }
+  toast('🧬 Giữa Sân Thú Biến Đổi — đi vòng xem các em đang… biến!');
   // Soft tip cycle: dusk→show else if no spins→wheel else album (do not spam all three)
   if (!S._vienShowWarpTip && !S._vienWheelWarpTip) {
     const nightish = S.timePhase === 'dusk' || S.timePhase === 'night';
@@ -6047,39 +5785,6 @@ function updateInstitute(dt, t) {
         an.userData.wingL.rotation.z = 0.35 + Math.sin(t * 3) * 0.2;
         an.userData.wingR.rotation.z = -0.35 - Math.sin(t * 3) * 0.2;
       }
-      // Khủng long đột biến — há miệng, đuôi + gai neon (giữ scale gene buff)
-      if (an.userData.isDino) {
-        if (an.userData.head) {
-          an.userData.head.rotation.x = Math.sin(t * 0.9 + a.phase) * 0.08 * nearBoost;
-          an.userData.head.rotation.y = Math.sin(t * 0.55 + a.phase) * 0.12 * nearBoost;
-        }
-        if (an.userData.jaw) {
-          an.userData.jaw.rotation.x = 0.08 + Math.abs(Math.sin(t * 1.1 + a.phase)) * 0.18 * nearBoost;
-        }
-        if (an.userData.tail) {
-          an.userData.tail.rotation.y = Math.sin(t * 1.3 + a.phase) * 0.22 * nearBoost;
-          an.userData.tail.rotation.x = Math.sin(t * 0.8) * 0.06;
-        }
-        if (an.userData.spines) {
-          an.userData.spines.forEach((sp, i) => {
-            if (sp.material?.emissiveIntensity != null) {
-              sp.material.emissiveIntensity = 0.55 + 0.4 * Math.abs(Math.sin(t * 2.2 + i * 0.4));
-            }
-            sp.scale.y = 1 + Math.sin(t * 2 + i) * 0.06 * nearBoost;
-          });
-        }
-        if (an.userData.vein?.material) {
-          an.userData.vein.material.emissiveIntensity = 0.55 + 0.45 * Math.abs(Math.sin(t * 2.5));
-          an.userData.vein.rotation.z = t * 0.4;
-        }
-        if (an.userData.eye3?.material) {
-          an.userData.eye3.material.emissiveIntensity = 0.6 + 0.5 * Math.abs(Math.sin(t * 3.2));
-        }
-        if (a.ring?.material) {
-          a.ring.material.emissiveIntensity = 0.4 + 0.35 * Math.abs(Math.sin(t * 1.5));
-        }
-        if (a.tip2 && camera) a.tip2.quaternion.copy(camera.quaternion);
-      }
       if (an.userData.pulse) {
         an.userData.pulse.forEach((m) => {
           if (m.material?.emissiveIntensity != null) {
@@ -6088,7 +5793,7 @@ function updateInstitute(dt, t) {
         });
       }
       if (a.glow?.material && !S.instituteAct) {
-        a.glow.material.opacity = (a.landmark ? 0.14 : 0.1) + 0.08 * Math.abs(Math.sin(t * 1.4 + a.phase));
+        a.glow.material.opacity = 0.1 + 0.08 * Math.abs(Math.sin(t * 1.4 + a.phase));
       }
     });
   }

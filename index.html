@@ -427,6 +427,36 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 #bubbles{position:fixed;inset:0;pointer-events:none;z-index:5}
 .bubble3d{position:absolute;transform:translate(-50%,-100%);background:rgba(12,8,6,.72);border:1px solid var(--line);padding:5px 10px;border-radius:8px;font-size:.7rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .3s;backdrop-filter:blur(8px);color:rgba(243,235,224,.9)}
 .bubble3d.on{opacity:1}
+.bubble3d.chat-say{
+  white-space:normal;max-width:min(240px,70vw);text-align:center;line-height:1.35;
+  padding:8px 12px;border-radius:14px 14px 14px 4px;font-size:.78rem;
+  background:rgba(18,28,22,.88);border-color:rgba(160,210,150,.55);color:#e8f5e0;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+.bubble3d.su-say{
+  white-space:normal;max-width:min(260px,72vw);text-align:center;line-height:1.35;
+  padding:8px 12px;border-radius:14px 14px 4px 14px;font-size:.78rem;
+  background:rgba(48,28,12,.9);border-color:rgba(230,180,100,.6);color:#ffe9c8;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+#chat-bar{
+  position:absolute;left:50%;bottom:calc(52px + var(--sb));transform:translateX(-50%);
+  width:min(420px,92vw);display:none;gap:8px;align-items:center;pointer-events:auto;z-index:58;
+  padding:8px;border-radius:16px;background:rgba(12,8,6,.72);border:1px solid var(--line);
+  backdrop-filter:blur(14px);
+}
+#chat-bar.open{display:flex}
+#chat-input{
+  flex:1;min-width:0;border:1px solid rgba(243,235,224,.22);background:rgba(255,255,255,.06);
+  color:#f3ebe0;border-radius:12px;padding:11px 12px;font:inherit;font-size:.92rem;outline:none;
+}
+#chat-input:focus{border-color:rgba(180,220,150,.55)}
+#chat-send,#chat-close{
+  flex-shrink:0;border:1px solid rgba(243,235,224,.25);border-radius:12px;padding:10px 12px;
+  background:rgba(243,235,224,.9);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;
+}
+#chat-close{background:rgba(255,255,255,.08);color:#f3ebe0}
+.icon-btn.chat-on{border-color:rgba(160,210,150,.7);background:rgba(30,50,35,.7);color:#d8f5d0}
 
 /* ——— Nghe nhạc · kiểu YouTube ——— */
 #btn-music.music-on{
@@ -648,10 +678,16 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
       <button class="icon-btn" id="btn-mute" title="Âm thanh">Âm</button>
       <button class="icon-btn" id="btn-music" title="Nghe nhạc · màn Phố An Lạc (M)">Nhạc</button>
       <button class="icon-btn" id="btn-book" title="Sổ cầu an">Sổ</button>
+      <button class="icon-btn" id="btn-chat" title="Chat trên đầu (T)">Chat</button>
       <button class="icon-btn" id="btn-street" title="Đến Phố An Lạc (P)">Phố</button>
       <button class="icon-btn" id="btn-share" title="Chia sẻ">Chia</button>
     </div>
     <button type="button" id="btn-street-fab" title="Đến Phố An Lạc ngay">🛤️ TỚI PHỐ AN LẠC<span class="sub">bấm để đứng giữa phố · phím P</span></button>
+    <div id="chat-bar" aria-hidden="true">
+      <input id="chat-input" type="text" maxlength="72" placeholder="Nói gì đó… hiện trên đầu" autocomplete="off" enterkeyhint="send"/>
+      <button type="button" id="chat-send" title="Gửi">Gửi</button>
+      <button type="button" id="chat-close" title="Đóng">✕</button>
+    </div>
     <button id="action-btn" type="button"></button>
     <div id="combat-bar">
       <button class="combat-btn" data-act="chao" type="button">Chào</button>
@@ -882,6 +918,13 @@ const S = {
   banPho: false, anhEmPho: false,
   _boyPhoTipAt: 0, _boyPhoStreetTip: false, _boyPhoHangTip: false,
   _boyPhoDuyenReady: false, _boyPhoDuyenTip: false,
+  // Bóng Đá Vỉa Hè · Khung Thành Bay (east-north curb)
+  nearBongDa: null, bongDaStand: null, bongDaAct: null,
+  bongDaChams: 0, bongDaBans: 0, bongDaVolleys: 0, bongDaLog: [],
+  cauThuPho: false, sieuSaoHe: false,
+  _bongDaTipAt: 0, _bongDaStreetTip: false, _bongDaBanTip: false,
+  _bongDaDuyenReady: false, _bongDaDuyenTip: false,
+  _ronaldoMessiSeen: false,
   // Hẻm Phóng Lợn — tội phạm xe máy cũ (bắn được)
   phongLonCrew: null, phongLonKills: 0, phongLonLog: [], truGian: false,
   _phongLonTipAt: 0, _phongLonStreetTip: false, phongLonRoot: null,
@@ -929,6 +972,7 @@ const S = {
   // Cửa Mở Fantasy — chính điện mở cửa + tượng dạo sân (IRL-impossible)
   cuaMoCrosses: 0, khachQuaCua: false, cuaMoDoorL: null, cuaMoDoorR: null,
   cuaMoThreshold: null, cuaMoPath: null, cuaMoBeam: null, hallBuddha: null,
+  hallFx: null, hallRoot: null,
   cuaMoSide: 'out', cuaMoBlessUntil: 0, cuaMoBeamUntil: 0,
   tuongDaoMove: null, tuongDaoIdx: 0, nearTuongDao: null, _cuaMoTipAt: 0, _tuongDaoTipAt: 0,
   // Nghe nhạc — màn YouTube lớn bên Phố An Lạc (+ 5 phép IRL-impossible)
@@ -2849,29 +2893,30 @@ function buildSupermanStatue(x, z) {
   return g;
 }
 
-/** Tranh khung gỗ trên tường Chính điện — Ronaldo ôm Messi */
+/** Tranh khung gỗ — đặt tường phải bên trong chính điện */
 function hangWallPoster(hallRoot, hz) {
   const frame = new THREE.Group();
-  // Khung gỗ + viền vàng
   box(2.55, 3.35, 0.14, M.woodD, 0, 0, 0, frame, false);
   box(2.35, 3.15, 0.06, M.gold, 0, 0, 0.04, frame, false);
   box(2.2, 3.0, 0.05, M.wood, 0, 0, 0.05, frame, false);
 
-  const mat = new THREE.MeshBasicMaterial({
+  const picMat = new THREE.MeshBasicMaterial({
     color: 0x886655,
     transparent: false,
     side: THREE.DoubleSide,
   });
-  const pic = new THREE.Mesh(new THREE.PlaneGeometry(2.05, 2.75), mat);
+  const pic = new THREE.Mesh(new THREE.PlaneGeometry(2.05, 2.75), picMat);
   pic.position.z = 0.1;
   frame.add(pic);
 
-  // Bên phải mặt tiền Chính điện — nhìn từ sân
-  frame.position.set(3.55, 2.55, hz + 3.78);
+  // Tường phải bên trong (nhìn vào điện từ cửa)
+  frame.position.set(4.85, 2.55, hz + 0.4);
+  frame.rotation.y = -Math.PI / 2;
   hallRoot.add(frame);
 
   const caption = textPlane('Ronaldo ♡ Messi', 360, 56, '#fff8e0', '#5a2010', 26);
-  caption.position.set(3.55, 0.72, hz + 3.9);
+  caption.position.set(4.72, 0.72, hz + 0.4);
+  caption.rotation.y = -Math.PI / 2;
   caption.scale.set(2.1, 0.38, 1);
   hallRoot.add(caption);
 
@@ -2881,9 +2926,9 @@ function hangWallPoster(hallRoot, hz) {
     (tex) => {
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy?.() || 4);
-      mat.map = tex;
-      mat.color.set(0xffffff);
-      mat.needsUpdate = true;
+      picMat.map = tex;
+      picMat.color.set(0xffffff);
+      picMat.needsUpdate = true;
     },
     undefined,
     () => {
@@ -2892,6 +2937,309 @@ function hangWallPoster(hallRoot, hz) {
     }
   );
   return frame;
+}
+
+/** Đệm đỏ–vàng kiểu chánh điện (low-poly) */
+function makeKneelMat(x, z, parent, scale = 1) {
+  const g = new THREE.Group();
+  box(0.95 * scale, 0.12, 0.62 * scale, M.woodD, 0, 0.06, 0, g);
+  const velvet = new THREE.MeshStandardMaterial({
+    color: 0x9c1018, roughness: 0.72, metalness: 0.08,
+    emissive: 0x3a0508, emissiveIntensity: 0.12,
+  });
+  const top = new THREE.Mesh(new THREE.BoxGeometry(0.88 * scale, 0.08, 0.55 * scale), velvet);
+  top.position.y = 0.14; g.add(top);
+  box(0.92 * scale, 0.03, 0.58 * scale, M.gold, 0, 0.18, 0, g, false);
+  g.position.set(x, 0, z);
+  parent.add(g);
+  return g;
+}
+
+/** Lối đá dẫn vào cửa chính điện + đệm hai bên (yard approach) */
+function buildYardApproach(hz) {
+  const root = new THREE.Group();
+  scene.add(root);
+  // Đường đá / viền vàng từ sân tới ngưỡng
+  const pathZ0 = -1.2, pathZ1 = hz + 4.55;
+  const pathLen = pathZ0 - pathZ1;
+  const pathMid = (pathZ0 + pathZ1) * 0.5;
+  box(2.4, 0.06, pathLen, M.cream, 0, 0.04, pathMid, root, false);
+  box(2.55, 0.03, pathLen + 0.1, M.gold, 0, 0.02, pathMid, root, false);
+  box(0.08, 0.05, pathLen, M.gold, -1.15, 0.06, pathMid, root, false);
+  box(0.08, 0.05, pathLen, M.gold, 1.15, 0.06, pathMid, root, false);
+
+  const matZs = IS_MOBILE
+    ? [-2.2, -3.6, -4.9]
+    : [-1.8, -2.8, -3.8, -4.8, -5.6];
+  matZs.forEach((z, i) => {
+    makeKneelMat(-2.55, z, root, 0.92 + (i % 2) * 0.06);
+    makeKneelMat(2.55, z, root, 0.92 + ((i + 1) % 2) * 0.06);
+  });
+  // Đèn lồng thấp hai bên lối
+  [-3.2, 3.2].forEach((x) => {
+    box(0.14, 1.1, 0.14, M.woodD, x, 0.55, -3.2, root);
+    makeLantern(x, 1.35, -3.2);
+    box(0.14, 1.1, 0.14, M.woodD, x, 0.55, -5.1, root);
+    makeLantern(x, 1.35, -5.1);
+  });
+  // Bụi hoa nhẹ
+  [[-3.8, -2.0], [3.8, -2.0], [-3.6, -5.4], [3.6, -5.4]].forEach(([x, z], i) => {
+    const bush = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.42 + (i % 2) * 0.1, 0),
+      i % 2 ? M.leaf : M.red
+    );
+    bush.position.set(x, 0.45, z);
+    root.add(bush);
+  });
+  return root;
+}
+
+/** Chính điện rỗng + bàn thờ + Phật quang (học layout di-chua-online) */
+function buildChinhDienInterior(hz, hallRoot) {
+  const fx = { rays: [], lanterns: [], floorGlow: null, candleLights: [], ph: Math.random() * 6.28 };
+
+  // —— Nền / bậc ngoài (giữ mặt tiền) ——
+  box(12.5, 0.55, 9, M.stone, 0, 0.25, hz, hallRoot);
+  box(7.5, 0.28, 1.4, M.stone, 0, 0.2, hz + 4.7, hallRoot);
+  box(6.2, 0.28, 1.15, M.stone, 0, 0.42, hz + 3.9, hallRoot);
+  box(5.2, 0.28, 1.0, M.stone, 0, 0.64, hz + 3.2, hallRoot);
+
+  // —— Sàn gỗ bên trong ——
+  box(9.8, 0.12, 6.6, M.wood, 0, 0.58, hz, hallRoot);
+  box(9.6, 0.04, 6.4, M.woodD, 0, 0.65, hz, hallRoot);
+
+  // —— Vỏ tường rỗng (không còn khối plaster đặc) ——
+  const wallH = 4.6, wallY = 2.95;
+  // Trái / phải
+  box(0.42, wallH, 7.0, M.plaster, -5.15, wallY, hz, hallRoot);
+  box(0.42, wallH, 7.0, M.plaster, 5.15, wallY, hz, hallRoot);
+  // Sau
+  box(10.7, wallH, 0.42, M.plaster, 0, wallY, hz - 3.45, hallRoot);
+  // Mặt trước: hai cánh tường chừa cửa (~2.6m)
+  box(3.7, wallH, 0.42, M.plaster, -3.55, wallY, hz + 3.55, hallRoot);
+  box(3.7, wallH, 0.42, M.plaster, 3.55, wallY, hz + 3.55, hallRoot);
+  // Thanh ngang trên cửa (phần tường trên khung cửa)
+  box(2.8, 1.15, 0.42, M.plaster, 0, 4.55, hz + 3.55, hallRoot);
+  // Viền gỗ / nền trong
+  box(10.9, 0.22, 7.3, M.wood, 0, 5.25, hz, hallRoot);
+  box(10.9, 0.16, 7.3, M.wood, 0, 0.72, hz, hallRoot);
+
+  // Cột hiên mặt tiền
+  [-4.2, -1.4, 1.4, 4.2].forEach(x => {
+    cyl(0.22, 0.26, 4.4, M.wood, x, 2.85, hz + 3.55, hallRoot, 10);
+    box(0.5, 0.18, 0.5, M.stone, x, 0.7, hz + 3.55, hallRoot);
+  });
+  box(9.2, 0.22, 0.28, M.wood, 0, 4.9, hz + 3.55, hallRoot);
+  box(9.5, 0.08, 0.08, M.rail, 0, 1.35, hz + 4.15, hallRoot);
+  for (let x = -4; x <= 4; x += 1) box(0.06, 0.55, 0.06, M.rail, x, 1.1, hz + 4.15, hallRoot);
+
+  // Lối vào mở hoàn toàn — không cánh cửa (chỉ khung + ngưỡng)
+  box(0.2, 3.55, 0.22, M.wood, -1.3, 2.35, hz + 3.62, hallRoot);
+  box(0.2, 3.55, 0.22, M.wood, 1.3, 2.35, hz + 3.62, hallRoot);
+  box(2.8, 0.22, 0.22, M.wood, 0, 4.15, hz + 3.62, hallRoot);
+  box(0.14, 0.14, 0.14, M.gold, -1.3, 4.15, hz + 3.74, hallRoot);
+  box(0.14, 0.14, 0.14, M.gold, 1.3, 4.15, hz + 3.74, hallRoot);
+  S.cuaMoDoorL = null;
+  S.cuaMoDoorR = null;
+
+  // Ngưỡng Vàng
+  const thresh = new THREE.Group();
+  thresh.position.set(0, 0.06, hz + 3.55);
+  const thrGlow = new THREE.Mesh(
+    new THREE.CircleGeometry(1.35, 28),
+    new THREE.MeshBasicMaterial({
+      color: 0xffe08a, transparent: true, opacity: 0.28,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  thrGlow.rotation.x = -Math.PI / 2;
+  thresh.add(thrGlow);
+  const thrRing = new THREE.Mesh(
+    new THREE.RingGeometry(1.05, 1.4, 36),
+    new THREE.MeshBasicMaterial({
+      color: 0xfff0c0, transparent: true, opacity: 0.45,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  thrRing.rotation.x = -Math.PI / 2;
+  thrRing.position.y = 0.02;
+  thresh.add(thrRing);
+  const thrLight = new THREE.PointLight(0xffe8a0, 0.85, 10, 2);
+  thrLight.position.set(0, 2.4, 0);
+  thresh.add(thrLight);
+  const thrTip = textPlane('✨ Lối vào điện', 280, 48, '#fff8e0', '#5a3810', 20);
+  thrTip.position.set(0, 1.55, 0.35);
+  thrTip.scale.set(1.55, 0.32, 1);
+  thresh.add(thrTip);
+  scene.add(thresh);
+  S.cuaMoThreshold = thresh;
+  thresh.userData = { glow: thrGlow, ring: thrRing, light: thrLight, tip: thrTip, ph: Math.random() * 6.28 };
+
+  box(1.2, 1.4, 0.1, M.wood, -3.2, 2.8, hz + 3.62, hallRoot);
+  box(1.2, 1.4, 0.1, M.wood, 3.2, 2.8, hz + 3.62, hallRoot);
+
+  // Mái
+  const rh = roof(13.2, 9.5, 2.35, M.tile); rh.position.set(0, 5.85, hz); hallRoot.add(rh);
+  const rh2 = roof(10.5, 7.5, 1.5, M.tile); rh2.position.set(0, 7.35, hz); hallRoot.add(rh2);
+  const rp = roof(9, 3.4, 1.25, M.tile); rp.position.set(0, 5.35, hz + 3.7); hallRoot.add(rp);
+  const hs = textPlane('Chính điện', 220, 52, '#f5e6c8', '#6b1510', 24);
+  hs.position.set(0, 4.55, hz + 3.85); hs.scale.set(2.5, 0.58, 1); hallRoot.add(hs);
+
+  // Trần bên trong (mặt dưới)
+  box(9.6, 0.12, 6.4, M.woodD, 0, 5.05, hz, hallRoot);
+  box(8.8, 0.04, 0.08, M.gold, 0, 4.95, hz, hallRoot, false);
+
+  // Collider: tường + bàn thờ; chừa lối cửa
+  addCol(-5.15, hz, 0.55, 7.2, hallRoot);
+  addCol(5.15, hz, 0.55, 7.2, hallRoot);
+  addCol(0, hz - 3.45, 10.8, 0.55, hallRoot);
+  addCol(-3.55, hz + 3.55, 3.8, 0.5, hallRoot);
+  addCol(3.55, hz + 3.55, 3.8, 0.5, hallRoot);
+  // Cửa giữa không collider — đi vào được
+
+  // —— Bàn thờ phía sau ——
+  const altarZ = hz - 2.15;
+  box(7.2, 0.45, 2.4, M.stone, 0, 0.85, altarZ, hallRoot);
+  box(6.6, 0.2, 2.0, M.wood, 0, 1.15, altarZ, hallRoot);
+  box(6.8, 0.08, 2.15, M.gold, 0, 1.28, altarZ, hallRoot, false);
+  // Bậc lên bàn thờ
+  box(5.2, 0.22, 0.7, M.stone, 0, 0.72, altarZ + 1.35, hallRoot);
+  box(4.4, 0.18, 0.55, M.stone, 0, 0.88, altarZ + 1.05, hallRoot);
+  addCol(0, altarZ, 7.0, 2.5, hallRoot);
+
+  // Bàn thờ nhỏ + lư trang trí (không thay SPOT incense sân)
+  box(3.6, 0.55, 0.85, M.woodD, 0, 1.55, altarZ + 0.15, hallRoot);
+  box(3.7, 0.06, 0.9, M.gold, 0, 1.84, altarZ + 0.15, hallRoot, false);
+  const altarLu = new THREE.Group();
+  cyl(0.28, 0.34, 0.22, M.bronze, 0, 0.12, 0, altarLu, 12);
+  cyl(0.22, 0.22, 0.45, M.bronze, 0, 0.42, 0, altarLu, 10);
+  cyl(0.18, 0.18, 0.06, M.dark, 0, 0.68, 0, altarLu, 8);
+  altarLu.position.set(0, 1.88, altarZ + 0.15);
+  hallRoot.add(altarLu);
+
+  // Chân đèn hai bên
+  const candleMat = new THREE.MeshStandardMaterial({
+    color: 0xfff0c8, emissive: 0xffaa44, emissiveIntensity: 0.85, roughness: 0.4,
+  });
+  [[-1.35, altarZ + 0.15], [1.35, altarZ + 0.15]].forEach(([cx, cz], i) => {
+    box(0.18, 0.55, 0.18, M.bronze, cx, 2.15, cz, hallRoot);
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), candleMat);
+    flame.position.set(cx, 2.55, cz);
+    hallRoot.add(flame);
+    const pl = new THREE.PointLight(0xffb060, IS_MOBILE ? 0.35 : 0.55, 5, 2);
+    pl.position.set(cx, 2.6, cz);
+    hallRoot.add(pl);
+    fx.candleLights.push({ light: pl, flame, base: IS_MOBILE ? 0.35 : 0.55, ph: i * 1.7 });
+  });
+  // Bình hoa
+  [[-2.4, altarZ + 0.2], [2.4, altarZ + 0.2]].forEach(([fxPos, fz]) => {
+    cyl(0.16, 0.2, 0.45, M.bronze, fxPos, 2.1, fz, hallRoot, 8);
+    const fl = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.35, 7), M.red);
+    fl.position.set(fxPos, 2.45, fz); hallRoot.add(fl);
+  });
+
+  // Tượng Phật trên bàn thờ
+  const bud = new THREE.Group();
+  cyl(1.2, 1.35, 0.28, M.stone, 0, 0.35, 0, bud, 14);
+  for (let i = 0; i < 10; i++) {
+    const petal = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.55, 5), M.plaster);
+    const a = (i / 10) * Math.PI * 2;
+    petal.position.set(Math.cos(a) * 1.05, 0.4, Math.sin(a) * 1.05);
+    petal.rotation.z = Math.PI; petal.rotation.y = -a; bud.add(petal);
+  }
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.78, 14, 12), M.buddha);
+  body.scale.set(1.05, 1.2, 0.88); body.position.y = 1.35; bud.add(body);
+  const robe = new THREE.Mesh(new THREE.SphereGeometry(0.82, 12, 10), M.red);
+  robe.scale.set(1.05, 0.55, 0.9); robe.position.set(0, 1.05, 0.05); bud.add(robe);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 10), M.buddha); head.position.y = 2.42; bud.add(head);
+  cyl(0.1, 0.16, 0.28, M.buddha, 0, 2.88, 0, bud, 8);
+  box(0.08, 0.28, 0.06, M.buddha, -0.34, 2.38, 0, bud);
+  box(0.08, 0.28, 0.06, M.buddha, 0.34, 2.38, 0, bud);
+  bud.position.set(0, 1.35, altarZ - 0.35);
+  scene.add(bud);
+  addCol(0, altarZ - 0.35, 2.4, 2.0, bud);
+  S.hallBuddha = bud;
+
+  // Đệm quỳ trong điện (hai bên gian giữa)
+  const innerMats = IS_MOBILE
+    ? [[-2.4, hz + 1.2], [2.4, hz + 1.2], [-2.4, hz - 0.4], [2.4, hz - 0.4]]
+    : [[-2.5, hz + 1.6], [2.5, hz + 1.6], [-2.5, hz + 0.3], [2.5, hz + 0.3], [-2.5, hz - 0.9], [2.5, hz - 0.9]];
+  innerMats.forEach(([x, z]) => makeKneelMat(x, z, hallRoot, 0.95));
+
+  // —— Phật quang: god rays + sàn vàng + đèn cột ——
+  const rayN = IS_MOBILE ? 1 : 3;
+  for (let i = 0; i < rayN; i++) {
+    const cone = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.15 + i * 0.08, 1.1 + i * 0.35, 5.2, 12, 1, true),
+      new THREE.MeshBasicMaterial({
+        color: 0xffe08a, transparent: true, opacity: 0.07 + i * 0.03,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
+    );
+    cone.position.set((i - (rayN - 1) / 2) * 0.85, 3.6, altarZ + 0.6);
+    hallRoot.add(cone);
+    fx.rays.push(cone);
+  }
+  const floorGlow = new THREE.Mesh(
+    new THREE.CircleGeometry(2.4, 28),
+    new THREE.MeshBasicMaterial({
+      color: 0xffd060, transparent: true, opacity: 0.22,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  floorGlow.rotation.x = -Math.PI / 2;
+  floorGlow.position.set(0, 0.7, hz + 0.5);
+  hallRoot.add(floorGlow);
+  fx.floorGlow = floorGlow;
+
+  // Đèn lồng / hào quang cột trong điện
+  [[-4.2, hz + 1.0], [4.2, hz + 1.0], [-4.2, hz - 1.5], [4.2, hz - 1.5]].forEach(([lx, lz], i) => {
+    if (IS_MOBILE && i > 1) return;
+    const glow = new THREE.Mesh(
+      new THREE.SphereGeometry(0.45, 10, 8),
+      new THREE.MeshBasicMaterial({
+        color: 0xffb060, transparent: true, opacity: 0.28, depthWrite: false,
+      })
+    );
+    glow.position.set(lx, 3.2, lz);
+    hallRoot.add(glow);
+    const pl = new THREE.PointLight(0xffa040, IS_MOBILE ? 0.25 : 0.4, 6, 2);
+    pl.position.set(lx, 3.2, lz);
+    hallRoot.add(pl);
+    fx.lanterns.push({ glow, light: pl, base: IS_MOBILE ? 0.25 : 0.4, ph: i * 1.1 });
+  });
+
+  S.hallFx = fx;
+  hangWallPoster(hallRoot, hz);
+  return fx;
+}
+
+function updateHallFx(dt, t) {
+  const fx = S.hallFx;
+  if (!fx) return;
+  const night = S.timePhase === 'night' || S.dusk > 0.55 ? 1 : 0;
+  const beamOn = performance.now() < (S.cuaMoBeamUntil || 0) ? 1 : 0;
+  const pulse = 0.85 + 0.15 * Math.sin(t * 1.8 + (fx.ph || 0));
+  const boost = 1 + night * 0.35 + beamOn * 0.55;
+  if (fx.floorGlow?.material) {
+    fx.floorGlow.material.opacity = (0.16 + 0.1 * Math.sin(t * 1.4)) * boost;
+    fx.floorGlow.scale.setScalar(0.95 + 0.08 * Math.sin(t * 1.1));
+  }
+  (fx.rays || []).forEach((r, i) => {
+    if (!r.material) return;
+    r.material.opacity = (0.06 + i * 0.025 + 0.02 * Math.sin(t * 1.3 + i)) * boost;
+    r.rotation.y = t * 0.08 * (i % 2 ? 1 : -1);
+  });
+  (fx.lanterns || []).forEach((L) => {
+    const flick = 0.75 + 0.25 * Math.sin(t * 3.2 + L.ph) * Math.sin(t * 5.1 + L.ph);
+    if (L.glow?.material) L.glow.material.opacity = 0.2 + 0.15 * flick * boost;
+    if (L.light) L.light.intensity = L.base * flick * boost;
+  });
+  (fx.candleLights || []).forEach((C) => {
+    const flick = 0.7 + 0.3 * Math.sin(t * 7 + C.ph);
+    if (C.light) C.light.intensity = C.base * flick * (1 + beamOn * 0.4);
+    if (C.flame) C.flame.scale.setScalar(0.85 + 0.25 * flick);
+  });
 }
 
 /* ========== CẢNH CHÙA ========== */
@@ -2960,114 +3308,14 @@ function buildScene() {
   addCol(10.5, 2.0, 0.55, 3.2, null);
   for (let z of [1, 3]) box(0.45, 1.9, 0.45, M.stone, 10.5, 0.95, z);
 
-  // ——— Chính điện ———
+  // ——— Chính điện (rỗng + bàn thờ) + lối đá sân ———
   const hz = -10;
   const hallRoot = new THREE.Group(); scene.add(hallRoot);
-  box(12.5, 0.55, 9, M.stone, 0, 0.25, hz, hallRoot);
-  box(7.5, 0.28, 1.4, M.stone, 0, 0.2, hz + 4.7, hallRoot);
-  box(6.2, 0.28, 1.15, M.stone, 0, 0.42, hz + 3.9, hallRoot);
-  box(5.2, 0.28, 1.0, M.stone, 0, 0.64, hz + 3.2, hallRoot);
-  box(10.5, 4.8, 7.2, M.plaster, 0, 2.95, hz, hallRoot);
-  box(10.7, 0.25, 7.4, M.wood, 0, 5.3, hz, hallRoot);
-  box(10.7, 0.18, 7.4, M.wood, 0, 0.7, hz, hallRoot);
-  [-4.2, -1.4, 1.4, 4.2].forEach(x => {
-    cyl(0.22, 0.26, 4.4, M.wood, x, 2.85, hz + 3.55, hallRoot, 10);
-    box(0.5, 0.18, 0.5, M.stone, x, 0.7, hz + 3.55, hallRoot);
-  });
-  box(9.2, 0.22, 0.28, M.wood, 0, 4.9, hz + 3.55, hallRoot);
-  box(9.5, 0.08, 0.08, M.rail, 0, 1.35, hz + 4.15, hallRoot);
-  for (let x = -4; x <= 4; x += 1) box(0.06, 0.55, 0.06, M.rail, x, 1.1, hz + 4.15, hallRoot);
-  // Cửa chính điện mở hai cánh — không chắn lối vào
-  box(0.2, 3.55, 0.22, M.wood, -1.3, 2.35, hz + 3.62, hallRoot);
-  box(0.2, 3.55, 0.22, M.wood, 1.3, 2.35, hz + 3.62, hallRoot);
-  box(2.8, 0.22, 0.22, M.wood, 0, 4.15, hz + 3.62, hallRoot);
-  box(0.14, 0.14, 0.14, M.gold, -1.3, 4.15, hz + 3.74, hallRoot);
-  box(0.14, 0.14, 0.14, M.gold, 1.3, 4.15, hz + 3.74, hallRoot);
-  // Bản lề ở khung cửa: xoay cánh ra ngoài sân (Cửa Thở sẽ đung đưa)
-  const doorL = new THREE.Group();
-  doorL.position.set(-1.28, 2.32, hz + 3.62);
-  doorL.rotation.y = 1.45;
-  doorL.userData.baseY = 1.45;
-  box(1.18, 3.35, 0.12, M.woodD, 0.59, 0, 0, doorL);
-  box(0.08, 3.35, 0.04, M.gold, 1.12, 0, 0.05, doorL);
-  hallRoot.add(doorL);
-  const doorR = new THREE.Group();
-  doorR.position.set(1.28, 2.32, hz + 3.62);
-  doorR.rotation.y = -1.45;
-  doorR.userData.baseY = -1.45;
-  box(1.18, 3.35, 0.12, M.woodD, -0.59, 0, 0, doorR);
-  box(0.08, 3.35, 0.04, M.gold, -1.12, 0, 0.05, doorR);
-  hallRoot.add(doorR);
-  S.cuaMoDoorL = doorL;
-  S.cuaMoDoorR = doorR;
-  // Ngưỡng Vàng — vòng sáng tại cửa
-  const thresh = new THREE.Group();
-  thresh.position.set(0, 0.06, hz + 3.55);
-  const thrGlow = new THREE.Mesh(
-    new THREE.CircleGeometry(1.35, 28),
-    new THREE.MeshBasicMaterial({
-      color: 0xffe08a, transparent: true, opacity: 0.28,
-      depthWrite: false, side: THREE.DoubleSide,
-    })
-  );
-  thrGlow.rotation.x = -Math.PI / 2;
-  thresh.add(thrGlow);
-  const thrRing = new THREE.Mesh(
-    new THREE.RingGeometry(1.05, 1.4, 36),
-    new THREE.MeshBasicMaterial({
-      color: 0xfff0c0, transparent: true, opacity: 0.45,
-      depthWrite: false, side: THREE.DoubleSide,
-    })
-  );
-  thrRing.rotation.x = -Math.PI / 2;
-  thrRing.position.y = 0.02;
-  thresh.add(thrRing);
-  const thrLight = new THREE.PointLight(0xffe8a0, 0.85, 10, 2);
-  thrLight.position.set(0, 2.4, 0);
-  thresh.add(thrLight);
-  const thrTip = textPlane('✨ Ngưỡng Vàng', 280, 48, '#fff8e0', '#5a3810', 20);
-  thrTip.position.set(0, 1.55, 0.35);
-  thrTip.scale.set(1.55, 0.32, 1);
-  thresh.add(thrTip);
-  scene.add(thresh);
-  S.cuaMoThreshold = thresh;
-  thresh.userData = { glow: thrGlow, ring: thrRing, light: thrLight, tip: thrTip, ph: Math.random() * 6.28 };
-  box(1.2, 1.4, 0.1, M.wood, -3.2, 2.8, hz + 3.62, hallRoot);
-  box(1.2, 1.4, 0.1, M.wood, 3.2, 2.8, hz + 3.62, hallRoot);
-  const rh = roof(13.2, 9.5, 2.35, M.tile); rh.position.set(0, 5.85, hz); hallRoot.add(rh);
-  const rh2 = roof(10.5, 7.5, 1.5, M.tile); rh2.position.set(0, 7.35, hz); hallRoot.add(rh2);
-  const rp = roof(9, 3.4, 1.25, M.tile); rp.position.set(0, 5.35, hz + 3.7); hallRoot.add(rp);
-  const hs = textPlane('Chính điện', 220, 52, '#f5e6c8', '#6b1510', 24);
-  hs.position.set(0, 4.55, hz + 3.85); hs.scale.set(2.5, 0.58, 1); hallRoot.add(hs);
-  // Collider chừa lối cửa giữa (~2.4m) để vào được chính điện
-  addCol(-3.7, hz - 0.4, 3.6, 6.2, hallRoot);
-  addCol(3.7, hz - 0.4, 3.6, 6.2, hallRoot);
-  addCol(0, hz - 2.6, 4.0, 2.0, hallRoot);
+  S.hallRoot = hallRoot;
+  buildYardApproach(hz);
+  buildChinhDienInterior(hz, hallRoot);
 
-  // Tranh tường: Ronaldo ôm Messi (AI poster)
-  hangWallPoster(hallRoot, hz);
-
-  // Tượng Phật trang nghiêm hơn
-  const bud = new THREE.Group();
-  cyl(1.2, 1.35, 0.28, M.stone, 0, 0.35, 0, bud, 14);
-  for (let i = 0; i < 10; i++) {
-    const petal = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.55, 5), M.plaster);
-    const a = (i / 10) * Math.PI * 2;
-    petal.position.set(Math.cos(a) * 1.05, 0.4, Math.sin(a) * 1.05);
-    petal.rotation.z = Math.PI; petal.rotation.y = -a; bud.add(petal);
-  }
-  const body = new THREE.Mesh(new THREE.SphereGeometry(0.78, 14, 12), M.buddha);
-  body.scale.set(1.05, 1.2, 0.88); body.position.y = 1.35; bud.add(body);
-  const robe = new THREE.Mesh(new THREE.SphereGeometry(0.82, 12, 10), M.red);
-  robe.scale.set(1.05, 0.55, 0.9); robe.position.set(0, 1.05, 0.05); bud.add(robe);
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.38, 12, 10), M.buddha); head.position.y = 2.42; bud.add(head);
-  cyl(0.1, 0.16, 0.28, M.buddha, 0, 2.88, 0, bud, 8);
-  box(0.08, 0.28, 0.06, M.buddha, -0.34, 2.38, 0, bud);
-  box(0.08, 0.28, 0.06, M.buddha, 0.34, 2.38, 0, bud);
-  bud.position.set(0, 0.7, hz - 1.3); scene.add(bud); addCol(0, hz - 1.3, 2.4, 2.0, bud);
-  S.hallBuddha = bud;
-
-  // Lư hương đồng
+  // Lư hương đồng sân (gameplay SPOT incense — giữ nguyên)
   const lu = new THREE.Group();
   cyl(0.72, 0.88, 0.42, M.bronze, 0, 0.35, 0, lu, 14);
   cyl(1.0, 1.0, 0.12, M.bronze, 0, 0.62, 0, lu, 14);
@@ -8480,6 +8728,684 @@ function updateBoyPho(dt, t) {
   if (u >= 1) finishBoyPhoAct(false);
 }
 
+/* ========== Bóng Đá Vỉa Hè · Khung Thành Bay · cuối hè Phố An Lạc ========== */
+/** East-north curb — past xích lô / hair east pocket; clear of Boy Phố / Giờ Vàng / karaoke */
+const BONG_DA_SPOT = { x: 27.7, z: STREET_Z + 5.05, r: 2.05 };
+const BONG_DA_CHAM_LINES = [
+  '⚽ Chạm bóng · phố biến thành sân!',
+  '🛤️ “Ê đá nhẹ thôi — khung đang bay đó”',
+];
+const BONG_DA_SUT_LINES = [
+  '⚽ Sút phạt · chạy đà ngắn trên hè!',
+  '💨 Bóng bay vòng cung vào lưới bay…',
+  '🛤️ Phố vỗ tay như khán đài mini!',
+];
+const BONG_DA_VOLLEY_LINES = [
+  '⚽ Volley bay · bóng loft lên trời hè!',
+  '✨ Khung thành nhấc cao · bắt bóng giữa không!',
+  '🌟 Sao nổ · phố reo như trận chung kết vỉa hè!',
+];
+
+function bongDaSutUnlocked() {
+  return (S.bongDaChams | 0) >= 1;
+}
+function bongDaVolleyUnlocked() {
+  return (S.bongDaBans | 0) >= 1 || (S.bongDaChams | 0) >= 2;
+}
+function pickBongDaVerb() {
+  if (!bongDaSutUnlocked()) return 'cham';
+  if (!bongDaVolleyUnlocked()) return 'sut';
+  return 'volley';
+}
+function bongDaVerbLabel(v) {
+  if (v === 'sut') return 'Sút phạt';
+  if (v === 'volley') return 'Volley bay';
+  return 'Chạm bóng';
+}
+function streetBongDaBlocked() {
+  if (S.xichLoRide) return 'xích lô';
+  if (S.karaokePerf) return 'karaoke';
+  if (S.phoVangCall) return 'giờ vàng';
+  if (S.hotHoDraw) return 'hốt họ';
+  if (S.muaTraHen) return 'mưa trà';
+  if (S.boyPhoAct) return 'boy phố';
+  return null;
+}
+function markBongDaDuyen() {
+  if (S._bongDaDuyenReady) return;
+  S._bongDaDuyenReady = true;
+  if (!S._bongDaDuyenTip) {
+    S._bongDaDuyenTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast(S._ronaldoMessiSeen
+        ? '⚽ Tranh sân nhớ mình — bàn kế tiếp thêm duyên'
+        : '⚽ Khách phố / quán nhớ mình — bàn kế tiếp thêm duyên');
+    }, 900);
+  }
+}
+function maybeMarkRonaldoMessiVisit() {
+  if (S._ronaldoMessiSeen || !playerRoot) return;
+  const px = playerRoot.position.x, pz = playerRoot.position.z;
+  // Poster trên mặt tiền Chính điện (~x 3.55, z ≈ −6.2)
+  if (Math.hypot(px - 3.55, pz - (-6.2)) < 3.4) {
+    S._ronaldoMessiSeen = true;
+    try { markBongDaDuyen(); } catch (_) {}
+  }
+}
+function bongDaBanTotal() {
+  return (S.bongDaBans | 0);
+}
+function bongDaHomeY() {
+  return S.sieuSaoHe ? 2.55 : 1.8;
+}
+
+function buildBongDaStand() {
+  const sx = BONG_DA_SPOT.x, sz = BONG_DA_SPOT.z;
+  const stand = new THREE.Group();
+
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(1.65, 24),
+    new THREE.MeshBasicMaterial({
+      color: 0x7ecf5a, transparent: true, opacity: 0.14,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.set(0, 0.035, 0);
+  stand.add(glow);
+
+  const tip = textPlane('⚽ Khung Thành Bay', 360, 48, '#f0ffe8', '#1a4020', 15);
+  tip.position.set(0, 3.15, 0);
+  tip.scale.set(2.5, 0.42, 1);
+  stand.add(tip);
+
+  const goal = new THREE.Group();
+  const postMat = new THREE.MeshStandardMaterial({ color: 0xf2f2f0, roughness: 0.45, metalness: 0.15 });
+  const netMat = new THREE.MeshBasicMaterial({
+    color: 0xd8e8d0, transparent: true, opacity: 0.28, depthWrite: false, side: THREE.DoubleSide,
+  });
+  const postL = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.55, 8), postMat);
+  postL.position.set(-1.05, 0.78, 0);
+  goal.add(postL);
+  const postR = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 1.55, 8), postMat);
+  postR.position.set(1.05, 0.78, 0);
+  goal.add(postR);
+  const bar = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 2.15, 8), postMat);
+  bar.rotation.z = Math.PI / 2;
+  bar.position.set(0, 1.52, 0);
+  goal.add(bar);
+  const net = new THREE.Mesh(new THREE.PlaneGeometry(2.0, 1.35), netMat);
+  net.position.set(0, 0.78, -0.22);
+  goal.add(net);
+  // Soft net grid suggestion
+  for (let i = 0; i < 3; i++) {
+    const line = new THREE.Mesh(
+      new THREE.BoxGeometry(2.0, 0.015, 0.015),
+      new THREE.MeshBasicMaterial({ color: 0xe8f5e0, transparent: true, opacity: 0.35, depthWrite: false })
+    );
+    line.position.set(0, 0.35 + i * 0.4, -0.2);
+    goal.add(line);
+  }
+  goal.position.set(0.15, bongDaHomeY(), -0.35);
+  goal.rotation.y = -0.35;
+  stand.add(goal);
+
+  const ball = new THREE.Mesh(
+    new THREE.SphereGeometry(0.18, IS_MOBILE ? 10 : 14, IS_MOBILE ? 8 : 12),
+    new THREE.MeshStandardMaterial({ color: 0xf5f5f0, roughness: 0.55, metalness: 0.05 })
+  );
+  const patch = new THREE.Mesh(
+    new THREE.SphereGeometry(0.181, 8, 6),
+    new THREE.MeshBasicMaterial({ color: 0x222228, transparent: true, opacity: 0.35, depthWrite: false })
+  );
+  patch.scale.set(1, 0.55, 1);
+  ball.add(patch);
+  ball.position.set(-0.85, 0.2, 0.55);
+  stand.add(ball);
+
+  const pl = new THREE.PointLight(0xa8e878, 0.2, 5.5, 2);
+  pl.position.set(0, 2.2, 0);
+  stand.add(pl);
+
+  const sparks = [];
+  const nSpark = IS_MOBILE ? 4 : 10;
+  for (let i = 0; i < nSpark; i++) {
+    const sp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.035, 5, 4),
+      new THREE.MeshBasicMaterial({ color: 0xffe080, transparent: true, opacity: 0.0, depthWrite: false })
+    );
+    sp.position.set((Math.random() - 0.5) * 1.8, 0.2, (Math.random() - 0.5) * 1.8);
+    stand.add(sp);
+    sparks.push({ mesh: sp, ph: Math.random() * 6.28, spd: 0.8 + Math.random() * 1.2 });
+  }
+
+  stand.position.set(sx, 0, sz);
+  scene.add(stand);
+
+  S.bongDaStand = {
+    mesh: stand, glow, tip, light: pl, sparks, goal, ball, postL, postR, bar, net,
+    homeY: bongDaHomeY(),
+    pos: new THREE.Vector3(sx, 0, sz),
+    ballHome: new THREE.Vector3(-0.85, 0.2, 0.55),
+  };
+}
+
+function pickNearBongDa() {
+  if (!playerRoot || S.bongDaAct || !S.bongDaStand) return null;
+  const d = Math.hypot(
+    playerRoot.position.x - BONG_DA_SPOT.x,
+    playerRoot.position.z - BONG_DA_SPOT.z
+  );
+  if (d > BONG_DA_SPOT.r) return null;
+  const verb = pickBongDaVerb();
+  return { id: 'bongda', label: bongDaVerbLabel(verb), verb, pos: BONG_DA_SPOT };
+}
+
+function startBongDaAct() {
+  if (S.busy || S.bongDaAct || !S.bongDaStand) return;
+  const blocked = streetBongDaBlocked();
+  if (blocked) {
+    toast('⚽ Đợi hết lượt phố đã');
+    return;
+  }
+  if (S.khachPho || shopVisitCount() > 0 || S._ronaldoMessiSeen) {
+    try { markBongDaDuyen(); } catch (_) {}
+  }
+  const verb = pickBongDaVerb();
+  if (verb === 'cham') startBongDaCham();
+  else if (verb === 'sut') startBongDaSut();
+  else startBongDaVolley();
+}
+
+function startBongDaCham() {
+  const first = (S.bongDaChams | 0) === 0;
+  const dur = IS_MOBILE ? 2.2 : 2.8;
+  S.busy = true;
+  S.bongDaAct = {
+    kind: 'cham', t: 0, dur, first, rewarded: false,
+    lineIdx: 0, nextLineAt: 0.35,
+    lines: BONG_DA_CHAM_LINES.slice(),
+    faceYaw: 0,
+  };
+  const dx = BONG_DA_SPOT.x - playerRoot.position.x;
+  const dz = BONG_DA_SPOT.z - playerRoot.position.z;
+  const yaw = Math.atan2(dx, dz);
+  S.yaw = yaw;
+  S.bongDaAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.legR.rotation.set(-0.55, 0, 0);
+    ud.armL.rotation.set(-0.25, 0, 0.2);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+  toast(first ? '⚽ Chạm bóng · phố làm sân!' : '⚽ Chạm bóng lại trên hè');
+  if (S.bongDaStand?.glow?.material) S.bongDaStand.glow.material.opacity = 0.26;
+}
+
+function startBongDaSut() {
+  if (!bongDaSutUnlocked()) {
+    toast('⚽ Chạm bóng trước đã');
+    return;
+  }
+  if (streetBongDaBlocked()) {
+    toast('⚽ Đợi hết lượt phố đã');
+    return;
+  }
+  const firstBan = (S.bongDaBans | 0) === 0;
+  const dur = IS_MOBILE ? 7.2 : 9.0;
+  const nightish = S.timePhase === 'night' || S.timePhase === 'dusk';
+  S.busy = true;
+  const kickX = BONG_DA_SPOT.x - 1.35;
+  const kickZ = BONG_DA_SPOT.z + 0.55;
+  playerRoot.position.set(kickX, 0, kickZ);
+  S.bongDaAct = {
+    kind: 'sut', t: 0, dur, first: firstBan, rewarded: false, isBan: true,
+    lineIdx: 0, nextLineAt: 0.5,
+    lines: BONG_DA_SUT_LINES.slice(),
+    faceYaw: 0, nightish,
+    duyen: !!S._bongDaDuyenReady,
+    kickX, kickZ,
+    runX0: kickX, runX1: kickX + 0.85,
+  };
+  const yaw = Math.atan2(BONG_DA_SPOT.x + 0.15 - kickX, BONG_DA_SPOT.z - 0.35 - kickZ);
+  S.yaw = yaw;
+  S.bongDaAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(-0.4, 0, 0.3);
+    ud.armR.rotation.set(-0.4, 0, -0.3);
+  } catch (_) {}
+  const stand = S.bongDaStand;
+  if (stand?.ball) {
+    stand.ball.position.set(-0.55, 0.2, 0.45);
+  }
+  try { playWhoosh(); } catch (_) {}
+  toast(firstBan
+    ? (nightish ? '⚽ Sút phạt đêm · sao sáng hơn!' : '⚽ Sút phạt · khung thành đang chờ!')
+    : '⚽ Sút phạt lại trên hè');
+  if (stand?.glow?.material) stand.glow.material.opacity = 0.3;
+}
+
+function startBongDaVolley() {
+  if (!bongDaVolleyUnlocked()) {
+    toast(bongDaSutUnlocked()
+      ? '⚽ Sút thêm một bàn hoặc chạm lần nữa để mở Volley'
+      : '⚽ Chạm / sút trước đã');
+    return;
+  }
+  if (streetBongDaBlocked()) {
+    toast('⚽ Đợi hết lượt phố đã');
+    return;
+  }
+  const firstVolley = (S.bongDaVolleys | 0) === 0;
+  const firstBanOverall = (S.bongDaBans | 0) === 0;
+  const dur = IS_MOBILE ? 10.5 : 13.2;
+  const nightish = S.timePhase === 'night' || S.timePhase === 'dusk';
+  S.busy = true;
+  const kickX = BONG_DA_SPOT.x - 1.1;
+  const kickZ = BONG_DA_SPOT.z + 0.4;
+  playerRoot.position.set(kickX, 0, kickZ);
+  S.bongDaAct = {
+    kind: 'volley', t: 0, dur, first: firstVolley, firstBan: firstBanOverall,
+    rewarded: false, isBan: true,
+    lineIdx: 0, nextLineAt: 0.55,
+    lines: BONG_DA_VOLLEY_LINES.slice(),
+    faceYaw: 0, nightish,
+    duyen: !!S._bongDaDuyenReady,
+    kickX, kickZ,
+  };
+  const yaw = Math.atan2(BONG_DA_SPOT.x + 0.15 - kickX, BONG_DA_SPOT.z - 0.35 - kickZ);
+  S.yaw = yaw;
+  S.bongDaAct.faceYaw = yaw;
+  if (player) player.rotation.y = yaw;
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(-1.1, 0, 0.35);
+    ud.armR.rotation.set(-0.9, 0, -0.35);
+    ud.legR.rotation.set(-0.7, 0, 0);
+  } catch (_) {}
+  try { playWhoosh(); } catch (_) {}
+  toast(S.sieuSaoHe
+    ? '⚽ Siêu Sao Hè · volley bay · phố nổ sao!'
+    : firstVolley
+      ? (nightish ? '⚽ Volley bay đêm · khung nhấc trời hè!' : '⚽ Volley bay · khung thành bắt bóng giữa không!')
+      : '⚽ Volley bay lại trên hè');
+  if (S.bongDaStand?.glow?.material) S.bongDaStand.glow.material.opacity = 0.34;
+}
+
+function finishBongDaAct(early) {
+  const act = S.bongDaAct;
+  if (!act) return;
+  const elapsed = act.t;
+  const counts = !early || elapsed >= 1.2;
+
+  try {
+    const ud = player.userData;
+    ud.armL.rotation.set(0, 0, 0); ud.armR.rotation.set(0, 0, 0);
+    ud.legL.rotation.set(0, 0, 0); ud.legR.rotation.set(0, 0, 0);
+  } catch (_) {}
+  if (player) { player.rotation.z = 0; player.rotation.x = 0; }
+  playerRoot.position.y = 0;
+  playerRoot.position.set(BONG_DA_SPOT.x - 0.9, 0, BONG_DA_SPOT.z + 0.6);
+
+  const stand = S.bongDaStand;
+  if (stand?.ball && stand.ballHome) {
+    stand.ball.position.copy(stand.ballHome);
+  }
+  if (stand?.goal) {
+    stand.goal.position.y = bongDaHomeY();
+    stand.homeY = bongDaHomeY();
+  }
+
+  if (counts && !act.rewarded) {
+    act.rewarded = true;
+    let gain = 2;
+
+    if (act.kind === 'cham') {
+      S.bongDaChams = (S.bongDaChams | 0) + 1;
+      const n = S.bongDaChams | 0;
+      gain = act.first ? 6 : (early ? 2 : 3);
+      S.bongDaLog = (S.bongDaLog || []).concat([{
+        text: `${early ? 'Chạm sớm' : 'Chạm bóng'}${act.first ? ' · lần đầu' : ''} · lần ${n}`,
+        kind: 'cham', at: Date.now(),
+      }]).slice(-12);
+      if (n === 1) {
+        setTimeout(() => toast('⚽ Mở · Sút phạt khung thành bay'), 800);
+      }
+      if (n >= 2 && !S.cauThuPho) {
+        S.cauThuPho = true;
+        setTimeout(() => {
+          toast('⚽ Flair · Cầu Thủ Phố');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 1000);
+      }
+      if (bongDaVolleyUnlocked() && n === 2) {
+        setTimeout(() => toast('⚽ Mở · Volley bay'), 1400);
+      }
+      saveAll();
+      gainCongDuc(gain, act.first ? '⚽ Bóng Đá Vỉa Hè · chạm bóng' : 'Bóng Đá · chạm bóng', true);
+      toast(early
+        ? `⚽ Chạm sớm · +${gain}`
+        : `⚽ Bóng Đá Vỉa Hè · chạm bóng · +${gain}${act.first ? ' · lần đầu' : ` · ${n} lần`}`);
+      try {
+        emitSmoke(BONG_DA_SPOT.x - 0.7, 0.15, BONG_DA_SPOT.z + 0.4, 1);
+      } catch (_) {}
+    } else if (act.kind === 'sut' || act.kind === 'volley') {
+      const isVolley = act.kind === 'volley';
+      if (isVolley) S.bongDaVolleys = (S.bongDaVolleys | 0) + 1;
+      S.bongDaBans = (S.bongDaBans | 0) + 1;
+      const nBan = S.bongDaBans | 0;
+      const nVol = S.bongDaVolleys | 0;
+      const firstBan = isVolley ? !!act.firstBan : !!act.first;
+      gain = firstBan ? 9 : (early ? 3 : (isVolley ? 6 : 5));
+      if (act.duyen && S._bongDaDuyenReady) {
+        S._bongDaDuyenReady = false;
+        gain += 1;
+        setTimeout(() => toast('⚽ Duyên sân · +1 công đức bàn thắng'), 1300);
+      }
+      S.bongDaLog = (S.bongDaLog || []).concat([{
+        text: `${early ? (isVolley ? 'Volley sớm' : 'Sút sớm') : (isVolley ? 'Volley bàn' : 'Sút bàn')}${firstBan ? ' · bàn đầu' : ''} · bàn ${nBan}${isVolley ? ` · volley ${nVol}` : ''}`,
+        kind: isVolley ? 'volley' : 'sut', at: Date.now(),
+      }]).slice(-12);
+
+      if (!S.cauThuPho) {
+        S.cauThuPho = true;
+        setTimeout(() => {
+          toast('⚽ Flair · Cầu Thủ Phố');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 900);
+      }
+      if (nBan === 1) {
+        if (!S._bongDaBanTip) {
+          S._bongDaBanTip = true;
+          setTimeout(() => toast('⚽ Phố nhớ cú sút — thử Volley bay cuối hè'), 1200);
+        }
+        if (bongDaVolleyUnlocked()) {
+          setTimeout(() => toast('⚽ Mở · Volley bay'), 1600);
+        }
+      }
+      if (nBan >= 3 && !S.sieuSaoHe) {
+        S.sieuSaoHe = true;
+        if (stand) {
+          stand.homeY = bongDaHomeY();
+          if (stand.goal) stand.goal.position.y = stand.homeY;
+        }
+        setTimeout(() => {
+          toast('🌟 Flair · Siêu Sao Hè · khung bay cao hơn!');
+          try { publishPresence?.(true); } catch (_) {}
+        }, 1200);
+      } else if (S.sieuSaoHe && !early) {
+        setTimeout(() => toast('🌟 Siêu Sao Hè · phố reo bàn!'), 700);
+      }
+
+      saveAll();
+      const label = isVolley
+        ? (firstBan ? '⚽ Bóng Đá Vỉa Hè · volley bàn đầu' : 'Bóng Đá · volley')
+        : (firstBan ? '⚽ Bóng Đá Vỉa Hè · bàn đầu' : 'Bóng Đá · sút phạt');
+      gainCongDuc(gain, label, true);
+      toast(early
+        ? `⚽ ${isVolley ? 'Volley' : 'Sút'} sớm · +${gain}`
+        : `⚽ ${isVolley ? 'Volley bay' : 'Sút phạt'} · bàn · +${gain}${firstBan ? ' · lần đầu' : ` · bàn ${nBan}`}`);
+      try {
+        const nSpark = IS_MOBILE ? 2 : (act.nightish || S.sieuSaoHe ? 7 : 5);
+        for (let i = 0; i < nSpark; i++) {
+          emitSmoke(
+            BONG_DA_SPOT.x + (Math.random() - 0.5) * 1.2,
+            1.2 + Math.random() * 0.8,
+            BONG_DA_SPOT.z + (Math.random() - 0.5) * 0.8,
+            1
+          );
+        }
+      } catch (_) {}
+      try { playWhoosh(); } catch (_) {}
+    }
+    updateMeritHud();
+    pulseMeritHud();
+  } else if (!counts) {
+    toast('⚽ Chưa kịp — đứng gần khung thành thử lại');
+  }
+
+  if (stand?.sparks) stand.sparks.forEach(s => { if (s.mesh?.material) s.mesh.material.opacity = 0; });
+  if (stand?.glow?.material) {
+    stand.glow.material.opacity = 0.14;
+    stand.glow.scale.set(1, 1, 1);
+  }
+  if (stand?.light) stand.light.intensity = 0.2;
+
+  S.bongDaAct = null;
+  S.busy = false;
+}
+
+function cancelBongDaAct() {
+  if (!S.bongDaAct) return;
+  finishBongDaAct(true);
+}
+
+function updateBongDa(dt, t) {
+  const stand = S.bongDaStand;
+  if (stand?.tip && camera) stand.tip.quaternion.copy(camera.quaternion);
+
+  try { maybeMarkRonaldoMessiVisit(); } catch (_) {}
+
+  if (playerRoot && playerRoot.position.x > 24.5 && playerRoot.position.z > STREET_Z + 2.5 && !S._bongDaStreetTip) {
+    S._bongDaStreetTip = true;
+    setTimeout(() => {
+      if (!S.playing || (S.bongDaChams | 0) > 0) return;
+      toast('⚽ Khung thành đang bay cuối hè…');
+    }, 5500);
+  }
+
+  if (stand?.goal && !S.bongDaAct) {
+    const base = bongDaHomeY();
+    stand.homeY = base;
+    stand.goal.position.y = base + Math.sin(t * 1.15) * 0.18;
+    stand.goal.rotation.y = -0.35 + Math.sin(t * 0.6) * 0.04;
+  }
+
+  if (stand?.ball && !S.bongDaAct) {
+    const near = !!S.nearBongDa;
+    if (near) {
+      stand.ball.position.y = 0.2 + Math.abs(Math.sin(t * 4.2)) * 0.22;
+      stand.ball.rotation.x += dt * 3;
+    } else {
+      const ang = t * 0.9;
+      stand.ball.position.x = stand.ballHome.x + Math.cos(ang) * 0.35;
+      stand.ball.position.z = stand.ballHome.z + Math.sin(ang) * 0.25;
+      stand.ball.position.y = stand.ballHome.y + Math.abs(Math.sin(t * 2.2)) * 0.08;
+      stand.ball.rotation.y += dt * 1.2;
+    }
+  }
+
+  if (stand?.mesh && !S.bongDaAct) {
+    if (stand.glow?.material) {
+      const warm = S.sieuSaoHe || S.cauThuPho;
+      stand.glow.material.opacity = 0.1 + 0.1 * Math.abs(Math.sin(t * 1.4));
+      stand.glow.material.color.setHex(warm ? 0xb8f070 : 0x7ecf5a);
+    }
+    if (stand.light) stand.light.intensity = 0.16 + 0.1 * Math.abs(Math.sin(t * 1.6));
+  }
+
+  if (S.nearBongDa && !S.bongDaAct) {
+    const now = performance.now();
+    if (now - (S._bongDaTipAt || 0) > 16000) {
+      S._bongDaTipAt = now;
+      if (streetBongDaBlocked()) {
+        toast('⚽ Đợi hết lượt phố đã');
+      } else {
+        const v = pickBongDaVerb();
+        toast(S.sieuSaoHe
+          ? '🌟 Siêu Sao Hè · volley thêm bàn?'
+          : S.cauThuPho
+            ? (v === 'volley' ? '⚽ Cầu Thủ Phố · thử Volley bay?' : `⚽ Cầu Thủ Phố · ${bongDaVerbLabel(v)}`)
+            : v === 'cham'
+              ? '⚽ Khung Thành Bay · chạm bóng?'
+              : `⚽ Hè · ${bongDaVerbLabel(v)}`);
+      }
+    }
+  }
+
+  const act = S.bongDaAct;
+  if (!act) return;
+
+  if ($('modal')?.classList.contains('open')) {
+    cancelBongDaAct();
+    return;
+  }
+
+  act.t += dt;
+  const u = Math.min(1, act.t / act.dur);
+
+  if (playerRoot) {
+    if (player) player.rotation.y = act.faceYaw;
+    S.yaw = act.faceYaw;
+  }
+
+  if (act.kind === 'cham') {
+    if (playerRoot) playerRoot.position.y = Math.sin(act.t * 5) * 0.03;
+    if (stand?.ball) {
+      const nudge = Math.sin(Math.min(1, act.t / 0.6) * Math.PI) * 0.35;
+      stand.ball.position.x = stand.ballHome.x + nudge * 0.4;
+      stand.ball.position.z = stand.ballHome.z - nudge * 0.2;
+      stand.ball.position.y = 0.2 + Math.abs(Math.sin(act.t * 6)) * 0.15;
+      stand.ball.rotation.x += dt * 8;
+    }
+    if (act.t > 0.4 && act.t < 0.7 && Math.random() < 0.4) {
+      try { emitSmoke(BONG_DA_SPOT.x - 0.6, 0.12, BONG_DA_SPOT.z + 0.45, 1); } catch (_) {}
+    }
+  } else if (act.kind === 'sut') {
+    // Run-up then ball arc into floating net
+    const runU = Math.min(1, act.t / (act.dur * 0.28));
+    const kickAt = 0.32;
+    if (playerRoot) {
+      const rx = act.runX0 + (act.runX1 - act.runX0) * runU;
+      playerRoot.position.set(rx, Math.sin(act.t * 8) * 0.02, act.kickZ);
+      try {
+        const ud = player.userData;
+        const run = act.t * 10;
+        if (ud.legL) ud.legL.rotation.x = Math.sin(run) * 0.55;
+        if (ud.legR) ud.legR.rotation.x = Math.sin(run + Math.PI) * 0.55;
+        if (u > kickAt && u < kickAt + 0.12 && ud.legR) ud.legR.rotation.x = -1.1;
+      } catch (_) {}
+    }
+    if (stand?.ball) {
+      if (u < kickAt) {
+        stand.ball.position.set(-0.55 + runU * 0.2, 0.2, 0.45);
+      } else {
+        const bu = Math.min(1, (u - kickAt) / (1 - kickAt));
+        const arc = Math.sin(bu * Math.PI) * (IS_MOBILE ? 1.1 : 1.45);
+        stand.ball.position.set(
+          -0.35 + bu * 0.55,
+          0.25 + arc,
+          0.4 - bu * 0.7
+        );
+        stand.ball.rotation.x += dt * 10;
+        if (bu > 0.85 && stand.goal) {
+          stand.goal.position.y = (stand.homeY || bongDaHomeY()) + Math.sin((bu - 0.85) * 20) * 0.12;
+        }
+      }
+    }
+    if (stand?.sparks && u > kickAt) {
+      const bright = act.nightish || S.sieuSaoHe;
+      stand.sparks.forEach((s, i) => {
+        if (!s.mesh) return;
+        if (IS_MOBILE && i > 3) { s.mesh.visible = false; return; }
+        s.mesh.visible = true;
+        s.mesh.material.opacity = 0.25 + 0.45 * Math.abs(Math.sin(act.t * 6 + s.ph));
+        s.mesh.material.color.setHex(bright ? 0xffe080 : 0xb8f070);
+        if (stand.ball) {
+          s.mesh.position.set(
+            stand.ball.position.x + Math.cos(s.ph + act.t) * 0.25,
+            stand.ball.position.y + ((act.t * s.spd) % 0.4),
+            stand.ball.position.z + Math.sin(s.ph + act.t) * 0.25
+          );
+        }
+      });
+    }
+    if (stand?.light) stand.light.intensity = 0.25 + 0.55 * Math.abs(Math.sin(act.t * 4));
+  } else if (act.kind === 'volley') {
+    const loftAt = 0.22;
+    const catchAt = 0.72;
+    if (playerRoot) {
+      let y = 0;
+      if (u > loftAt && u < loftAt + 0.18) {
+        y = Math.sin(((u - loftAt) / 0.18) * Math.PI) * 0.75;
+        if (player) player.rotation.z = -0.15;
+      } else {
+        if (player) player.rotation.z = 0;
+      }
+      playerRoot.position.set(act.kickX, y, act.kickZ);
+      try {
+        const ud = player.userData;
+        if (u > loftAt && u < loftAt + 0.2) {
+          if (ud.legR) ud.legR.rotation.x = -1.2;
+          if (ud.armL) ud.armL.rotation.x = -1.3;
+        }
+      } catch (_) {}
+    }
+    if (stand?.goal) {
+      const home = stand.homeY || bongDaHomeY();
+      if (u > 0.35 && u < catchAt) {
+        const liftU = (u - 0.35) / (catchAt - 0.35);
+        stand.goal.position.y = home + liftU * (IS_MOBILE ? 0.85 : 1.15); // ~2.6–3.2m peak
+      } else if (u >= catchAt) {
+        stand.goal.position.y = home + Math.sin((u - catchAt) * 12) * 0.1;
+      } else {
+        stand.goal.position.y = home + Math.sin(act.t * 2) * 0.08;
+      }
+    }
+    if (stand?.ball) {
+      if (u < loftAt) {
+        stand.ball.position.set(-0.5, 0.35 + Math.sin(act.t * 5) * 0.1, 0.4);
+      } else {
+        const bu = Math.min(1, (u - loftAt) / (1 - loftAt));
+        const peak = IS_MOBILE ? 2.4 : 2.9;
+        stand.ball.position.set(
+          -0.4 + bu * 0.55,
+          0.4 + Math.sin(Math.min(1, bu * 1.15) * Math.PI) * peak,
+          0.35 - bu * 0.65
+        );
+        stand.ball.rotation.x += dt * 12;
+      }
+    }
+    if (stand?.sparks) {
+      const bright = true;
+      const denser = S.sieuSaoHe || act.nightish;
+      stand.sparks.forEach((s, i) => {
+        if (!s.mesh) return;
+        if (IS_MOBILE && i > (denser ? 3 : 2)) { s.mesh.visible = false; return; }
+        s.mesh.visible = true;
+        s.mesh.material.opacity = 0.3 + 0.5 * Math.abs(Math.sin(act.t * 7 + s.ph));
+        s.mesh.material.color.setHex(bright ? 0xffe080 : 0xa0e8ff);
+        s.mesh.position.y = 1.0 + ((act.t * s.spd + s.ph) % 1) * (denser ? 1.8 : 1.2);
+        s.mesh.position.x = Math.cos(s.ph + act.t * 2) * (denser ? 1.3 : 1.0);
+        s.mesh.position.z = Math.sin(s.ph * 1.3 + act.t) * (denser ? 1.1 : 0.85);
+      });
+    }
+    if (u > catchAt && Math.random() < (IS_MOBILE ? 0.1 : 0.22)) {
+      try {
+        emitSmoke(
+          BONG_DA_SPOT.x + (Math.random() - 0.5),
+          2.0 + Math.random(),
+          BONG_DA_SPOT.z + (Math.random() - 0.5) * 0.5,
+          1
+        );
+      } catch (_) {}
+    }
+    if (stand?.light) stand.light.intensity = 0.3 + 0.7 * Math.abs(Math.sin(act.t * 5));
+  }
+
+  if (act.lineIdx < act.lines.length && act.t >= act.nextLineAt) {
+    toast(act.lines[act.lineIdx]);
+    act.lineIdx += 1;
+    act.nextLineAt = act.t + 2.6;
+  }
+
+  if (u >= 1) finishBongDaAct(false);
+}
+
 function addRibbon(x, y, z, ai) {
   const m = box(0.11, 0.85 + Math.random()*0.35, 0.02, M.silk, x, y, z, scene, false);
   m.rotation.y = Math.random()*3.14; m.userData.ph = Math.random()*6.28; m.userData.ai = ai;
@@ -9010,6 +9936,15 @@ function goToStreetGate() {
         : '🛹 Đội hè đầu phố · chào / tụ / đua tiếp');
     }, 4200);
   }
+  if (!S._bongDaStreetTip) {
+    S._bongDaStreetTip = true;
+    setTimeout(() => {
+      if (!S.playing) return;
+      toast((S.bongDaChams | 0) === 0
+        ? '⚽ Khung thành đang bay cuối hè… (+X phía tóc / xích lô)'
+        : '⚽ Khung Thành Bay cuối hè · chạm / sút / volley tiếp');
+    }, 6500);
+  }
 }
 
 function tryMove(nx, nz) {
@@ -9254,6 +10189,8 @@ function pickAITarget(a) {
     [0, -7], [0, 2.5], [8, 2], [7, -5], [-9, -2], [0, 10], [-4, 4], [3, -8], [5, 5], [-6, 6],
     // Sân tháp / trước tháp
     [0, -10], [5, -11], [-5, -11], [0, -9], [7, -10], [-7, -10], [3, -12], [-3, -12],
+    // Đệm quỳ lối vào chính điện
+    [-2.55, -2.8], [2.55, -2.8], [-2.55, -4.8], [2.55, -4.8], [-2.55, -3.8], [2.55, -3.8],
   ];
   const s = spots[(Math.random()*spots.length)|0];
   a.tx = s[0] + (Math.random()-0.5)*2; a.tz = s[1] + (Math.random()-0.5)*2;
@@ -9306,7 +10243,13 @@ function updateAI(dt) {
       if (dist < 0.4) {
         a.state = a.kind === 1 ? 'pray' : a.kind === 2 ? 'incense' : a.kind === 3 ? 'sit' : a.kind === 4 ? 'photo' : 'idle';
         a.timer = 3 + Math.random()*5;
-        if (a.state === 'pray' || a.state === 'incense' || a.onPagoda) a.yaw = Math.atan2(-a.x, -18.5 - a.z);
+        if (a.state === 'pray' || a.state === 'incense' || a.onPagoda) {
+          // Đệm lối chính điện → hướng cửa; còn lại hướng tháp
+          if (!a.onPagoda && a.z > -6.5 && a.z < -1.2 && Math.abs(a.x) < 4.5)
+            a.yaw = Math.atan2(-a.x, -6.4 - a.z);
+          else
+            a.yaw = Math.atan2(-a.x, -18.5 - a.z);
+        }
       } else {
         a.yaw = Math.atan2(dx, dz);
         const sp = a.speed * (a.age === 1 ? 0.6 : a.age === 2 ? 1.15 : 1) * dt;
@@ -11242,7 +12185,7 @@ function buildCuaMoFantasy() {
   // Soft discover tip
   setTimeout(() => {
     if (!S.playing) return;
-    toast('🚪 Cửa chính điện đang thở — thử bước qua ngưỡng vàng');
+    toast('🚪 Chính điện mở lối — thử bước qua ngưỡng vàng');
   }, 12000);
   setTimeout(() => {
     if (!S.playing) return;
@@ -11274,9 +12217,6 @@ function triggerCuaMoBless(entering) {
       : `✨ Bước ra sân · cửa vẫn mở (+${bonus})`);
   }
   if (entering) triggerQuangPhat();
-  // Cánh cửa “hít thở sâu” khi vừa bước qua
-  if (S.cuaMoDoorL) S.cuaMoDoorL.userData.kick = 0.55;
-  if (S.cuaMoDoorR) S.cuaMoDoorR.userData.kick = 0.55;
   saveAll();
   updateMeritHud?.();
 }
@@ -11328,18 +12268,7 @@ function startTuongDaoMove() {
   burstPhatNoiPetals(S.standingBuddha.position.x, 2.2, S.standingBuddha.position.z, false);
 }
 function updateCuaMoFantasy(dt, t) {
-  // 1. Cửa Thở — đung đưa rõ + kick khi bước ngưỡng
-  for (const door of [S.cuaMoDoorL, S.cuaMoDoorR]) {
-    if (!door) continue;
-    if (door.userData.kick) door.userData.kick = Math.max(0, door.userData.kick - dt * 0.85);
-  }
-  const kickL = S.cuaMoDoorL?.userData?.kick || 0;
-  const kickR = S.cuaMoDoorR?.userData?.kick || 0;
-  const breathe = 0.22 * Math.sin(t * 1.35);
-  if (S.cuaMoDoorL) S.cuaMoDoorL.rotation.y = (S.cuaMoDoorL.userData.baseY || 1.45) + breathe + kickL;
-  if (S.cuaMoDoorR) S.cuaMoDoorR.rotation.y = (S.cuaMoDoorR.userData.baseY || -1.45) - breathe - kickR;
-
-  // Ngưỡng pulse
+  // Ngưỡng pulse (cửa đã gỡ — chỉ còn khung + vòng sáng)
   const thr = S.cuaMoThreshold;
   if (thr?.userData) {
     const pulse = 0.38 + 0.22 * Math.sin(t * 2.2 + (thr.userData.ph || 0));
@@ -13297,6 +14226,319 @@ function updatePilgrimNpcs(dt, t) {
   }
 }
 
+/* —— Sư Thầy trước tháp + chat trên đầu người chơi —— */
+const SU_THAY_SPOT = { x: -3.55, z: -9.35, r: 2.45 };
+const SU_THAY_TOPICS = [
+  {
+    q: 'Thưa thầy, làm sao hết muộn?',
+    a: 'Muộn thì… dậy sớm hơn một kiếp. Hoặc tắt báo thức “snooze” — đó mới là ma chướng thật sự.',
+  },
+  {
+    q: 'Xin thầy dạy con thiền',
+    a: 'Ngồi yên 3 hơi thở. Nếu não còn mở TikTok trong đầu — cũng được, cứ xem như quán chiếu meme.',
+  },
+  {
+    q: 'Công đức tăng thế nào ạ?',
+    a: 'Thắp hương, đánh chuông, giúp người — chứ không phải spam emoji cầu an trong group.',
+  },
+  {
+    q: 'Yêu đơn phương phải làm sao?',
+    a: 'Cầu an cho họ hạnh phúc. Nếu họ hạnh phúc với người khác… thầy vẫn cho con một nụ cười từ bi (và khăn giấy).',
+  },
+  {
+    q: 'Wifi chùa có mạnh không?',
+    a: 'Mạnh lắm — tín hiệu từ bi 5G. Lag là do tâm con download quá nhiều vọng tưởng.',
+  },
+  {
+    q: 'Thầy ơi con đói',
+    a: 'Đói thì ăn. Tu không có nghĩa là đói tới khi thấy hào quang… trừ khi hào quang là tô phở Phố An Lạc.',
+  },
+];
+const SU_THAY_QUIPS = [
+  'Nam mô… nguyện vọng của con đang “đang xử lý”, vui lòng không bấm F5 tâm.',
+  'Thầy biết con vào chùa vì game. Không sao — duyên digital cũng là duyên.',
+  'Bình an không bán theo gói VIP. Nhưng thầy tặng con một câu hài miễn phí.',
+  'Chuông bên kia kêu to hơn ego của con một chút — tốt đó.',
+  'Con đứng trước tháp hỏi thầy. Thầy đứng trước tháp… cũng đang hỏi tháp.',
+  'Áo vàng không chống nước mắt, nhưng chống được drama group chat khá ổn.',
+  'Muốn tâm tĩnh? Bỏ điện thoại xuống. Xong rồi nhặt lên đọc đúng một tin thầy cũng hiểu.',
+  'Công đức hôm nay: +1 vì dám hỏi thầy câu hơi ngố.',
+  'Thầy không phải chatbot — nhưng hôm nay thầy… khá chatbot.',
+  'Nếu thấy stress: hít vào “Nam mô”, thở ra “oke chưa”.',
+];
+const SU_THAY_CHAT_REPLIES = [
+  'Thầy nghe rồi. Chat trên đầu cũng là một pháp — pháp “ai cũng thấy mình đang nghĩ gì”.',
+  'Nói lớn vậy chắc cả tháp nghe. Thầy gật… hơi nghiêng vì cười.',
+  'Hay lắm. Giữ câu đó trên đầu thêm 5 giây — rồi buông như thả hoa đăng.',
+  'A Di Đà Phật — và cũng “seen” rồi đó.',
+  'Con chat hay hơn nhiều người tụng… à không, thầy không nói vậy. (Nói rồi.)',
+];
+let suThayNpc = null; // { mesh, glow, tip, bubbleEl, sayUntil, pos }
+
+function buildSuThayNpc() {
+  const x = SU_THAY_SPOT.x, z = SU_THAY_SPOT.z;
+  const mesh = buildHumanoid({ robeColor: 0xc45e28, scale: 1.05, withFace: true });
+  // Đầu trọc kiểu sư — tóc/mái thành da đầu
+  mesh.children.forEach((c) => {
+    if (!c.isMesh || !c.geometry) return;
+    const y = c.position.y;
+    if (c.material === M.dark && y > 1.35) {
+      c.material = M.skin;
+      if (c.scale.y < 0.6) {
+        c.visible = false; // bang
+      } else {
+        c.scale.set(0.92, 0.42, 0.92);
+        c.position.y = 1.64;
+      }
+    }
+  });
+  // Chuỗi hạt
+  const beads = new THREE.Mesh(
+    new THREE.TorusGeometry(0.13, 0.022, 6, 14),
+    new THREE.MeshStandardMaterial({ color: 0xd4a85a, metalness: 0.45, roughness: 0.4 })
+  );
+  beads.position.set(0, 1.12, 0.16);
+  beads.rotation.x = 1.05;
+  mesh.add(beads);
+  // Tay chắp
+  if (mesh.userData.armL) mesh.userData.armL.rotation.set(-0.95, 0.15, 0.7);
+  if (mesh.userData.armR) mesh.userData.armR.rotation.set(-0.95, -0.15, -0.7);
+  mesh.position.set(x, 0, z);
+  mesh.rotation.y = Math.atan2(-x, 8.5 - z); // nhìn về sân / cổng
+  scene.add(mesh);
+
+  const glow = new THREE.Mesh(
+    new THREE.CircleGeometry(0.78, 24),
+    new THREE.MeshBasicMaterial({
+      color: 0xe8b86a, transparent: true, opacity: 0.4,
+      depthWrite: false, side: THREE.DoubleSide,
+    })
+  );
+  glow.rotation.x = -Math.PI / 2;
+  glow.position.set(x, 0.05, z);
+  scene.add(glow);
+
+  const tip = textPlane('Sư Thầy · An Lạc', 360, 52, '#fff4dc', '#4a3018', 18);
+  tip.position.set(x, 2.22, z);
+  tip.scale.set(2.1, 0.4, 1);
+  scene.add(tip);
+
+  const bubbleEl = document.createElement('div');
+  bubbleEl.className = 'bubble3d su-say';
+  bubbleRoot.appendChild(bubbleEl);
+
+  suThayNpc = {
+    mesh, glow, tip, bubbleEl,
+    pos: new THREE.Vector3(x, 0, z),
+    sayUntil: 0, sayText: '',
+  };
+  S.suThayRoot = mesh;
+}
+
+function suThaySay(text, ms = 5200) {
+  if (!suThayNpc) return;
+  const line = String(text || '').trim().slice(0, 140);
+  if (!line) return;
+  suThayNpc.sayText = line;
+  suThayNpc.sayUntil = performance.now() + ms;
+  suThayNpc.bubbleEl.textContent = `🧘 ${line}`;
+  suThayNpc.bubbleEl.classList.add('on');
+  // Nhẹ nhàng gật
+  if (suThayNpc.mesh) {
+    suThayNpc.mesh.rotation.z = 0.08;
+    setTimeout(() => { if (suThayNpc?.mesh) suThayNpc.mesh.rotation.z = 0; }, 420);
+  }
+}
+
+function pickNearSuThay() {
+  if (!playerRoot || !suThayNpc) return null;
+  const d = Math.hypot(playerRoot.position.x - suThayNpc.pos.x, playerRoot.position.z - suThayNpc.pos.z);
+  if (d < SU_THAY_SPOT.r) return suThayNpc;
+  return null;
+}
+
+function openSuThayTalk() {
+  if (!suThayNpc || S.busy) return;
+  S.busy = true;
+  S.interactOpen = true;
+  const topics = SU_THAY_TOPICS.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+  const choices = topics.map((t, i) =>
+    `<button class="choice" type="button" data-su="${i}">${t.q}</button>`
+  ).join('');
+  openModal(`
+    <h2>🧘 Sư Thầy · trước tháp</h2>
+    <p>Thầy đứng trước bảo tháp, mỉm cười kiểu “biết rồi còn hỏi”. Con muốn hỏi gì?</p>
+    <div class="row">${choices}</div>
+    <div class="row" style="margin-top:8px">
+      <button class="choice" type="button" id="su-random">Xin thầy một câu hài</button>
+    </div>
+    <div class="row"><button class="btn secondary" id="m-cancel" type="button">Cúi chào rồi đi</button></div>
+  `);
+  const finish = (answer) => {
+    closeModal();
+    S.busy = false;
+    S.interactOpen = false;
+    suThaySay(answer);
+    S.suThayTalks = (S.suThayTalks | 0) + 1;
+    toast('🧘 Sư Thầy vừa thả một câu… hơi thiền, hơi hài');
+    if (S.suThayTalks === 1) {
+      setTimeout(() => gainCongDuc(3, 'Hỏi Sư Thầy', true), 400);
+    } else if (S.suThayTalks % 5 === 0) {
+      setTimeout(() => gainCongDuc(2, 'Hỏi Sư Thầy lần nữa', true), 400);
+    }
+  };
+  const body = $('modal-body');
+  topics.forEach((t, i) => {
+    const btn = body?.querySelector(`[data-su="${i}"]`);
+    if (btn) btn.onclick = () => finish(t.a);
+  });
+  $('su-random').onclick = () => {
+    finish(SU_THAY_QUIPS[(Math.random() * SU_THAY_QUIPS.length) | 0]);
+  };
+  $('m-cancel').onclick = () => {
+    closeModal();
+    S.busy = false;
+    S.interactOpen = false;
+    suThaySay('Đi nhẹ · hỏi lại khi tâm… hoặc khi hết pin.');
+  };
+}
+
+function maybeSuThayReplyToChat(text) {
+  if (!suThayNpc || !playerRoot) return;
+  const d = Math.hypot(playerRoot.position.x - suThayNpc.pos.x, playerRoot.position.z - suThayNpc.pos.z);
+  if (d > 5.5) return;
+  if (suThayNpc.sayUntil > performance.now()) return;
+  const low = (text || '').toLowerCase();
+  let reply = SU_THAY_CHAT_REPLIES[(Math.random() * SU_THAY_CHAT_REPLIES.length) | 0];
+  if (/chào|hello|hi |nam mô|a di đà/.test(low)) {
+    reply = 'Chào con. Nam mô… và cũng hello, thầy đa ngôn ngữ từ bi.';
+  } else if (/đói|phở|ăn/.test(low)) {
+    reply = 'Đói thì Phố An Lạc có phở. Thầy chỉ “ăn” công đức thôi — calories = 0.';
+  } else if (/buồn|stress|mệt/.test(low)) {
+    reply = 'Buồn thì đứng đây với thầy một phút. Tháp không phán xét — thầy cũng… gần như vậy.';
+  }
+  setTimeout(() => {
+    if (!S.playing) return;
+    suThaySay(reply, 5600);
+    toast('🧘 Sư Thầy đáp lại chat của bạn');
+  }, 700 + Math.random() * 500);
+}
+
+function updateSuThay(dt, t) {
+  if (!suThayNpc) return;
+  const p = suThayNpc;
+  if (p.glow?.material) {
+    p.glow.material.opacity = 0.28 + 0.14 * Math.sin(t * 2.0);
+  }
+  if (p.tip && camera) p.tip.quaternion.copy(camera.quaternion);
+  if (p.mesh) {
+    p.mesh.position.y = Math.sin(t * 1.25) * 0.012;
+    // Giữ tay chắp
+    if (p.mesh.userData.armL) p.mesh.userData.armL.rotation.set(-0.95, 0.15, 0.7);
+    if (p.mesh.userData.armR) p.mesh.userData.armR.rotation.set(-0.95, -0.15, -0.7);
+  }
+  if (p.sayUntil && performance.now() < p.sayUntil) {
+    _v.set(p.pos.x, 2.05, p.pos.z);
+    _v.project(camera);
+    if (_v.z < 1) {
+      p.bubbleEl.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
+      p.bubbleEl.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight - 8) + 'px';
+      p.bubbleEl.classList.add('on');
+    } else p.bubbleEl.classList.remove('on');
+  } else if (p.bubbleEl.classList.contains('on')) {
+    p.bubbleEl.classList.remove('on');
+    p.sayUntil = 0;
+  }
+}
+
+/* —— Chat người chơi (bong bóng trên đầu) —— */
+let localChatEl = null;
+function ensureLocalChatEl() {
+  if (localChatEl) return localChatEl;
+  localChatEl = document.createElement('div');
+  localChatEl.className = 'bubble3d chat-say';
+  nameLabels.appendChild(localChatEl);
+  return localChatEl;
+}
+
+function openChatBar() {
+  if (!S.playing) return;
+  S.chatOpen = true;
+  const bar = $('chat-bar');
+  const inp = $('chat-input');
+  const btn = $('btn-chat');
+  if (bar) {
+    bar.classList.add('open');
+    bar.setAttribute('aria-hidden', 'false');
+  }
+  if (btn) btn.classList.add('chat-on');
+  if (inp) {
+    inp.value = '';
+    setTimeout(() => inp.focus(), 30);
+  }
+}
+
+function closeChatBar() {
+  S.chatOpen = false;
+  const bar = $('chat-bar');
+  const btn = $('btn-chat');
+  if (bar) {
+    bar.classList.remove('open');
+    bar.setAttribute('aria-hidden', 'true');
+  }
+  if (btn) btn.classList.remove('chat-on');
+  const inp = $('chat-input');
+  if (inp && document.activeElement === inp) inp.blur();
+}
+
+function sendPlayerChat(raw) {
+  if (!S.playing || !playerRoot) return false;
+  const text = String(raw || '').trim().replace(/\s+/g, ' ').slice(0, 72);
+  if (!text) return false;
+  const now = performance.now();
+  if (now < (S._chatCooldown || 0)) {
+    toast('Chat chậm thôi — để mọi người kịp đọc trên đầu bạn');
+    return false;
+  }
+  S._chatCooldown = now + 1200;
+  S.chatText = text;
+  S.chatUntil = now + 5500;
+  const el = ensureLocalChatEl();
+  el.textContent = text;
+  el.classList.add('on');
+  closeChatBar();
+  toast('💬 Đã hiện trên đầu bạn');
+  // Đồng bộ online
+  try {
+    if (fbDb && S.uid) {
+      update(ref(fbDb, `players/${S.uid}`), {
+        chat: text,
+        chatAt: Date.now(),
+        t: Date.now(),
+      });
+    }
+  } catch (_) {}
+  maybeSuThayReplyToChat(text);
+  return true;
+}
+
+function updateLocalChatBubble() {
+  if (!localChatEl || !playerRoot) return;
+  if (!S.chatUntil || performance.now() >= S.chatUntil) {
+    localChatEl.classList.remove('on');
+    return;
+  }
+  // FPS: vẫn hiện hơi cao trên đầu / gần camera
+  const y = S.fpsMode ? 1.55 : 2.05;
+  _v.set(playerRoot.position.x, playerRoot.position.y + y, playerRoot.position.z);
+  _v.project(camera);
+  if (_v.z < 1) {
+    localChatEl.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
+    localChatEl.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight - 12) + 'px';
+    localChatEl.classList.add('on');
+  } else localChatEl.classList.remove('on');
+}
+
 /* —— Vận mệnh ngắn trên sân (sau xin quẻ) —— */
 const FATE_YARD_SPOTS = [
   { x: 1.2, z: 5.4 },
@@ -14491,6 +15733,21 @@ function startPlay() {
 $('btn-view').onclick = () => toggleFpsMode();
 $('btn-mute').onclick = () => setMute(!S.muted);
 $('btn-book').onclick = () => openBook();
+$('btn-chat') && ($('btn-chat').onclick = () => {
+  if (S.chatOpen) closeChatBar();
+  else openChatBar();
+});
+$('chat-send') && ($('chat-send').onclick = () => sendPlayerChat($('chat-input')?.value || ''));
+$('chat-close') && ($('chat-close').onclick = () => closeChatBar());
+$('chat-input') && ($('chat-input').onkeydown = (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    sendPlayerChat($('chat-input').value || '');
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    closeChatBar();
+  }
+});
 const _warpStreet = (e) => { e?.preventDefault?.(); goToStreetGate(); };
 $('btn-street') && ($('btn-street').onclick = _warpStreet);
 $('btn-street-fab') && ($('btn-street-fab').onclick = _warpStreet);
@@ -14507,6 +15764,7 @@ $('action-btn').onclick = () => {
   if (S.hotHoDraw) { cancelHotHoDraw(); return; }
   if (S.muaTraHen) { cancelMuaTraHen(); return; }
   if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
+  if (S.bongDaAct) { cancelBongDaAct(); return; }
   if (S.phoVangCall) { cancelGioVangCall(); return; }
   if (S.musicMode) { closeMusicPanel(); return; }
   if (S.busy && S.interactOpen) { cancelNpcInteract(); return; }
@@ -14561,6 +15819,10 @@ $('action-btn').onclick = () => {
   }
   if (S.nearStamp) {
     collectTempleStamp(S.nearStamp);
+    return;
+  }
+  if (S.nearSuThay) {
+    openSuThayTalk();
     return;
   }
   // Pilgrim errand destination — finish short help quest
@@ -14622,6 +15884,10 @@ $('action-btn').onclick = () => {
   }
   if (S.nearBoyPho) {
     startBoyPhoAct();
+    return;
+  }
+  if (S.nearBongDa) {
+    startBongDaAct();
     return;
   }
   if (S.nearGioVang) {
@@ -14739,8 +16005,10 @@ addEventListener('keydown', e => {
     if (S.hotHoDraw) { cancelHotHoDraw(); return; }
     if (S.muaTraHen) { cancelMuaTraHen(); return; }
     if (S.boyPhoAct) { cancelBoyPhoAct(); return; }
+    if (S.bongDaAct) { cancelBongDaAct(); return; }
     if (S.phoVangCall) { cancelGioVangCall(); return; }
     if (S.musicMode) { closeMusicPanel(); return; }
+    if (S.chatOpen) { closeChatBar(); return; }
     if (typingInField()) return;
     if (S.interactOpen || $('modal')?.classList.contains('open') || $('bts-bar')?.classList.contains('show') || $('combat-bar')?.classList.contains('show')) {
       cancelNpcInteract();
@@ -14757,6 +16025,10 @@ addEventListener('keydown', e => {
     if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') toggleAiming();
     if (e.code === 'KeyV') toggleFpsMode();
     if (e.code === 'KeyP') goToStreetGate();
+    if (e.code === 'KeyT') {
+      if (S.chatOpen) closeChatBar();
+      else openChatBar();
+    }
     if (e.code === 'KeyM') {
       if (S.musicMode) closeMusicPanel();
       else openMusicPanel();
@@ -15528,6 +16800,7 @@ function openBook() {
   const muaTraLogs = (S.muaTraLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa hẹn trà mưa lần nào</li>';
   const phoVangLogs = (S.phoVangLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa gọi Giờ Vàng lần nào</li>';
   const boyPhoLogs = (S.boyPhoLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa chào Boy Phố lần nào</li>';
+  const bongDaLogs = (S.bongDaLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa chạm bóng lần nào</li>';
   const phoKyLogs = (S.phoKyAoLog || []).slice().reverse().slice(0, 8).map(c => `<li>${c.text}<br><span class="tiny">${new Date(c.at).toLocaleDateString('vi')}</span></li>`).join('') || '<li>Chưa chứng kiến điều kỳ nào trên phố</li>';
   const phoKyChecks = [
     S.phoKyAoSeen?.mirror ? '✅ Gương' : '⬜ Gương',
@@ -15572,6 +16845,13 @@ function openBook() {
     S.banPho ? '✅ Bạn Phố' : '⬜ Bạn Phố',
     S.anhEmPho ? '✅ Anh Em Phố' : '⬜ Anh Em Phố',
   ].join(' · ');
+  const bongDaModes = [
+    (S.bongDaChams | 0) > 0 ? '✅ Chạm bóng' : '⬜ Chạm bóng',
+    (S.bongDaBans | 0) > 0 ? '✅ Bàn thắng' : '⬜ Bàn thắng',
+    (S.bongDaVolleys | 0) > 0 ? '✅ Volley bay' : '⬜ Volley bay',
+    S.cauThuPho ? '✅ Cầu Thủ Phố' : '⬜ Cầu Thủ Phố',
+    S.sieuSaoHe ? '✅ Siêu Sao Hè' : '⬜ Siêu Sao Hè',
+  ].join(' · ');
   const phoVangBest = phoVangTierLabel(S.phoVangBestTier || '') || '—';
   openModal(`
     <h2>Sổ cầu an của tôi</h2>
@@ -15584,7 +16864,7 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin-top:6px">${nextLine}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🔥 Chuỗi ngày: <strong>${dailyBook.streak}</strong>${dailyBook.flair}${dailyBook.clearNote}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">Ấn khám phá: ${stamps}</p>
-    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}</p>
+    <p class="tiny" style="text-align:center;margin-top:4px">Chuỗi vận phiên này: <strong>${S.fateStreak | 0}</strong> · Cầu chung: <strong>${S.coopStreak | 0}</strong> · Giúp hành hương: <strong>${S.pilgrimSessionDone | 0}</strong>${S.khachHoi ? ' · 🎉 Khách Hội' : ''}${S.khachPho ? ' · 🛤️ Khách Phố' : ''}${S.chungNhanPho ? ' · ✨ Chứng Nhân Phố' : ''}${S.thoNem ? ' · 🥩 Thợ Nem Thanh Hóa' : ''}${S.hanhKhachXichLo ? ' · 🛺 Hành Khách Xích Lô' : ''}${S.caSiViaHe ? ' · 🎤 Ca Sĩ Vỉa Hè' : ''}${S.chuHo ? ' · 🎲 Chủ Họ' : ''}${S.banTraMua ? ' · 🧊 Bạn Trà Mưa' : ''}${S.khachGioVang ? ' · ✨ Khách Giờ Vàng' : ''}${S.anhEmPho ? ' · 🛹 Anh Em Phố' : (S.banPho ? ' · 🛹 Bạn Phố' : '')}${S.sieuSaoHe ? ' · 🌟 Siêu Sao Hè' : (S.cauThuPho ? ' · ⚽ Cầu Thủ Phố' : '')}${S.vuaTruGian ? ' · 👑 Vua Trừ Gian' : (S.truGian ? ' · 🛡️ Trừ Gian' : '')}${S.khachSenBay ? ' · 🪷 Khách Sen Bay' : ''}${S.nguoiDaoThoi ? ' · ⏳ Người Đảo Thời' : ''}${S.khachTangTroi ? ' · 🏯 Khách Tầng Trời' : ''}${S.khachNghePhap ? ' · 🙏 Khách Nghe Pháp' : ''}${S.khachQuaCua ? ' · 🚪 Khách Qua Cửa' : ''}</p>
     <p class="tiny" style="text-align:center;margin-top:4px">🌦️ Đang: <strong>${weatherNow}</strong></p>
     <p class="tiny" style="text-align:center;margin-top:4px">${S.btsKisses} nụ hôn · ${S.btsHugs} cái ôm · ${S.btsSigs} chữ ký BTS${S.btsPrincessMode ? ' · 👑 Công Chúa' : ''}${S.btsRoyalRing ? ' · 💍 Nhẫn HG' : ''}</p>
     <h2 style="font-size:1rem;margin-top:8px">📋 Mục tiêu hôm nay</h2>
@@ -15608,7 +16888,7 @@ function openBook() {
     <ul class="book-list">${phatLogs}</ul>
     <h2 style="font-size:1rem;margin-top:8px">🚪 Cửa Mở · Năm Phép</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã bước ngưỡng <strong>${S.cuaMoCrosses | 0}</strong> lần${S.khachQuaCua ? ' · flair Khách Qua Cửa' : ''} · tượng đậu chỗ <strong>${(S.tuongDaoIdx | 0) + 1}/3</strong></p>
-    <p class="tiny" style="text-align:center;margin:0 0 8px">Cửa Thở · Ngưỡng Vàng · Tượng Dạo · Quang Phật · Lối Hoa</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">Lối Mở · Ngưỡng Vàng · Tượng Dạo · Quang Phật · Lối Hoa</p>
     <h2 style="font-size:1rem;margin-top:8px">🎵 Nghe nhạc · Phố An Lạc</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Đã mở <strong>${S.musicPlays | 0}</strong> lần · bắt <strong>${S.musicNotesCaught | 0}</strong> nốt sống${S.khachHoaAm ? ' · 🎶 Khách Hòa Âm' : ''}${S.musicPlaying ? ` · đang phát: <strong>${(S.musicTitle || 'YouTube').slice(0, 36)}</strong>` : ''}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">Phép màn: Bay lên · Chiếu mây · Nốt sống · Đám đông nhún · Hòa nhịp</p>
@@ -15645,6 +16925,10 @@ function openBook() {
     <p class="tiny" style="text-align:center;margin:4px 0 8px">Chào <strong>${S.boyPhoChaos | 0}</strong> · tụ <strong>${S.boyPhoHangs | 0}</strong> · đua <strong>${S.boyPhoRaces | 0}</strong>${S.anhEmPho ? ' · flair Anh Em Phố' : (S.banPho ? ' · flair Bạn Phố' : '')}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">${boyPhoModes}</p>
     <ul class="book-list">${boyPhoLogs}</ul>
+    <h2 style="font-size:1rem;margin-top:8px">⚽ Phố An Lạc · Bóng Đá Vỉa Hè</h2>
+    <p class="tiny" style="text-align:center;margin:4px 0 8px">Chạm <strong>${S.bongDaChams | 0}</strong> · bàn <strong>${S.bongDaBans | 0}</strong> · volley <strong>${S.bongDaVolleys | 0}</strong>${S.sieuSaoHe ? ' · flair Siêu Sao Hè' : (S.cauThuPho ? ' · flair Cầu Thủ Phố' : '')}</p>
+    <p class="tiny" style="text-align:center;margin:0 0 8px">${bongDaModes}</p>
+    <ul class="book-list">${bongDaLogs}</ul>
     <h2 style="font-size:1rem;margin-top:8px">✨ Phố An Lạc · kỳ ảo</h2>
     <p class="tiny" style="text-align:center;margin:4px 0 8px">${phoKyChecks}${S.chungNhanPho ? ' · flair Chứng Nhân Phố' : ''}</p>
     <p class="tiny" style="text-align:center;margin:0 0 8px">Thư đã nhặt: <strong>${S.paperNotesRead | 0}</strong></p>
@@ -15762,7 +17046,14 @@ function makeRemoteAvatar(uid, name) {
   label.style.borderColor = 'rgba(109,207,109,.55)';
   label.textContent = name || 'Bạn';
   nameLabels.appendChild(label);
-  return { mesh: g, name: name || 'Bạn', label, tx: 0, tz: 8, tyaw: 0, emoteUntil: 0, gunType: '', hp: MAX_HP };
+  const chatEl = document.createElement('div');
+  chatEl.className = 'bubble3d chat-say';
+  nameLabels.appendChild(chatEl);
+  return {
+    mesh: g, name: name || 'Bạn', label, chatEl,
+    chatText: '', chatUntil: 0,
+    tx: 0, tz: 8, tyaw: 0, emoteUntil: 0, gunType: '', hp: MAX_HP,
+  };
 }
 
 async function connectMultiplayer() {
@@ -15835,10 +17126,21 @@ async function connectMultiplayer() {
         rp.emoteType = data.emote;
         if (data.emote === 'kill' && !rp.reviving) reviveRemoteAtGate(rp);
       }
+      if (data.chat && data.chatAt && now - data.chatAt < 5500) {
+        rp.chatText = String(data.chat).slice(0, 72);
+        rp.chatUntil = data.chatAt + 5500;
+        if (rp.chatEl) {
+          rp.chatEl.textContent = rp.chatText;
+          rp.chatEl.classList.add('on');
+        }
+      }
     }
     for (const [id, rp] of remotePlayers) {
       if (!alive.has(id)) {
-        scene.remove(rp.mesh); rp.label.remove(); remotePlayers.delete(id);
+        scene.remove(rp.mesh);
+        rp.label.remove();
+        rp.chatEl?.remove();
+        remotePlayers.delete(id);
         toast(`${rp.name} đã rời chùa`);
       }
     }
@@ -16832,10 +18134,22 @@ function updateRemotes(dt) {
     _v.set(rp.mesh.position.x, 1.9, rp.mesh.position.z);
     _v.project(camera);
     if (_v.z < 1) {
-      rp.label.style.left = ((_v.x * 0.5 + 0.5) * innerWidth) + 'px';
-      rp.label.style.top = ((-_v.y * 0.5 + 0.5) * innerHeight) + 'px';
+      const lx = ((_v.x * 0.5 + 0.5) * innerWidth);
+      const ly = ((-_v.y * 0.5 + 0.5) * innerHeight);
+      rp.label.style.left = lx + 'px';
+      rp.label.style.top = ly + 'px';
       rp.label.classList.add('on');
-    } else rp.label.classList.remove('on');
+      if (rp.chatEl && rp.chatUntil > now) {
+        rp.chatEl.style.left = lx + 'px';
+        rp.chatEl.style.top = (ly - 28) + 'px';
+        rp.chatEl.classList.add('on');
+      } else if (rp.chatEl) {
+        rp.chatEl.classList.remove('on');
+      }
+    } else {
+      rp.label.classList.remove('on');
+      rp.chatEl?.classList.remove('on');
+    }
   }
 }
 
@@ -16999,66 +18313,75 @@ function updatePlayer(dt) {
     ? pickNearFestival() : null;
   S.nearStamp = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival && !S.busy)
     ? pickNearStamp() : null;
-  S.nearPilgrimTarget = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+  S.nearSuThay = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
     && !S.nearStamp && !S.busy)
+    ? pickNearSuThay() : null;
+  S.nearPilgrimTarget = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.nearSuThay && !S.busy)
     ? pickNearPilgrimTarget() : null;
   S.nearPilgrim = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.busy)
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.busy)
     ? pickNearPilgrim() : null;
   S.nearGossip = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.busy)
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.busy)
     ? pickNearGossip() : null;
   // Shops after gossip — circle “Hỏi chuyện” wins if both near (tea → mưa trà)
   S.nearShop = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.busy)
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.busy)
     ? pickNearShop() : null;
   // Mưa trà ghế đôi — sau cafe/pho/hair, thay cửa trà đá; trước kỳ ảo / karaoke / hốt họ
   S.nearMuaTra = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.busy)
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.busy)
     ? pickNearMuaTra() : null;
   // Phố Kỳ Ảo — sau quán / mưa trà, trước karaoke
   const freeWonder = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.busy);
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra && !S.busy);
   S.nearMirrorPuddle = freeWonder ? pickNearMirrorPuddle() : null;
   S.nearRewindLamp = (!S.nearMirrorPuddle && freeWonder) ? pickNearRewindLamp() : null;
   S.nearLoveLight = (!S.nearMirrorPuddle && !S.nearRewindLamp && freeWonder) ? pickNearLoveLight() : null;
   S.nearPaperMail = (!S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && freeWonder) ? pickNearPaperMail() : null;
   // Karaoke loa kéo vỉa hè — sau cửa quán / mưa trà / kỳ ảo
   S.nearKaraoke = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.busy)
     ? pickNearKaraoke() : null;
   // Hốt họ south curb
   S.nearHotHo = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.busy)
     ? pickNearHotHo() : null;
   // Nhà nem chua trong hẻm
   S.nearNemChua = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo && !S.busy)
     ? pickNearNemChua() : null;
   // Xe chiến lợi phẩm phóng lợn
   S.nearPhongLonWreck = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo && !S.nearNemChua && !S.busy)
     ? pickNearPhongLonWreck() : null;
   // Bến xích lô
   S.nearXichLo = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo && !S.nearNemChua && !S.nearPhongLonWreck && !S.busy)
     ? pickNearXichLo() : null;
-  // Boy Phố · Đội Hè — sau xích lô, trước Giờ Vàng
+  // Boy Phố · Đội Hè — sau xích lô, trước Bóng Đá / Giờ Vàng
   S.nearBoyPho = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo
     && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.busy)
     ? pickNearBoyPho() : null;
-  // Giờ Vàng · Đèn Bay — thấp nhất trong chuỗi phố (sau Boy Phố)
-  S.nearGioVang = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
-    && !S.nearStamp && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+  // Bóng Đá Vỉa Hè — sau Boy Phố, trước Giờ Vàng
+  S.nearBongDa = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
     && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo
     && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.nearBoyPho && !S.busy)
+    ? pickNearBongDa() : null;
+  // Giờ Vàng · Đèn Bay — thấp nhất trong chuỗi phố (sau Bóng Đá)
+  S.nearGioVang = (!S.nearBts && !S.nearThapMo && !S.nearPhatNoi && !S.nearSenBay && !S.nearMusic && !S.nearPrincessSecret && !S.nearFate && !S.nearFestival
+    && !S.nearStamp && !S.nearSuThay && !S.nearPilgrimTarget && !S.nearPilgrim && !S.nearGossip && !S.nearShop && !S.nearMuaTra
+    && !S.nearMirrorPuddle && !S.nearRewindLamp && !S.nearLoveLight && !S.nearPaperMail && !S.nearKaraoke && !S.nearHotHo
+    && !S.nearNemChua && !S.nearPhongLonWreck && !S.nearXichLo && !S.nearBoyPho && !S.nearBongDa && !S.busy)
     ? pickNearGioVang() : null;
 
   // Soft tip near festival marker
@@ -17067,6 +18390,15 @@ function updatePlayer(dt) {
     if (now - (S._festivalTipAt || 0) > 14000) {
       S._festivalTipAt = now;
       toast('🎉 Đúng giờ hội — Thả hoa hội tại vòng sáng cam');
+    }
+  }
+
+  // Soft tip near Sư Thầy
+  if (S.nearSuThay) {
+    const now = performance.now();
+    if (now - (S._suThayTipAt || 0) > 18000) {
+      S._suThayTipAt = now;
+      toast('🧘 Sư Thầy trước tháp — lại nói chuyện (giọng hơi… hài)');
     }
   }
 
@@ -17186,6 +18518,17 @@ function updatePlayer(dt) {
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
+  } else if (S.bongDaAct) {
+    const left = Math.max(0, (S.bongDaAct.dur - S.bongDaAct.t) | 0);
+    const kind = S.bongDaAct.kind;
+    btn.textContent = kind === 'volley'
+      ? `Hủy · hạ bóng (${left}s)`
+      : kind === 'sut'
+        ? `Hủy · dừng sút (${left}s)`
+        : `Hủy · thôi chạm (${left}s)`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
   } else if (S.phoVangCall) {
     const left = Math.max(0, (S.phoVangCall.dur - S.phoVangCall.t) | 0);
     btn.textContent = `Hủy · hạ đèn (${left}s)`;
@@ -17251,6 +18594,12 @@ function updatePlayer(dt) {
     S.interactOpen = false;
   } else if (!S.busy && S.nearStamp) {
     btn.textContent = `Thu thập ấn · ${S.nearStamp.label.replace(/^Ấn\s*/, '')}`;
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
+  } else if (!S.busy && S.nearSuThay) {
+    btn.textContent = 'Nói chuyện · Sư Thầy';
     btn.classList.add('show');
     cbar.classList.remove('show');
     bbar.classList.remove('show');
@@ -17380,6 +18729,12 @@ function updatePlayer(dt) {
     cbar.classList.remove('show');
     bbar.classList.remove('show');
     S.interactOpen = false;
+  } else if (!S.busy && S.nearBongDa) {
+    btn.textContent = bongDaVerbLabel(pickBongDaVerb());
+    btn.classList.add('show');
+    cbar.classList.remove('show');
+    bbar.classList.remove('show');
+    S.interactOpen = false;
   } else if (!S.busy && S.nearGioVang) {
     btn.textContent = 'Gọi Giờ Vàng';
     btn.classList.add('show');
@@ -17481,6 +18836,8 @@ function updateWorld(dt, t) {
   updateTempleStampsVisual(t);
   updateFateEvent(dt, t);
   updatePilgrimNpcs(dt, t);
+  updateSuThay(dt, t);
+  updateLocalChatBubble();
   updateGossipCircle(dt, t);
   updateNemChuaAlley(t);
   updateFestivalFx(dt, t);
@@ -17526,12 +18883,14 @@ function updateWorld(dt, t) {
   updateThapMo(dt, t);
   updatePhatNoi(dt, t);
   updateCuaMoFantasy(dt, t);
+  updateHallFx(dt, t);
   updateXichLo(dt, t);
   updateKaraoke(dt, t);
   updatePhoKyAo(dt, t);
   updateHotHo(dt, t);
   updateMuaTra(dt, t);
   updateBoyPho(dt, t);
+  updateBongDa(dt, t);
   updateGioVang(dt, t);
   updatePhongLon(dt, t);
   updateMusicScreenFx(dt, t);
@@ -17584,6 +18943,7 @@ function bootGame() {
     buildSenBay();
     buildYardMusicScreen();
     buildPilgrimNpcs();
+    buildSuThayNpc();
     buildFestivalFx();
     updateMeritHud();
     updateTimeHud();

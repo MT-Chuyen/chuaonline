@@ -1,11 +1,11 @@
 {
-  "active": false,
-  "iteration": 10,
+  "active": true,
+  "iteration": 3,
   "maxIterations": 10,
-  "next": "stop",
+  "next": "agent2",
   "lastAgent": "agent1",
-  "lastTask": "agents/tasks/TASK-20261102-2115-pho-an-lac.md",
-  "goal": "Phố An Lạc loop complete (10/10) — shops, street events, Giờ Vàng closer + preserved pagoda fantasies",
-  "updatedAt": "2026-11-02T21:25:09+07:00",
-  "focus": "street"
+  "lastTask": "agents/tasks/TASK-20261102-2228-pho-an-lac.md",
+  "goal": "Phố An Lạc 10-loop restart",
+  "focus": "street",
+  "updatedAt": "2026-11-02T22:29:24+07:00"
 }

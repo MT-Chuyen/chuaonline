@@ -249,7 +249,7 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x2a1830);
 scene.fog = new THREE.FogExp2(0x2a1830, 0.012);
 
-const camera = new THREE.PerspectiveCamera(52, innerWidth / innerHeight, 0.15, 140);
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.15, 200);
 const clock = new THREE.Clock();
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3();
 
@@ -264,7 +264,7 @@ const S = {
   day: new Date().toDateString(),
   sticks: [], ribbons: [], floats: [], lanterns: [],
   smoke: null, fireflies: null, petals: null,
-  dusk: 0, shake: 0, fortuneMode: false, busy: false,
+  dusk: 0.55, shake: 0, fortuneMode: false, busy: false,
   groupTimer: 40,
   uid: null, online: false, nearPlayer: null, onlineCount: 0,
   netVisit: null, seenWishes: Object.create(null),
@@ -997,129 +997,123 @@ function makeMilkyTex() {
   ctx.fillStyle = g; ctx.fillRect(0, 0, 512, 128);
   const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; return tex;
 }
+function noFog(mat) { mat.fog = false; return mat; }
+
 function buildSky() {
   const sky = new THREE.Group();
   S.sky = { root: sky, craft: [], sats: [] };
 
-  // Vòm trời đêm
+  // Vòm trời đêm (gần hơn, không bị fog nuốt)
   const dome = new THREE.Mesh(
-    new THREE.SphereGeometry(90, 24, 16),
-    new THREE.MeshBasicMaterial({ color: 0x050814, side: THREE.BackSide, depthWrite: false, transparent: true, opacity: 0 })
+    new THREE.SphereGeometry(80, 24, 16),
+    noFog(new THREE.MeshBasicMaterial({ color: 0x070b18, side: THREE.BackSide, depthWrite: false, transparent: true, opacity: 0.9 }))
   );
   sky.add(dome); S.sky.dome = dome;
 
-  // Sao
-  const SN = 900;
-  const spos = new Float32Array(SN * 3), ssize = new Float32Array(SN);
+  // Sao — gần overhead, size lớn, không fog, không sizeAttenuation
+  const SN = 700;
+  const spos = new Float32Array(SN * 3);
   for (let i = 0; i < SN; i++) {
-    const u = Math.random(), v = Math.random();
-    const th = u * Math.PI * 2;
-    const ph = Math.acos(2 * v - 1); // full sphere but we'll lift
-    const r = 70 + Math.random() * 15;
-    spos[i*3] = r * Math.sin(ph) * Math.cos(th);
-    spos[i*3+1] = Math.abs(r * Math.cos(ph)) * 0.55 + 25 + Math.random() * 40; // nửa trên
-    spos[i*3+2] = r * Math.sin(ph) * Math.sin(th);
-    ssize[i] = 0.5 + Math.random() * 1.8;
+    const th = Math.random() * Math.PI * 2;
+    const elev = 0.15 + Math.random() * 1.2; // chủ yếu trên đầu
+    const r = 35 + Math.random() * 30;
+    spos[i * 3] = Math.cos(th) * Math.cos(elev) * r;
+    spos[i * 3 + 1] = 12 + Math.sin(elev) * r;
+    spos[i * 3 + 2] = Math.sin(th) * Math.cos(elev) * r;
   }
   const sgeo = new THREE.BufferGeometry();
   sgeo.setAttribute('position', new THREE.BufferAttribute(spos, 3));
-  const stars = new THREE.Points(sgeo, new THREE.PointsMaterial({
-    color: 0xe8f0ff, size: 0.35, transparent: true, opacity: 0, depthWrite: false, sizeAttenuation: true,
-  }));
+  const stars = new THREE.Points(sgeo, noFog(new THREE.PointsMaterial({
+    color: 0xffffff, size: 2.2, transparent: true, opacity: 1, depthWrite: false, sizeAttenuation: false,
+  })));
   sky.add(stars); S.sky.stars = stars;
 
-  // Ngân Hà
+  // Ngân Hà — vắt ngang bầu trời phía trên
   const milky = new THREE.Mesh(
-    new THREE.PlaneGeometry(120, 28),
-    new THREE.MeshBasicMaterial({ map: makeMilkyTex(), transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide })
+    new THREE.PlaneGeometry(70, 18),
+    noFog(new THREE.MeshBasicMaterial({ map: makeMilkyTex(), transparent: true, opacity: 0.75, depthWrite: false, side: THREE.DoubleSide }))
   );
-  milky.position.set(10, 55, -30); milky.rotation.y = 0.5; milky.rotation.z = 0.35;
+  milky.position.set(0, 38, -8); milky.rotation.x = -0.2; milky.rotation.z = 0.4;
   sky.add(milky); S.sky.milky = milky;
 
-  // Trái Đất trên bầu trời
-  const earth = new THREE.Mesh(
-    new THREE.SphereGeometry(7, 24, 16),
-    new THREE.MeshStandardMaterial({
-      map: makeEarthTex(), roughness: 0.7, metalness: 0.1,
-      emissive: 0x112244, emissiveIntensity: 0.25, transparent: true, opacity: 0,
-    })
-  );
-  earth.position.set(-35, 48, -40);
-  // khí quyển
+  // Trái Đất — to, gần, phía trên-trước khi ngẩng nhìn
+  const earthMat = noFog(new THREE.MeshStandardMaterial({
+    map: makeEarthTex(), roughness: 0.65, metalness: 0.05,
+    emissive: 0x1a3355, emissiveIntensity: 0.55,
+  }));
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(5.5, 28, 18), earthMat);
+  earth.position.set(-12, 32, -18);
   const atmo = new THREE.Mesh(
-    new THREE.SphereGeometry(7.4, 16, 12),
-    new THREE.MeshBasicMaterial({ color: 0x6699ff, transparent: true, opacity: 0, side: THREE.BackSide, depthWrite: false })
+    new THREE.SphereGeometry(5.9, 16, 12),
+    noFog(new THREE.MeshBasicMaterial({ color: 0x66aaff, transparent: true, opacity: 0.22, side: THREE.BackSide, depthWrite: false }))
   );
   earth.add(atmo); S.sky.atmo = atmo;
   sky.add(earth); S.sky.earth = earth;
 
-  // Mặt trăng nhỏ
+  // Mặt trăng
   const moon = new THREE.Mesh(
-    new THREE.SphereGeometry(2.2, 12, 10),
-    new THREE.MeshStandardMaterial({ color: 0xf0e8d0, roughness: 0.9, emissive: 0x887766, emissiveIntensity: 0.2, transparent: true, opacity: 0 })
+    new THREE.SphereGeometry(2.8, 14, 12),
+    noFog(new THREE.MeshStandardMaterial({ color: 0xfff5e0, roughness: 0.85, emissive: 0xaa9966, emissiveIntensity: 0.45 }))
   );
-  moon.position.set(40, 42, -25); sky.add(moon); S.sky.moon = moon;
+  moon.position.set(16, 30, -12); sky.add(moon); S.sky.moon = moon;
 
-  // Vệ tinh (satellites)
+  // Vệ tinh — quỹ đạo gần, to hơn
   for (let i = 0; i < 5; i++) {
     const sat = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.35, 0.35), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.7, roughness: 0.3, emissive: 0x333333, emissiveIntensity: 0.2 }));
-    sat.add(body);
-    const panel = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.05, 0.5), new THREE.MeshStandardMaterial({ color: 0x2244aa, metalness: 0.5, emissive: 0x112266, emissiveIntensity: 0.3 }));
-    sat.add(panel);
-    const blink = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 4), new THREE.MeshBasicMaterial({ color: 0xff2222 }));
-    blink.position.set(0.35, 0.15, 0); sat.add(blink);
-    sat.userData = { kind: 'sat', a: Math.random() * 6.28, speed: 0.08 + Math.random() * 0.12, r: 45 + Math.random() * 20, y: 35 + Math.random() * 25, blink };
+    sat.add(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.45, 0.45), noFog(new THREE.MeshStandardMaterial({ color: 0xeeeeee, metalness: 0.7, roughness: 0.3, emissive: 0x444444, emissiveIntensity: 0.35 }))));
+    sat.add(new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.06, 0.7), noFog(new THREE.MeshStandardMaterial({ color: 0x3366cc, metalness: 0.5, emissive: 0x113388, emissiveIntensity: 0.45 }))));
+    const blink = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 4), noFog(new THREE.MeshBasicMaterial({ color: 0xff3333 })));
+    blink.position.set(0.5, 0.25, 0); sat.add(blink);
+    sat.scale.setScalar(1.4);
+    sat.userData = { kind: 'sat', a: (i / 5) * 6.28, speed: 0.25 + Math.random() * 0.15, r: 22 + i * 3, y: 24 + (i % 3) * 3, blink };
     sky.add(sat); S.sky.sats.push(sat);
   }
 
-  // Máy bay
+  // Máy bay — bay thấp hơn để dễ thấy
   for (let i = 0; i < 3; i++) {
     const plane = new THREE.Group();
-    const fuselage = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 0.9, 3, 6), new THREE.MeshStandardMaterial({ color: 0xe8e8e8, roughness: 0.5, metalness: 0.3 }));
+    const fuselage = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 1.3, 3, 6), noFog(new THREE.MeshStandardMaterial({ color: 0xf0f0f0, roughness: 0.45, metalness: 0.35, emissive: 0x333333, emissiveIntensity: 0.15 })));
     fuselage.rotation.z = Math.PI / 2; plane.add(fuselage);
-    const wing = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.06, 0.35), new THREE.MeshStandardMaterial({ color: 0xd0d0d0, metalness: 0.25 }));
-    plane.add(wing);
-    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, 0.25), new THREE.MeshStandardMaterial({ color: 0xd0d0d0 }));
-    tail.position.set(-0.45, 0.15, 0); plane.add(tail);
-    const navL = new THREE.Mesh(new THREE.SphereGeometry(0.06, 5, 4), new THREE.MeshBasicMaterial({ color: 0xff2222 }));
-    navL.position.set(0, 0, 0.7); plane.add(navL);
-    const navR = new THREE.Mesh(new THREE.SphereGeometry(0.06, 5, 4), new THREE.MeshBasicMaterial({ color: 0x22ff44 }));
-    navR.position.set(0, 0, -0.7); plane.add(navR);
-    plane.userData = { kind: 'aircraft', x: -80 + Math.random() * 40, y: 28 + Math.random() * 12, z: -20 + Math.random() * 40, speed: 4 + Math.random() * 3, phase: Math.random() * 6.28 };
-    plane.scale.setScalar(1.2); sky.add(plane); S.sky.craft.push(plane);
+    plane.add(new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.08, 0.5), noFog(new THREE.MeshStandardMaterial({ color: 0xe0e0e0, metalness: 0.3 }))));
+    const tail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.35), noFog(new THREE.MeshStandardMaterial({ color: 0xe0e0e0 })));
+    tail.position.set(-0.65, 0.2, 0); plane.add(tail);
+    const navL = new THREE.Mesh(new THREE.SphereGeometry(0.1, 5, 4), noFog(new THREE.MeshBasicMaterial({ color: 0xff2222 })));
+    navL.position.set(0, 0, 1.05); plane.add(navL);
+    const navR = new THREE.Mesh(new THREE.SphereGeometry(0.1, 5, 4), noFog(new THREE.MeshBasicMaterial({ color: 0x22ff44 })));
+    navR.position.set(0, 0, -1.05); plane.add(navR);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 5, 4), noFog(new THREE.MeshBasicMaterial({ color: 0xffffaa })));
+    nose.position.set(0.75, 0, 0); plane.add(nose);
+    plane.userData = { kind: 'aircraft', x: -40 + i * 25, y: 16 + i * 2.5, z: -5 + i * 4, speed: 5.5 + i, phase: i };
+    plane.scale.setScalar(1.8); sky.add(plane); S.sky.craft.push(plane);
   }
 
-  // Starship / spacecraft
+  // Starship / spacecraft — gần, sáng, rõ
   const ships = [
-    { color: 0x88aacc, scale: 1.6 },
-    { color: 0xaacc88, scale: 1.3 },
-    { color: 0xcc88aa, scale: 1.8 },
+    { color: 0x66ccff, scale: 2.4 },
+    { color: 0xaaff77, scale: 2.0 },
+    { color: 0xff88cc, scale: 2.8 },
   ];
   ships.forEach((cfg, i) => {
     const ship = new THREE.Group();
-    const hull = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.4, 6), new THREE.MeshStandardMaterial({ color: cfg.color, metalness: 0.6, roughness: 0.35, emissive: cfg.color, emissiveIntensity: 0.15 }));
+    const hull = new THREE.Mesh(new THREE.ConeGeometry(0.45, 1.8, 6), noFog(new THREE.MeshStandardMaterial({ color: cfg.color, metalness: 0.55, roughness: 0.3, emissive: cfg.color, emissiveIntensity: 0.35 })));
     hull.rotation.z = Math.PI / 2; ship.add(hull);
-    const cabin = new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), new THREE.MeshStandardMaterial({ color: 0x88ddff, emissive: 0x226688, emissiveIntensity: 0.5, transparent: true, opacity: 0.85 }));
-    cabin.position.x = 0.35; ship.add(cabin);
-    // cánh
-    const fin = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.8, 0.08), new THREE.MeshStandardMaterial({ color: cfg.color, metalness: 0.5 }));
-    fin.position.set(-0.3, 0.3, 0); ship.add(fin);
-    // động cơ sáng
-    const thruster = new THREE.Mesh(new THREE.SphereGeometry(0.15, 6, 4), new THREE.MeshBasicMaterial({ color: 0xffaa44 }));
-    thruster.position.x = -0.75; ship.add(thruster);
+    const cabin = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), noFog(new THREE.MeshStandardMaterial({ color: 0xccffff, emissive: 0x44aadd, emissiveIntensity: 0.7 })));
+    cabin.position.x = 0.45; ship.add(cabin);
+    const fin = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.0, 0.1), noFog(new THREE.MeshStandardMaterial({ color: cfg.color, metalness: 0.5, emissive: cfg.color, emissiveIntensity: 0.2 })));
+    fin.position.set(-0.35, 0.4, 0); ship.add(fin);
+    const thruster = new THREE.Mesh(new THREE.SphereGeometry(0.22, 6, 4), noFog(new THREE.MeshBasicMaterial({ color: 0xffcc66 })));
+    thruster.position.x = -0.95; ship.add(thruster);
     ship.userData = {
       kind: i === 2 ? 'spacecraft' : 'starship',
-      a: Math.random() * 6.28, speed: 0.15 + Math.random() * 0.2,
-      r: 50 + i * 8, y: 40 + i * 6, bob: Math.random() * 6.28, thruster,
+      a: i * 2.1, speed: 0.35 + i * 0.08,
+      r: 18 + i * 4, y: 20 + i * 3.5, bob: i, thruster,
     };
     ship.scale.setScalar(cfg.scale); sky.add(ship); S.sky.craft.push(ship);
   });
 
-  // Sao băng thỉnh thoảng (1 điểm tái sử dụng)
   const streakGeo = new THREE.BufferGeometry();
   streakGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6), 3));
-  const streak = new THREE.Line(streakGeo, new THREE.LineBasicMaterial({ color: 0xaaccff, transparent: true, opacity: 0 }));
+  const streak = new THREE.Line(streakGeo, noFog(new THREE.LineBasicMaterial({ color: 0xccddff, transparent: true, opacity: 0 })));
   sky.add(streak); S.sky.streak = streak; S.sky.streakT = -1;
 
   scene.add(sky);
@@ -1127,70 +1121,54 @@ function buildSky() {
 
 function updateSky(dt, t, dusk) {
   if (!S.sky) return;
-  // Hiện dần khi về đêm
-  const night = Math.min(1, Math.max(0, (dusk - 0.25) / 0.75));
-  const op = night * night;
-  S.sky.dome.material.opacity = op * 0.85;
-  S.sky.stars.material.opacity = op * 0.95;
-  S.sky.milky.material.opacity = op * 0.55;
-  S.sky.earth.material.opacity = op * 0.95;
-  if (S.sky.atmo) S.sky.atmo.material.opacity = op * 0.2;
-  S.sky.moon.material.opacity = op * 0.9;
-  S.sky.root.visible = night > 0.02;
+  // Hiện ngay khi đã khá tối
+  const night = Math.min(1, Math.max(0.35, dusk));
+  S.sky.dome.material.opacity = 0.55 + night * 0.4;
+  S.sky.stars.material.opacity = 0.7 + night * 0.3;
+  S.sky.milky.material.opacity = 0.45 + night * 0.35;
+  S.sky.root.visible = true;
 
-  // Trái Đất quay chậm
-  S.sky.earth.rotation.y += dt * 0.05;
-  S.sky.milky.rotation.z = 0.35 + Math.sin(t * 0.02) * 0.03;
+  S.sky.earth.rotation.y += dt * 0.08;
+  S.sky.milky.rotation.z = 0.4 + Math.sin(t * 0.03) * 0.04;
+  S.sky.stars.material.size = 2.0 + Math.sin(t * 3) * 0.35;
 
-  // Sao nhấp nháy nhẹ
-  S.sky.stars.material.size = 0.3 + Math.sin(t * 2.5) * 0.05;
-
-  // Vệ tinh quỹ đạo
   S.sky.sats.forEach(sat => {
     const u = sat.userData;
     u.a += u.speed * dt;
-    sat.position.set(Math.cos(u.a) * u.r, u.y + Math.sin(u.a * 2) * 3, Math.sin(u.a) * u.r * 0.7 - 20);
-    sat.lookAt(0, 30, 0);
-    sat.visible = night > 0.3;
-    if (u.blink) u.blink.visible = Math.sin(t * 8 + u.a) > 0.3;
+    sat.position.set(Math.cos(u.a) * u.r, u.y + Math.sin(u.a * 2) * 1.5, Math.sin(u.a) * u.r * 0.55 - 5);
+    sat.lookAt(0, 20, 0);
+    if (u.blink) u.blink.visible = Math.sin(t * 10 + u.a) > 0;
   });
 
-  // Craft bay
   S.sky.craft.forEach(c => {
     const u = c.userData;
-    c.visible = night > 0.2;
     if (u.kind === 'aircraft') {
       u.x += u.speed * dt;
-      if (u.x > 90) { u.x = -90; u.z = -30 + Math.random() * 50; u.y = 28 + Math.random() * 14; }
-      c.position.set(u.x, u.y + Math.sin(t + u.phase) * 0.4, u.z);
-      c.rotation.y = -Math.PI / 2;
-      c.rotation.z = Math.sin(t * 0.5 + u.phase) * 0.05;
+      if (u.x > 55) { u.x = -55; u.z = -12 + Math.random() * 20; }
+      c.position.set(u.x, u.y + Math.sin(t + u.phase) * 0.3, u.z);
+      c.rotation.set(0, -Math.PI / 2, Math.sin(t * 0.5 + u.phase) * 0.04);
     } else {
       u.a += u.speed * dt;
-      c.position.set(Math.cos(u.a) * u.r, u.y + Math.sin(t * 0.8 + u.bob) * 2, Math.sin(u.a) * u.r * 0.65 - 25);
-      c.lookAt(c.position.x + Math.cos(u.a + 0.2), c.position.y, c.position.z + Math.sin(u.a + 0.2));
-      if (u.thruster) u.thruster.scale.setScalar(0.8 + Math.sin(t * 12) * 0.35);
+      c.position.set(Math.cos(u.a) * u.r, u.y + Math.sin(t * 0.9 + u.bob) * 1.2, Math.sin(u.a) * u.r * 0.5 - 8);
+      c.lookAt(c.position.x - Math.sin(u.a), c.position.y, c.position.z + Math.cos(u.a));
+      if (u.thruster) u.thruster.scale.setScalar(0.85 + Math.sin(t * 14) * 0.4);
     }
   });
 
-  // Sao băng
-  if (S.sky.streakT < 0 && night > 0.5 && Math.random() < 0.004) {
-    S.sky.streakT = 0.7;
-    const x0 = -40 + Math.random() * 80, y0 = 50 + Math.random() * 20, z0 = -40 + Math.random() * 30;
-    S.sky.streakFrom = { x: x0, y: y0, z: z0 };
-    S.sky.streakDir = { x: 20 + Math.random() * 15, y: -12 - Math.random() * 8, z: 10 };
+  if (S.sky.streakT < 0 && Math.random() < 0.012) {
+    S.sky.streakT = 0.85;
+    S.sky.streakFrom = { x: -25 + Math.random() * 20, y: 34 + Math.random() * 10, z: -15 };
+    S.sky.streakDir = { x: 28, y: -10, z: 8 };
   }
   if (S.sky.streakT > 0) {
     S.sky.streakT -= dt;
-    const f = S.sky.streakFrom, d = S.sky.streakDir, p = 1 - S.sky.streakT / 0.7;
+    const f = S.sky.streakFrom, d = S.sky.streakDir, p = 1 - S.sky.streakT / 0.85;
     const arr = S.sky.streak.geometry.attributes.position.array;
     arr[0] = f.x + d.x * p; arr[1] = f.y + d.y * p; arr[2] = f.z + d.z * p;
-    arr[3] = f.x + d.x * (p + 0.08); arr[4] = f.y + d.y * (p + 0.08); arr[5] = f.z + d.z * (p + 0.08);
+    arr[3] = f.x + d.x * (p + 0.12); arr[4] = f.y + d.y * (p + 0.12); arr[5] = f.z + d.z * (p + 0.12);
     S.sky.streak.geometry.attributes.position.needsUpdate = true;
-    S.sky.streak.material.opacity = night * Math.sin(p * Math.PI) * 0.9;
-  } else {
-    S.sky.streak.material.opacity = 0;
-  }
+    S.sky.streak.material.opacity = Math.sin(p * Math.PI) * 0.95;
+  } else S.sky.streak.material.opacity = 0;
 }
 
 /* ========== HẠT: KHÓI · ĐOM ĐÓM · CÁNH HOA ========== */
@@ -1495,7 +1473,7 @@ $('btn-guide-skip').onclick = finishGuide;
 
 function startPlay() {
   S.playing = true; $('hud').style.display = 'block'; updateVisitorUI();
-  toast(`Chào ${S.name}! Superman đứng bên phải lối vào.`);
+  toast(`Chào ${S.name}! Kéo nhìn lên trời — có sao, Trái Đất và tàu bay.`);
 }
 
 $('btn-mute').onclick = () => setMute(!S.muted);
@@ -1541,7 +1519,7 @@ canvas.addEventListener('pointermove', e => {
   // Kéo ngang xoay, kéo dọc: lên = nhìn trời/tháp, xuống = nhìn sân
   S.yaw -= dx * 0.0055;
   S.pitch += dy * 0.0045;
-  S.pitch = Math.max(-0.55, Math.min(1.15, S.pitch)); // âm = nhìn lên, dương = nhìn xuống
+  S.pitch = Math.max(-0.95, Math.min(1.15, S.pitch)); // âm = nhìn lên trời
 });
 const endLook = e => { if (e.pointerId === lookPtr) { S.drag = false; lookPtr = null; } };
 canvas.addEventListener('pointerup', endLook); canvas.addEventListener('pointercancel', endLook);
@@ -2175,8 +2153,8 @@ function updatePlayer(dt) {
   const cy = playerRoot.position.y + 1.35 + Math.sin(phi) * dist;
   const cz = pz + Math.cos(S.yaw) * dist * Math.max(0.12, cosP);
   camera.position.lerp(_v.set(cx, Math.max(0.6, cy), cz), 1 - Math.pow(0.0008, dt));
-  // Khi ngẩng nhìn (phi < 0) điểm nhìn nâng cao để thấy tháp / bầu trời
-  const lookY = 1.35 + (phi < 0 ? -phi * 14 : 0);
+  // Khi ngẩng nhìn: điểm nhìn nâng cao rõ để thấy Trái Đất / sao / tàu
+  const lookY = 1.35 + (phi < 0 ? -phi * 28 : 0);
   _v2.set(px, lookY, pz);
   camera.lookAt(_v2);
 
@@ -2213,7 +2191,7 @@ function updateWorld(dt, t) {
   scene.background.setRGB(0.16 - d * 0.12, 0.09 - d * 0.07, 0.14 - d * 0.04);
   scene.fog.color.copy(scene.background);
   // Giảm sương khi nhìn trời đêm
-  scene.fog.density = 0.012 + d * 0.004;
+  scene.fog.density = 0.008; // giữ thấp để bầu trời không bị nuốt
   hemi.intensity = 0.55 - d * 0.28;
   sun.intensity = 0.95 - d * 0.7;
   sun.color.setRGB(1, 0.65 - d * 0.25, 0.35 - d * 0.2);

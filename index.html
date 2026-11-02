@@ -324,24 +324,14 @@ input,textarea,.input{touch-action:manipulation;user-select:text;-webkit-user-se
 </div>
 <div id="bubbles"></div>
 
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js",
-    "firebase/auth": "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js",
-    "firebase/database": "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js"
-  }
-}
-</script>
 <script type="module">
-/* Lên Chùa Cầu An — cảnh · nhân vật · khách AI · hoạt động · âm thanh · lưu · chia sẻ · multiplayer Firebase */
-import * as THREE from 'three';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+/* Lên Chùa Cầu An — import URL đầy đủ (không phụ thuộc importmap — Cursor / WebView cũ vẫn chạy) */
+import * as THREE from './vendor/three.module.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import {
   getDatabase, ref, set, update, onValue, onChildAdded, push, remove, onDisconnect, runTransaction, serverTimestamp, query, limitToLast
-} from 'firebase/database';
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
 
 /* ========== FIREBASE (điền config project free của bạn) ========== */
 const FIREBASE_CONFIG = {
@@ -3385,9 +3375,7 @@ function updatePlayer(dt) {
   const phi = S.pitch;
   const cosP = Math.cos(phi);
   const px = playerRoot.position.x, pz = playerRoot.position.z;
-  const backX = Math.sin(S.yaw), backZ = Math.cos(S.yaw);
-  const rightX = Math.cos(S.yaw), rightZ = -Math.sin(S.yaw);
-  const fwdX = -backX, fwdZ = -backZ;
+  const backX = -fwdX, backZ = -fwdZ;
   const eyeH = 1.52;
   const useEye = S.fpsMode || (S.aiming && armed);
 

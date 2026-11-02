@@ -917,6 +917,7 @@ const S = {
   musicBeatT: 0, musicPulseRings: [], musicNotesCaught: 0,
   khachHoaAm: false, _musicNoteSpawn: 0, _musicBeatPulseAt: 0, _musicDanceCue: 0,
   musicHost: false, musicMuted: false, musicByName: '', _musicNetReady: false,
+  musicStartedAt: 0, streetMusicShared: null, _wasOnAnLacStreet: false,
 };
 const MAX_HP = 100;
 const NPC_MAX_HP = 100;
@@ -3265,6 +3266,8 @@ function hangShopProductBoard(shop, face, rootGroup, depth = 2.6) {
   );
   // Biển sản phẩm cạnh cửa (mặt tiền nhìn ra phố)
   board.position.set(0.85, 1.7, zFront);
+  // Quán phía bắc (face=-1): plane mặc định +Z nhìn vào tường → chữ ngược; xoay 180° nhìn ra phố
+  if (face < 0) board.rotation.y = Math.PI;
   rootGroup.add(board);
   box(2.0, 1.55, 0.07, M.woodD, 0.85, 1.7, zFront - face * 0.06, rootGroup, false);
   return board;
@@ -3330,10 +3333,11 @@ function buildStreetDistrict() {
     box(1.35, 1.7, 0.08, M.woodD, -0.55, 1.15, face * (d / 2 + 0.08), g);
     const awning = box(w + 0.15, 0.08, 1.05, mat(s.isNem ? 0xc45c2a : 0xd4a017, 0.7), 0, 2.2, face * (d / 2 + 0.2), g);
     awning.rotation.x = face * 0.35;
-    // Biển hiệu tên quán
+    // Biển hiệu tên quán — luôn hướng ra lòng phố (không chữ ngược)
     const nameBoard = textPlane(s.name, 320, 56, '#fff8e8', s.boardBg || '#3a2010', 18);
     nameBoard.position.set(0, 3.05, face * (d / 2 + 0.12));
     nameBoard.scale.set(2.35, 0.42, 1);
+    if (face < 0) nameBoard.rotation.y = Math.PI;
     g.add(nameBoard);
     // Ảnh / poster sản phẩm trên mặt tiền
     hangShopProductBoard(s, face, g, d);
@@ -4593,10 +4597,19 @@ function updateGossipCircle(dt, t) {
     }
   }
 
+  // Vào / trở lại Phố An Lạc → tự phát nhạc phố đang chạy (cùng nhịp online)
+  if (playerRoot) {
+    const onStreet = isOnAnLacStreet();
+    if (onStreet && !S._wasOnAnLacStreet) {
+      try { tryJoinStreetMusic({ unmute: true, toast: true }); } catch (_) {}
+    }
+    S._wasOnAnLacStreet = onStreet;
+  }
   // Toast khi lần đầu bước ra phố (cổng bên phải)
   if (playerRoot && playerRoot.position.x > 14.5 && !S._streetEntered) {
     S._streetEntered = true;
     toast('🛤️ Phố An Lạc — quán đầu là Nem Chua · biển hiệu + ảnh món');
+    try { tryJoinStreetMusic({ unmute: true, toast: true }); } catch (_) {}
     // Soft tip: ghé 1 quán (không đụng daily goal hard)
     if (shopVisitCount() < 4) {
       setTimeout(() => toast('☕ Thử đứng gần biển hiệu quán — nút Ghé quán sẽ hiện'), 4200);
@@ -8239,6 +8252,8 @@ function goToStreetGate() {
   if (player) player.rotation.y = 0;
   S._streetEntered = true;
   toast('🛤️ Giữa Phố An Lạc — tìm 5 điều kỳ quanh đây');
+  // Cử chỉ bấm nút/phím P → tự vào nhạc phố đang phát (có tiếng, cùng mốc thời gian)
+  try { tryJoinStreetMusic({ unmute: true, toast: true }); } catch (_) {}
   if (!S._phoKyAoTip) {
     S._phoKyAoTip = true;
     setTimeout(() => {
@@ -11433,7 +11448,21 @@ function paintMusicBoardPoster(videoId, title, byName) {
   img.src = `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 }
 
-function mountStreetVideo(videoId, title, muted) {
+function isOnAnLacStreet() {
+  if (!playerRoot) return false;
+  const x = playerRoot.position.x;
+  const z = playerRoot.position.z;
+  const sz = STREET_Z;
+  return x > 13.5 && x < 31 && z > sz - 12 && z < sz + 12;
+}
+
+function streetMusicElapsedSec(startedAt) {
+  const t0 = startedAt || S.musicStartedAt || 0;
+  if (!t0) return 0;
+  return Math.max(0, Math.min(60 * 60 * 4, Math.floor((Date.now() - t0) / 1000)));
+}
+
+function mountStreetVideo(videoId, title, muted, startSec = 0) {
   const frame = $('yt-yard-frame');
   const yard = $('yt-yard');
   if (!frame || !yard) return;
@@ -11444,10 +11473,10 @@ function mountStreetVideo(videoId, title, muted) {
   }
   const origin = encodeURIComponent(location.origin || 'https://localhost');
   const mute = muted ? '&mute=1' : '';
+  const start = (startSec | 0) > 0 ? `&start=${startSec | 0}` : '';
   const nice = String(title || 'YouTube').replace(/"/g, '');
-  // youtube.com + Referrer-Policy — tránh Error 153 (player configuration)
-  // controls=1 để bấm Play nếu trình duyệt chặn autoplay
-  const src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&controls=1${mute}&origin=${origin}`;
+  // youtube.com + Referrer-Policy — tránh Error 153; start= để mọi người nghe cùng chỗ
+  const src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1&controls=1${mute}${start}&origin=${origin}`;
   frame.innerHTML = `<iframe
     src="${src}"
     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -11464,13 +11493,16 @@ function mountStreetVideo(videoId, title, muted) {
 
 function publishStreetMusic(id, title) {
   if (!fbDb || !S.uid) return;
+  const startedAt = Date.now();
+  S.musicStartedAt = startedAt;
   try {
     set(ref(fbDb, 'street/music'), {
       id,
       title: String(title || 'YouTube').slice(0, 80),
       by: S.uid,
       byName: S.name || 'Ai đó',
-      at: Date.now(),
+      at: startedAt,
+      startedAt,
     });
   } catch (_) {}
 }
@@ -11480,29 +11512,65 @@ function clearStreetMusic() {
   try { set(ref(fbDb, 'street/music'), null); } catch (_) {}
 }
 
+/** Vào Phố An Lạc → tự phát nhạc phố đang chiếu (cùng nhịp với mọi người) */
+function tryJoinStreetMusic(opts = {}) {
+  const data = S.streetMusicShared;
+  if (!data?.id) return false;
+  const id = parseYoutubeId(data.id) || String(data.id || '');
+  if (!id || !/^[\w-]{11}$/.test(id)) return false;
+  const startedAt = data.startedAt || data.at || Date.now();
+  if (S.musicPlaying && S.musicVideoId === id) {
+    if (opts.unmute && S.musicMuted) {
+      S.musicMuted = false;
+      mountStreetVideo(id, data.title || S.musicTitle || 'YouTube', false, streetMusicElapsedSec(startedAt));
+      if (opts.toast) toast('🔊 Nhạc phố — nghe cùng mọi người');
+    }
+    return true;
+  }
+  playMusicOnYard(id, data.title || 'YouTube', {
+    skipNet: true,
+    remote: data.by !== S.uid,
+    byName: data.byName || '',
+    startedAt,
+    silent: !opts.toast,
+    wantSound: true,
+  });
+  return true;
+}
+
 function bindStreetMusicSync() {
   if (!fbDb || S._musicNetReady) return;
   S._musicNetReady = true;
   onValue(ref(fbDb, 'street/music'), snap => {
     const data = snap.val();
+    S.streetMusicShared = data || null;
     if (!data || !data.id) {
       if (S.musicPlaying) stopMusicOnYard({ skipNet: true, silent: true });
+      S.musicStartedAt = 0;
       return;
     }
     const id = parseYoutubeId(data.id) || String(data.id || '');
     if (!id || !/^[\w-]{11}$/.test(id)) return;
+    S.musicStartedAt = data.startedAt || data.at || S.musicStartedAt || Date.now();
     if (S.musicPlaying && S.musicVideoId === id) {
       S.musicHost = data.by === S.uid;
       S.musicByName = data.byName || '';
       return;
     }
-    const remote = data.by !== S.uid;
-    playMusicOnYard(id, data.title || 'YouTube', {
-      skipNet: true,
-      remote,
-      byName: data.byName || '',
-      silent: remote,
-    });
+    // Chỉ auto phát khi đang đứng trên Phố An Lạc — mọi người nghe cùng lúc
+    if (isOnAnLacStreet() || S._streetEntered) {
+      playMusicOnYard(id, data.title || 'YouTube', {
+        skipNet: true,
+        remote: data.by !== S.uid,
+        byName: data.byName || '',
+        startedAt: data.startedAt || data.at,
+        silent: true,
+        wantSound: true,
+      });
+      if (isOnAnLacStreet()) {
+        toast(`🎵 Nhạc phố · ${String(data.title || 'YouTube').slice(0, 40)}`);
+      }
+    }
   });
 }
 
@@ -11514,6 +11582,7 @@ function stopMusicOnYard(opts = {}) {
   S.musicHost = false;
   S.musicMuted = false;
   S.musicByName = '';
+  S.musicStartedAt = 0;
   clearMusicBoardPoster();
   const yard = $('yt-yard');
   const frame = $('yt-yard-frame');
@@ -11570,7 +11639,9 @@ function playMusicOnYard(videoId, title, opts = {}) {
   if (remote) S.musicHost = false;
   else if (!opts.skipNet) S.musicHost = true;
   S.musicByName = opts.byName || (remote ? '' : (S.name || ''));
-  S.musicMuted = !!remote;
+  // wantSound: phát có tiếng cho cả phòng (đã có cử chỉ vào game / vào phố)
+  S.musicMuted = opts.wantSound ? false : !!remote;
+  S.musicStartedAt = opts.startedAt || (!opts.skipNet ? Date.now() : (S.musicStartedAt || Date.now()));
   S.musicBeatT = 0;
   S._musicNoteSpawn = 0;
 
@@ -11584,10 +11655,11 @@ function playMusicOnYard(videoId, title, opts = {}) {
     saveAll();
   }
 
-  // Poster trên mesh bảng + iframe YouTube thật (xem + nghe)
+  // Poster trên mesh bảng + iframe YouTube (autoplay + seek cùng nhịp)
   paintMusicBoardPoster(id, niceTitle, S.musicByName);
   setMusicNowTip(`▶ ${niceTitle}`);
-  mountStreetVideo(id, niceTitle, S.musicMuted);
+  const startSec = streetMusicElapsedSec(S.musicStartedAt);
+  mountStreetVideo(id, niceTitle, S.musicMuted, startSec);
   const now = $('yt-yard-now');
   if (now) {
     now.textContent = S.musicByName ? `${niceTitle} · ${S.musicByName}` : niceTitle;
@@ -11604,7 +11676,8 @@ function playMusicOnYard(videoId, title, opts = {}) {
   for (let i = 0; i < 4; i++) setTimeout(() => spawnMusicNote(), 200 + i * 120);
 
   closeMusicPanel();
-  if (!remote) goToMusicScreen();
+  if (!remote && isOnAnLacStreet()) goToMusicScreen();
+  else if (!remote) goToMusicScreen();
   updateMusicBtn();
   const stopBtn = $('music-stop');
   if (stopBtn) stopBtn.style.display = '';
@@ -11612,12 +11685,7 @@ function playMusicOnYard(videoId, title, opts = {}) {
   if (!opts.skipNet) publishStreetMusic(id, niceTitle);
 
   if (!opts.silent) {
-    if (remote) {
-      toast(`🎵 Màn phố đang phát · ${niceTitle} · bấm Hòa nhịp / Play để nghe`);
-    } else {
-      toast(`🎵 Đang phát · ${niceTitle} — xem cửa sổ YouTube phía dưới`);
-      setTimeout(() => toast('Nếu không có tiếng: bấm ▶ trên khung YouTube'), 1200);
-    }
+    toast(`🎵 Đang phát cho cả phố · ${niceTitle}${startSec ? ` · từ ${startSec}s` : ''}`);
   }
   try { playWhoosh(); } catch (_) {}
   if (!remote) {
@@ -11630,8 +11698,13 @@ function playMusicOnYard(videoId, title, opts = {}) {
 function unmuteStreetMusic() {
   if (!S.musicPlaying || !S.musicVideoId) return;
   S.musicMuted = false;
-  mountStreetVideo(S.musicVideoId, S.musicTitle || 'YouTube', false);
-  toast('🔊 Đã bật tiếng màn phố');
+  mountStreetVideo(
+    S.musicVideoId,
+    S.musicTitle || 'YouTube',
+    false,
+    streetMusicElapsedSec(S.musicStartedAt)
+  );
+  toast('🔊 Đã bật tiếng — nghe cùng phố');
 }
 
 /** ④ Kéo ngay một nhóm AI tới trước màn để nhún */
